@@ -2,75 +2,70 @@ package game.board.content;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A grid on a Go game board.
  * Created by erik.huizinga on 23-1-17.
  */
-public class Grid {
+public abstract class Grid {
 
   /**
-   * The playable {@code Board} grid, i.e., the points that may be {@code BoardFeatures.EMPTY} or
-   * hold a {@code Stone}.
+   * The grid, a {@code Map} of {@code Integer} indices with {@code Content}s.
    */
-  private final Map<Integer, BoardContent> playableGrid = new HashMap<>();
-
+  private final Map<Integer, Content> grid = new HashMap<>();
   /**
-   * The full {@code Board} grid, i.e., the playable grid surrounded by one layer of {@code
-   * BoardFeatures.SIDE} points.
+   * The map of subscript indices ({@code {x, y}}) to linear indices (horizontally incremental from
+   * the top left to bottom right), with {@code x} horizontally incremental from the left and {@code
+   * y} vertically incremental from the top.
    */
-  private final Map<Integer, BoardContent> fullGrid = new HashMap<>();
-
-  /**
-   * The four neighbours of every {@code Point} on the playable grid.
-   */
-  private final Map<Integer, Set<Map<Integer, BoardContent>>> neighbors = new HashMap<>();
+  private final Map<int[], Integer> sub2IndMap = new HashMap<>();
+  private final Map<Integer, int[]> ind2SubMap = new HashMap<>();
 
   public Grid(int boardSideLength) {
-    initializeFullGrid(boardSideLength);
-    initializePlayableGrid(boardSideLength);
-    initializeNeighbors(boardSideLength);
+    init(boardSideLength);
   }
 
   /**
-   * Initialise the full grid.
-   *
-   * @param boardSideLength The single-side board size.
+   * @return the grid.
    */
-  private void initializeFullGrid(int boardSideLength) {
+  public Map<Integer, Content> getGrid() {
+    return grid;
   }
 
   /**
-   * Initialise the playable grid.
+   * Initialise the {@code Grid} by setting all values to {@code Point.EMPTY} and initialise
+   * the {@code sub2Ind} and {@code ind2Sub} methods.
    *
-   * @param boardSideLength The single-side board size.
+   * @param dim The length of the {@code game.board.Board}}.
    */
-  private void initializePlayableGrid(int boardSideLength) {
   public void init(int dim) {
     int sub[] = new int[2];
     for (int ind = 0; ind < dim; ind++) {
       grid.put(ind, new Point(Point.EMPTY));
+      sub[0] = ind / dim;  // Get column, i.e., x
+      sub[1] = ind % dim;  // Get row, i.e., y
+      ind2SubMap.put(ind, sub);
+      sub2IndMap.put(sub, ind);
     }
   }
 
   /**
-   * Initialise the neighbours of the playable grid.
+   * Get the linear index on the grid from the subscript indices.
    *
-   * @param boardSideLength The single-side
+   * @param sub The subscript indices.
+   * @return The linear index.
    */
-  private void initializeNeighbors(int boardSideLength) {
+  public int sub2Ind(int[] sub) {
+    return (sub2IndMap.containsKey(sub)) ? sub2IndMap.get(sub) : -1;
   }
 
-  public Map<Integer, BoardContent> getFullGrid() {
-    return fullGrid;
-  }
-
-  public Map<Integer, BoardContent> getPlayableGrid() {
-    return playableGrid;
-  }
-
-  public Map<Integer, Set<Map<Integer, BoardContent>>> getNeighbors() {
-    return neighbors;
+  /**
+   * get the subscript indices on the grid from the linear index.
+   *
+   * @param ind The linear index.
+   * @return The subscript indices.
+   */
+  public int[] ind2Sub(int ind) {
+    return (ind2SubMap.containsKey(ind)) ? ind2SubMap.get(ind) : new int[]{-1, -1};
   }
 }
