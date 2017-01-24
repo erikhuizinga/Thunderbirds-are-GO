@@ -7,7 +7,27 @@ public abstract class Content {
 
   private final String content;
 
+  /**
+   * Construct the content of a location on the game board.
+   *
+   * @param content the content.
+   */
   public Content(String content) {
     this.content = content;
+  }
+
+  /**
+   * @return the content.
+   */
+  public String get() {
+    return content;
+  }
+
+  /**
+   * @return {@code true} if a {@code Stone} can be played on this {@code Content}; {@code false}
+   * otherwise.
+   */
+  public boolean isPlayable() {
+    return false;
   }
 }
