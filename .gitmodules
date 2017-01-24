@@ -1,0 +1,3 @@
+[submodule "submodules/GoProtocol"]
+	path = submodules/GoProtocol
+	url = https://github.com/MinThaMie/GoProtocol.git
