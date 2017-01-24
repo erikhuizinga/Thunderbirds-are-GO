@@ -47,6 +47,11 @@ public class Grid {
    * @param boardSideLength The single-side board size.
    */
   private void initializePlayableGrid(int boardSideLength) {
+  public void init(int dim) {
+    int sub[] = new int[2];
+    for (int ind = 0; ind < dim; ind++) {
+      grid.put(ind, new Point(Point.EMPTY));
+    }
   }
 
   /**
