@@ -1,6 +1,4 @@
-package game.board;
-
-import game.PointContent;
+package game.board.content;
 
 /**
  * Created by erik.huizinga on 23-1-17.
