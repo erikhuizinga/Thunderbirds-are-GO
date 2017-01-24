@@ -5,4 +5,10 @@ package players;
  */
 public interface Player {
 
+  /**
+   * Return the {@code Player} name.
+   * @return the name.
+   */
+  public String getName();
+
 }
