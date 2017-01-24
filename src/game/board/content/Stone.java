@@ -10,15 +10,18 @@ public class Stone extends Content {
    * Created by erik.huizinga on 23-1-17.
    */
 
+  /**
+   * An empty point, i.e., a {@code Point} without a {@code Stone} on the {@code Grid}.
+   */
+  public static final String BLACK = "⬤";
 
-    /**
-     * An empty point, i.e., a {@code Point} without a {@code Stone} on the {@code Grid}.
-     */
-    public static final String BLACK = "⬤";
+  /**
+   * A board side, i.e., a point one location unit outside the playable {@code Grid} where no
+   * {@Stone} may be played.
+   */
+  public static final String WHITE = "◯";
 
-    /**
-     * A board side, i.e., a point one location unit outside the playable {@code Grid} where no
-     * {@Stone} may be played.
-     */
-    public static final String WHITE = "◯";
+  public Stone(String content) {
+    super(content);
+  }
 }
