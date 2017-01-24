@@ -7,7 +7,7 @@ import java.util.Map;
  * A grid on a Go game board.
  * Created by erik.huizinga on 23-1-17.
  */
-public abstract class Grid {
+public class Grid {
 
   /**
    * The grid, a {@code Map} of {@code Integer} indices with {@code Content}s.
