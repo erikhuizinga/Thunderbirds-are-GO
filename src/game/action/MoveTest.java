@@ -1,4 +1,4 @@
-package test.game.action;
+package game.action;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
