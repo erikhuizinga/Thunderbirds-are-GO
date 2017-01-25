@@ -20,23 +20,23 @@ public class Grid {
    * the left and {@code y} vertically incremental from the top. All indices range from 0 to the
    * playable grid dimension plus two (see {@code Grid}).
    */
-  private final Map<List<Integer>, Integer> sub2IndMap = new HashMap<>();
+  private final Map<List<Integer>, Integer> sub2IndMap;
 
   /**
    * The map of linear indices to subscript indices.
    */
-  private final Map<Integer, List<Integer>> ind2SubMap = new HashMap<>();
+  private final Map<Integer, List<Integer>> ind2SubMap;
 
   /**
    * The full grid, a {@code Map} of {@code Integer} linear indices with {@code Content}s.
    */
-  private final Map<Integer, Content> grid = new HashMap<>();
+  private final Map<Integer, Content> grid;
 
   /**
    * The neighbour map, containing the linear indices to the four neighbours as value to the linear
    * index keys.
    */
-  private final Map<Integer, List<Integer>> neighbors = new HashMap<>();
+  private final Map<Integer, List<Integer>> neighbors;
 
   /**
    * The square playable grid single-side dimension.
@@ -57,7 +57,38 @@ public class Grid {
       throw new AssertionError("dim must be greater than zero");
     }
     this.dim = dim;
+    sub2IndMap = new HashMap<>();
+    ind2SubMap = new HashMap<>();
+    grid = new HashMap<>();
+    neighbors = new HashMap<>();
     init();
+  }
+
+  /**
+   * Instantiate a new {@code Grid} as a copy of another.
+   *
+   * @param grid the grid to copy.
+   */
+  public Grid(Grid grid) {
+    dim = grid.getDim();
+    sub2IndMap = grid.getSub2IndMap();
+    ind2SubMap = grid.getInd2SubMap();
+    this.grid = new HashMap<>(grid.getGrid());
+    neighbors = grid.getNeighbors();
+  }
+
+  /**
+   * @return the sub 2 ind map
+   */
+  private Map<List<Integer>, Integer> getSub2IndMap() {
+    return sub2IndMap;
+  }
+
+  /**
+   * @return the ind 2 sub map
+   */
+  private Map<Integer, List<Integer>> getInd2SubMap() {
+    return ind2SubMap;
   }
 
   public Map<Integer, List<Integer>> getNeighbors() {
@@ -76,6 +107,16 @@ public class Grid {
    */
   private Map<Integer, Content> getGrid() {
     return grid;
+  }
+
+  /**
+   * Put the specified {@code Content} in the full grid at the specified linear index.
+   *
+   * @param ind the linear index.
+   * @param content the {@code Content}.
+   */
+  public void put(int ind, Content content) {
+    getGrid().put(ind, content);
   }
 
   /**
