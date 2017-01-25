@@ -1,13 +1,13 @@
 package game.board.content;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 
 /**
- * A grid with contents on a Go game board.
+ * A grid with contents to be used on a Go game board.
  * Created by erik.huizinga on 23-1-17.
  */
 public class Grid {
@@ -72,24 +72,19 @@ public class Grid {
     int row;
     int col;
     for (int ind = 0; ind < fullDim() * fullDim(); ind++) {
-      row = ind / fullDim();
-      col = ind % fullDim();
+      // Store all the indices!
+      List<Integer> sub = ind2RowCol(ind);
+      ind2SubMap.put(ind, sub);
+      sub2IndMap.put(sub, ind);
 
       // Check if on boundary of full grid or playable grid
-      if (isBoundary(ind)) {
+      if (isBoundary(sub)) {
         // Boundary of full grid
         getGrid().put(ind, new Point(Point.SIDE));
       } else {
         // Playable grid
         getGrid().put(ind, new Point(Point.EMPTY));
       }
-
-      // Store all the indices!
-      List<Integer> sub = new ArrayList<>();
-      sub.add(row);
-      sub.add(col);
-      ind2SubMap.put(ind, sub);
-      sub2IndMap.put(sub, ind);
     }
   }
 
@@ -101,15 +96,26 @@ public class Grid {
   }
 
   /**
-   * Determine if the specified linear index is on a boundary, i.e., outside the playable grid.
-   * @param ind the linear index.
+   * Determine if the specified subscript indices point to a boundary of the full grid, i.e.,
+   * outside the playable grid.
+   *
+   * @param sub the subscript indices.
    * @return {@code true} if on a boundary; {@code false} otherwise.
    */
-  private boolean isBoundary(int ind) {
-    List<Integer> sub = ind2Sub(ind);
+  private boolean isBoundary(List<Integer> sub) {
     int row = sub.get(0);
     int col = sub.get(1);
     return row == 0 || row == fullDim() || col == 0 || col == fullDim();
+  }
+
+  /**
+   * Get the full grid's subscript indices based on the specified linear index.
+   *
+   * @param ind the linear index.
+   * @return the subscript indices.
+   */
+  private List<Integer> ind2RowCol(int ind) {
+    return Arrays.asList( /* row */ ind / fullDim(), /* col */ ind % fullDim());
   }
 
   /**
@@ -143,6 +149,13 @@ public class Grid {
   }
 
   public int playable2Ind(List<Integer> playable) {
-    return -1;  //TODO
+    for (int e : playable) {
+      if (!(e >= 0 && e < getDim())) {
+        throw new AssertionError("playable indices out of bounds");
+      }
+    }
+    UnaryOperator<Integer> plusplus = a -> a + 1;
+    playable.replaceAll(plusplus);
+    return sub2Ind(playable);
   }
 }
