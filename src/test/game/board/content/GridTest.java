@@ -1,10 +1,15 @@
 package test.game.board.content;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import game.board.content.Grid;
+import game.board.Grid;
 import game.board.content.Point;
+import game.board.content.Stone;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,7 +84,7 @@ class GridTest {
     assertThrows(AssertionError.class, () -> new Grid(0));
     assertEquals(Point.SIDE, grid1.get(0).getContent());
     assertEquals(Point.EMPTY, grid1.get(4).getContent());
-    assertThrows(NullPointerException.class, () -> grid1.get(100).getContent());
+    assertNull(grid1.get(100));
   }
 
   @Test
@@ -87,5 +92,26 @@ class GridTest {
     int result = grid1.getNeighborsMap().get(4).get(0);
     assertEquals(1, result);
     assertThrows(NullPointerException.class, () -> grid1.getNeighborsMap().get(5).get(0));
+  }
+
+  @Test
+  void testGridCopy() {
+    Grid grid1Copy = new Grid(grid1);
+    assertFalse(grid1.equals(grid1Copy));
+    assertTrue(grid1.get(5).equals(grid1Copy.get(5)));
+  }
+
+  @Test
+  void testPut() {
+    Stone black = new Stone(Stone.BLACK);
+    Stone white = new Stone(Stone.WHITE);
+    grid1.put(4, black);
+    assertEquals(black, grid1.get(4));
+    assertNotEquals(white, grid1.get(4));
+    // Test w/ copy
+    Grid grid1Copy = new Grid(grid1);
+    assertEquals(black, grid1Copy.get(4));
+    grid1Copy.put(4, white);
+    assertNotEquals(white, grid1.get(4));
   }
 }
