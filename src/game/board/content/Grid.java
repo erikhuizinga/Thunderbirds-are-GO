@@ -34,7 +34,7 @@ public class Grid {
    * The neighbour map, containing the linear indices to the four neighbours as value to the linear
    * index keys.
    */
-  private final Map<Integer, List<Integer>> neighbors = new HashMap<>();
+  private final Map<Integer, List<Integer>> neighborsMap = new HashMap<>();
 
   /**
    * The square playable grid single-side dimension.
@@ -58,8 +58,8 @@ public class Grid {
     init();
   }
 
-  public Map<Integer, List<Integer>> getNeighbors() {
-    return neighbors;
+  public Map<Integer, List<Integer>> getNeighborsMap() {
+    return neighborsMap;
   }
 
   /**
@@ -101,7 +101,7 @@ public class Grid {
       // Store all the neighbour indices!
       List<Integer> sub = ind2RowCol(ind);
       if (!isBoundary(sub)) {
-        getNeighbors().put(ind, findNeighbors(sub));
+        getNeighborsMap().put(ind, findNeighbors(sub));
       }
     }
   }
