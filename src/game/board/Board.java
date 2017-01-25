@@ -1,6 +1,5 @@
 package game.board;
 
-import game.board.content.Grid;
 import java.util.Observable;
 
 /**

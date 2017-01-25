@@ -1,5 +1,7 @@
-package game.board.content;
+package game.board;
 
+import game.board.content.Content;
+import game.board.content.Point;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;

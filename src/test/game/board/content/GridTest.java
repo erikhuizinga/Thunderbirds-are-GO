@@ -3,7 +3,7 @@ package test.game.board.content;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import game.board.content.Grid;
+import game.board.Grid;
 import game.board.content.Point;
 import java.util.Arrays;
 import java.util.List;
