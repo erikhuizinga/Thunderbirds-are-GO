@@ -19,7 +19,7 @@ public abstract class Content {
   /**
    * @return the content.
    */
-  public String get() {
+  public String getContent() {
     return content;
   }
 

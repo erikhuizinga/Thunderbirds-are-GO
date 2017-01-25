@@ -25,7 +25,7 @@ public class Point extends Content {
 
   @Override
   public boolean isPlayable() {
-    switch (get()) {
+    switch (getContent()) {
       case EMPTY:
         return true;
       default:
