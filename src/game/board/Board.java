@@ -1,5 +1,9 @@
 package game.board;
 
+import game.board.content.Content;
+import game.board.content.Stone;
+import java.util.Arrays;
+
 /**
  * A Go board.
  * Created by erik.huizinga on 23-1-17.
@@ -21,7 +25,7 @@ public class Board {
    *
    * @param dim the dimension.
    */
-  Board(int dim) {
+  public Board(int dim) {
     this.dim = dim;
     setGrid(new Grid(dim));
   }
@@ -31,7 +35,7 @@ public class Board {
    *
    * @param board the board to copy.
    */
-  Board(Board board) {
+  public Board(Board board) {
     dim = board.getDim();
     setGrid(new Grid(board.getGrid()));
   }
@@ -55,5 +59,27 @@ public class Board {
    */
   public int getDim() {
     return dim;
+  }
+
+  /**
+   * Put the specified {@code Stone} on the {@code Board} at the specified playable grid indices.
+   *
+   * @param x the horizontal index of the playable grid.
+   * @param y the vertical index of the playable grid.
+   * @param stone the {@code Stone}.
+   */
+  public void put(int x, int y, Stone stone) {
+    getGrid().put(getGrid().playable2Ind(Arrays.asList(x, y)), stone);
+  }
+
+  /**
+   * Get the {@code Content} on the {@code Board} at the specified playable indices.
+   *
+   * @param x the horizontal playable index.
+   * @param y the vertical playable index.
+   * @return the {@code Content}.
+   */
+  public Content get(int x, int y) {
+    return getGrid().get(getGrid().playable2Ind(Arrays.asList(x, y)));
   }
 }
