@@ -5,4 +5,13 @@ package players;
  */
 public class ComputerPlayer implements Player {
 
+  /**
+   * Return the {@code Player} name.
+   *
+   * @return the name.
+   */
+  @Override
+  public String getName() {
+    return null;
+  }
 }
