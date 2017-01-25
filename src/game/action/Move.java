@@ -1,7 +1,7 @@
 package game.action;
 
-import game.board.Board;
-import game.board.content.Stone;
+import game.material.board.Board;
+import game.material.Stone;
 
 /**
  * A move by a player.

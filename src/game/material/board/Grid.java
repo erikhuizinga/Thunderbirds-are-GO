@@ -1,7 +1,7 @@
-package game.board;
+package game.material.board;
 
-import game.board.content.Content;
-import game.board.content.Point;
+import game.material.GameMaterial;
+import game.material.BoardFeature;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -28,9 +28,9 @@ public class Grid {
   private final Map<Integer, List<Integer>> ind2SubMap;
 
   /**
-   * The full grid, a {@code Map} of {@code Integer} linear indices with {@code Content}s.
+   * The full grid, a {@code Map} of {@code Integer} linear indices with {@code GameMaterial}s.
    */
-  private final Map<Integer, Content> grid;
+  private final Map<Integer, GameMaterial> grid;
 
   /**
    * The neighbour map, containing the linear indices to the four neighbours as value to the linear
@@ -45,8 +45,8 @@ public class Grid {
 
   /**
    * Construct a square {@code Grid} with single-side dimensions as specified. The grid contains the
-   * playable part of the game board, initialised as {@code Point.EMPTY}, as well as the surrounding
-   * sides, initialised as {@code Point.SIDE}. Therefore, the playable grid has the dimension as
+   * playable part of the game board, initialised as {@code BoardFeature.EMPTY}, as well as the surrounding
+   * sides, initialised as {@code BoardFeature.SIDE}. Therefore, the playable grid has the dimension as
    * specified, but with the boundaries included the full grid single-side dimension is the playable
    * single-side dimension plus two.
    *
@@ -105,23 +105,23 @@ public class Grid {
   /**
    * @return the full grid.
    */
-  private Map<Integer, Content> getGrid() {
+  private Map<Integer, GameMaterial> getGrid() {
     return grid;
   }
 
   /**
-   * Put the specified {@code Content} in the full grid at the specified linear index.
+   * Put the specified {@code GameMaterial} in the full grid at the specified linear index.
    *
    * @param ind the linear index.
-   * @param content the {@code Content}.
+   * @param gameMaterial the {@code GameMaterial}.
    */
-  public void put(int ind, Content content) {
-    getGrid().put(ind, content);
+  public void put(int ind, GameMaterial gameMaterial) {
+    getGrid().put(ind, gameMaterial);
   }
 
   /**
-   * Initialise the {@code Grid} by setting the content of the playable grid to {@code Point.EMPTY},
-   * the content of the boundaries to {@code Point.SIDE} and initialise the {@code sub2Ind} and
+   * Initialise the {@code Grid} by setting the material of the playable grid to {@code BoardFeature.EMPTY},
+   * the material of the boundaries to {@code BoardFeature.SIDE} and initialise the {@code sub2Ind} and
    * {@code ind2Sub} methods.
    */
   private void init() {
@@ -131,13 +131,13 @@ public class Grid {
       ind2SubMap.put(ind, sub);
       sub2IndMap.put(sub, ind);
 
-      // Check location of current index and put content on the full grid
+      // Check location of current index and put material on the full grid
       if (isBoundary(sub)) {
         // Boundary of full grid
-        getGrid().put(ind, new Point(Point.SIDE));
+        getGrid().put(ind, BoardFeature.SIDE);
       } else {
         // Playable grid
-        getGrid().put(ind, new Point(Point.EMPTY));
+        getGrid().put(ind, BoardFeature.EMPTY);
       }
     }
     for (int ind = 0; ind < getFullDim() * getFullDim(); ind++) {
@@ -198,12 +198,12 @@ public class Grid {
   }
 
   /**
-   * Get the {@code Content} of the {@code Grid} at the specified linear index.
+   * Get the {@code GameMaterial} of the {@code Grid} at the specified linear index.
    *
    * @param ind the linear index.
-   * @return the {@code Content}.
+   * @return the {@code GameMaterial}.
    */
-  public Content get(int ind) {
+  public GameMaterial get(int ind) {
     return getGrid().get(ind);
   }
 

@@ -7,9 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import game.board.Grid;
-import game.board.content.Point;
-import game.board.content.Stone;
+import game.material.board.Grid;
+import game.material.BoardFeature;
+import game.material.Stone;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,8 +82,8 @@ class GridTest {
   @Test
   void testInit() {
     assertThrows(AssertionError.class, () -> new Grid(0));
-    assertEquals(Point.SIDE, grid1.get(0).getContent());
-    assertEquals(Point.EMPTY, grid1.get(4).getContent());
+    assertEquals(BoardFeature.SIDE, grid1.get(0));
+    assertEquals(BoardFeature.EMPTY, grid1.get(4));
     assertNull(grid1.get(100));
   }
 
@@ -103,8 +103,8 @@ class GridTest {
 
   @Test
   void testPut() {
-    Stone black = new Stone(Stone.BLACK);
-    Stone white = new Stone(Stone.WHITE);
+    Stone black = Stone.BLACK;
+    Stone white = Stone.WHITE;
     grid1.put(4, black);
     assertEquals(black, grid1.get(4));
     assertNotEquals(white, grid1.get(4));
