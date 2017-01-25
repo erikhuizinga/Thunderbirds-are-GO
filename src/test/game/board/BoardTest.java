@@ -3,8 +3,8 @@ package test.game.board;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import game.board.Board;
-import game.board.content.Stone;
+import game.material.board.Board;
+import game.material.Stone;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +21,7 @@ class BoardTest {
   @BeforeEach
   void setUp() {
     board = new Board(dim);
-    blackStone = new Stone(Stone.BLACK);
+    blackStone = Stone.BLACK;
   }
 
   @Test

@@ -1,7 +1,7 @@
-package game.board;
+package game.material.board;
 
-import game.board.content.Content;
-import game.board.content.Stone;
+import game.material.GameMaterial;
+import game.material.Stone;
 import java.util.Arrays;
 
 /**
@@ -16,7 +16,7 @@ public class Board {
   private final int dim;
 
   /**
-   * The grid in which the board's content is stored.
+   * The grid in which the board's material is stored.
    */
   private Grid grid;
 
@@ -73,13 +73,13 @@ public class Board {
   }
 
   /**
-   * Get the {@code Content} on the {@code Board} at the specified playable indices.
+   * Get the {@code GameMaterial} on the {@code Board} at the specified playable indices.
    *
    * @param x the horizontal playable index.
    * @param y the vertical playable index.
-   * @return the {@code Content}.
+   * @return the {@code GameMaterial}.
    */
-  public Content get(int x, int y) {
+  public GameMaterial get(int x, int y) {
     return getGrid().get(getGrid().playable2Ind(Arrays.asList(x, y)));
   }
 }

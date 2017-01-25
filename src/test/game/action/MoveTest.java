@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import game.action.Move;
-import game.board.Board;
-import game.board.content.Stone;
+import game.material.board.Board;
+import game.material.Stone;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +27,7 @@ class MoveTest {
     board = new Board(5);
     x = 0;
     y = 0;
-    blackStone = new Stone(Stone.BLACK);
+    blackStone = Stone.BLACK;
     move = new Move(x, y, blackStone);
   }
 
