@@ -3,10 +3,7 @@ package game.action;
 import game.material.board.Board;
 import game.material.Stone;
 
-/**
- * A move by a player.
- * Created by erik.huizinga on 24-1-17.
- */
+/** A move by a player. Created by erik.huizinga on 24-1-17. */
 public class Move {
 
   private final Stone stone;

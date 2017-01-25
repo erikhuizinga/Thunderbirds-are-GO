@@ -8,10 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 
-/**
- * A grid with contents to be used on a Go game board.
- * Created by erik.huizinga on 23-1-17.
- */
+/** A grid with contents to be used on a Go game board. Created by erik.huizinga on 23-1-17. */
 public class Grid {
 
   /**
@@ -22,14 +19,10 @@ public class Grid {
    */
   private final Map<List<Integer>, Integer> sub2IndMap;
 
-  /**
-   * The map of linear indices to subscript indices.
-   */
+  /** The map of linear indices to subscript indices. */
   private final Map<Integer, List<Integer>> ind2SubMap;
 
-  /**
-   * The full grid, a {@code Map} of {@code Integer} linear indices with {@code GameMaterial}s.
-   */
+  /** The full grid, a {@code Map} of {@code Integer} linear indices with {@code GameMaterial}s. */
   private final Map<Integer, GameMaterial> grid;
 
   /**
@@ -38,17 +31,15 @@ public class Grid {
    */
   private final Map<Integer, List<Integer>> neighborsMap;
 
-  /**
-   * The square playable grid single-side dimension.
-   */
+  /** The square playable grid single-side dimension. */
   private final int dim;
 
   /**
    * Construct a square {@code Grid} with single-side dimensions as specified. The grid contains the
-   * playable part of the game board, initialised as {@code BoardFeature.EMPTY}, as well as the surrounding
-   * sides, initialised as {@code BoardFeature.SIDE}. Therefore, the playable grid has the dimension as
-   * specified, but with the boundaries included the full grid single-side dimension is the playable
-   * single-side dimension plus two.
+   * playable part of the game board, initialised as {@code BoardFeature.EMPTY}, as well as the
+   * surrounding sides, initialised as {@code BoardFeature.SIDE}. Therefore, the playable grid has
+   * the dimension as specified, but with the boundaries included the full grid single-side
+   * dimension is the playable single-side dimension plus two.
    *
    * @param dim the playable grid single-side dimension.
    */
@@ -77,16 +68,12 @@ public class Grid {
     neighborsMap = grid.getNeighborsMap();
   }
 
-  /**
-   * @return the sub 2 ind map
-   */
+  /** @return the sub 2 ind map */
   private Map<List<Integer>, Integer> getSub2IndMap() {
     return sub2IndMap;
   }
 
-  /**
-   * @return the ind 2 sub map
-   */
+  /** @return the ind 2 sub map */
   private Map<Integer, List<Integer>> getInd2SubMap() {
     return ind2SubMap;
   }
@@ -95,16 +82,12 @@ public class Grid {
     return neighborsMap;
   }
 
-  /**
-   * @return the single-side dimension of the playable grid.
-   */
+  /** @return the single-side dimension of the playable grid. */
   private int getDim() {
     return dim;
   }
 
-  /**
-   * @return the full grid.
-   */
+  /** @return the full grid. */
   private Map<Integer, GameMaterial> getGrid() {
     return grid;
   }
@@ -120,9 +103,9 @@ public class Grid {
   }
 
   /**
-   * Initialise the {@code Grid} by setting the material of the playable grid to {@code BoardFeature.EMPTY},
-   * the material of the boundaries to {@code BoardFeature.SIDE} and initialise the {@code sub2Ind} and
-   * {@code ind2Sub} methods.
+   * Initialise the {@code Grid} by setting the material of the playable grid to {@code
+   * BoardFeature.EMPTY}, the material of the boundaries to {@code BoardFeature.SIDE} and initialise
+   * the {@code sub2Ind} and {@code ind2Sub} methods.
    */
   private void init() {
     for (int ind = 0; ind < getFullDim() * getFullDim(); ind++) {
@@ -149,9 +132,7 @@ public class Grid {
     }
   }
 
-  /**
-   * @return the full grid single-side dimension.
-   */
+  /** @return the full grid single-side dimension. */
   private int getFullDim() {
     return getDim() + 2;
   }
@@ -163,7 +144,7 @@ public class Grid {
    * @return the subscript indices.
    */
   private List<Integer> ind2RowCol(int ind) {
-    return Arrays.asList( /* row */ ind / getFullDim(), /* col */ ind % getFullDim());
+    return Arrays.asList(/* row */ ind / getFullDim(), /* col */ ind % getFullDim());
   }
 
   /**
@@ -177,11 +158,11 @@ public class Grid {
     int row = sub2Row(sub);
     int col = sub2Col(sub);
     return Arrays.asList(
-        sub2Ind(Arrays.asList(row - 1, col)),  // North
-        sub2Ind(Arrays.asList(row, col + 1)),  // East
-        sub2Ind(Arrays.asList(row + 1, col)),  // South
-        sub2Ind(Arrays.asList(row, col - 1))   // West
-    );
+        sub2Ind(Arrays.asList(row - 1, col)), // North
+        sub2Ind(Arrays.asList(row, col + 1)), // East
+        sub2Ind(Arrays.asList(row + 1, col)), // South
+        sub2Ind(Arrays.asList(row, col - 1)) // West
+        );
   }
 
   /**
