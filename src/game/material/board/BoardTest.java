@@ -1,4 +1,4 @@
-package test.game.board;
+package game.material.board;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -8,9 +8,7 @@ import game.material.Stone;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Created by erik.huizinga on 25-1-17.
- */
+/** Created by erik.huizinga on 25-1-17. */
 class BoardTest {
 
   Board board;

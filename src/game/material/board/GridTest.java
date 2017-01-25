@@ -1,4 +1,4 @@
-package test.game.board.content;
+package game.material.board;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
