@@ -84,8 +84,8 @@ class GridTest {
 
   @Test
   void testNeighbors() {
-    int result = grid1.getNeighbors().get(4).get(0);
+    int result = grid1.getNeighborsMap().get(4).get(0);
     assertEquals(1, result);
-    assertThrows(NullPointerException.class, () -> grid1.getNeighbors().get(5).get(0));
+    assertThrows(NullPointerException.class, () -> grid1.getNeighborsMap().get(5).get(0));
   }
 }
