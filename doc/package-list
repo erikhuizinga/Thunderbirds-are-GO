@@ -1,7 +1,9 @@
 game
-game.board
-game.board.content
-game.rules
+game.action
+game.material
+game.material.board
 players
 players.strategy
+test.game.action
+test.game.board
 test.game.board.content
