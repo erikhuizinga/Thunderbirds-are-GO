@@ -45,12 +45,6 @@ class GridTest {
     failSub = Arrays.asList(-1, -1);
   }
 
-
-  @Test
-  void testInitAssertion() {
-    assertThrows(AssertionError.class, () -> new Grid(0));
-  }
-
   @Test
   void testSub2Ind() {
     assertEquals(ind1, grid1.sub2Ind(sub1));
@@ -82,8 +76,16 @@ class GridTest {
 
   @Test
   void testInit() {
+    assertThrows(AssertionError.class, () -> new Grid(0));
     assertEquals(Point.SIDE, grid1.get(0).getContent());
     assertEquals(Point.EMPTY, grid1.get(4).getContent());
     assertThrows(NullPointerException.class, () -> grid1.get(100).getContent());
+  }
+
+  @Test
+  void testNeighbors() {
+    int result = grid1.getNeighbors().get(4).get(0);
+    assertEquals(1, result);
+    assertThrows(NullPointerException.class, () -> grid1.getNeighbors().get(5).get(0));
   }
 }

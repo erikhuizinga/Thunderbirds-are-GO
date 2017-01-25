@@ -16,7 +16,7 @@ public class Grid {
    * The map of subscript indices ({@code Arrays.asList(x, y)}) to linear indices (horizontally
    * incremental from the top left to bottom right), with {@code x} horizontally incremental from
    * the left and {@code y} vertically incremental from the top. All indices range from 0 to the
-   * playable grid dimension plus two (see {@code {@link Grid}}).
+   * playable grid dimension plus two (see {@code Grid}).
    */
   private final Map<List<Integer>, Integer> sub2IndMap = new HashMap<>();
 
@@ -30,6 +30,15 @@ public class Grid {
    */
   private final Map<Integer, Content> grid = new HashMap<>();
 
+  /**
+   * The neighbour map, containing the linear indices to the four neighbours as value to the linear
+   * index keys.
+   */
+  private final Map<Integer, List<Integer>> neighbors = new HashMap<>();
+
+  /**
+   * The square playable grid single-side dimension.
+   */
   private final int dim;
 
   /**
@@ -49,10 +58,14 @@ public class Grid {
     init();
   }
 
+  public Map<Integer, List<Integer>> getNeighbors() {
+    return neighbors;
+  }
+
   /**
    * @return the single-side dimension of the playable grid.
    */
-  public int getDim() {
+  private int getDim() {
     return dim;
   }
 
@@ -68,16 +81,14 @@ public class Grid {
    * the content of the boundaries to {@code Point.SIDE} and initialise the {@code sub2Ind} and
    * {@code ind2Sub} methods.
    */
-  protected void init() {
-    int row;
-    int col;
-    for (int ind = 0; ind < fullDim() * fullDim(); ind++) {
+  private void init() {
+    for (int ind = 0; ind < getFullDim() * getFullDim(); ind++) {
       // Store all the indices!
       List<Integer> sub = ind2RowCol(ind);
       ind2SubMap.put(ind, sub);
       sub2IndMap.put(sub, ind);
 
-      // Check if on boundary of full grid or playable grid
+      // Check location of current index and put content on the full grid
       if (isBoundary(sub)) {
         // Boundary of full grid
         getGrid().put(ind, new Point(Point.SIDE));
@@ -86,13 +97,48 @@ public class Grid {
         getGrid().put(ind, new Point(Point.EMPTY));
       }
     }
+    for (int ind = 0; ind < getFullDim() * getFullDim(); ind++) {
+      // Store all the neighbour indices!
+      List<Integer> sub = ind2RowCol(ind);
+      if (!isBoundary(sub)) {
+        getNeighbors().put(ind, findNeighbors(sub));
+      }
+    }
   }
 
   /**
    * @return the full grid single-side dimension.
    */
-  private int fullDim() {
+  private int getFullDim() {
     return getDim() + 2;
+  }
+
+  /**
+   * Get the full grid's subscript indices based on the specified linear index.
+   *
+   * @param ind the linear index.
+   * @return the subscript indices.
+   */
+  private List<Integer> ind2RowCol(int ind) {
+    return Arrays.asList( /* row */ ind / getFullDim(), /* col */ ind % getFullDim());
+  }
+
+  /**
+   * Get the linear indices to the four neighbours on the full grid of the specified subscript
+   * indices.
+   *
+   * @param sub the subscript indices.
+   * @return the four linear indices to the neighbours.
+   */
+  private List<Integer> findNeighbors(List<Integer> sub) {
+    int row = sub2Row(sub);
+    int col = sub2Col(sub);
+    return Arrays.asList(
+        sub2Ind(Arrays.asList(row - 1, col)),  // North
+        sub2Ind(Arrays.asList(row, col + 1)),  // East
+        sub2Ind(Arrays.asList(row + 1, col)),  // South
+        sub2Ind(Arrays.asList(row, col - 1))   // West
+    );
   }
 
   /**
@@ -103,19 +149,9 @@ public class Grid {
    * @return {@code true} if on a boundary; {@code false} otherwise.
    */
   private boolean isBoundary(List<Integer> sub) {
-    int row = sub.get(0);
-    int col = sub.get(1);
-    return row == 0 || row == fullDim() || col == 0 || col == fullDim();
-  }
-
-  /**
-   * Get the full grid's subscript indices based on the specified linear index.
-   *
-   * @param ind the linear index.
-   * @return the subscript indices.
-   */
-  private List<Integer> ind2RowCol(int ind) {
-    return Arrays.asList( /* row */ ind / fullDim(), /* col */ ind % fullDim());
+    int row = sub2Row(sub);
+    int col = sub2Col(sub);
+    return row == 0 || row == getFullDim() - 1 || col == 0 || col == getFullDim() - 1;
   }
 
   /**
@@ -148,6 +184,12 @@ public class Grid {
     return (ind2SubMap.containsKey(ind)) ? ind2SubMap.get(ind) : Arrays.asList(-1, -1);
   }
 
+  /**
+   * Get the full grid linear index from the specified playable grid subscript indices.
+   *
+   * @param playable the playable subscript indices.
+   * @return the full grid linear index.
+   */
   public int playable2Ind(List<Integer> playable) {
     for (int e : playable) {
       if (!(e >= 0 && e < getDim())) {
@@ -157,5 +199,21 @@ public class Grid {
     UnaryOperator<Integer> plusplus = a -> a + 1;
     playable.replaceAll(plusplus);
     return sub2Ind(playable);
+  }
+
+  /**
+   * @param sub the subscript indices.
+   * @return the row subscript index
+   */
+  private int sub2Row(List<Integer> sub) {
+    return sub.get(0);
+  }
+
+  /**
+   * @param sub the subscript indices.
+   * @return the column subscript index
+   */
+  private int sub2Col(List<Integer> sub) {
+    return sub.get(1);
   }
 }
