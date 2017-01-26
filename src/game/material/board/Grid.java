@@ -359,7 +359,7 @@ public class Grid {
         string += generateGameMaterialString(get(ind));
       }
 
-      if (ind != getFullDim() * getFullDim() - 1) { // Not last index
+      if (ind < getFullDim() * getFullDim() - 1) { // Not last index
         if (col == getDim() + 1) { // Add a new line character at the end of every row
           string += "\n";
         } else { // Add a space between every column
@@ -381,28 +381,6 @@ public class Grid {
   }
 
   /**
-   * Calculate the number of spaces to prepend to an element in a block for the {@code toString}
-   * method.
-   *
-   * @param num the number to calculate the order of.
-   * @return the number of spaces to prepend.
-   */
-  private int prependFunction(int num) {
-    return (int) Math.floor((getMaxNumSpaces() - Math.log10(num) - 1) / 2) + 1;
-  }
-
-  /**
-   * Calculate the number of spaces to append to an element in a block for the {@code toString}
-   * method.
-   *
-   * @param num the number to calculate the order of.
-   * @return the number of spaces to append.
-   */
-  private int appendFunction(int num) {
-    return (int) Math.floor((getMaxNumSpaces() - Math.log10(num)) / 2);
-  }
-
-  /**
    * Create one building block for the {@code toString} method.
    *
    * @param element the {@code String} element to put in the block.
@@ -416,5 +394,27 @@ public class Grid {
     string += element;
     string += repeat(SPACE, spaces2Append);
     return string;
+  }
+
+  /**
+   * Calculate the number of spaces to prepend to an element in a block for the {@code toString}
+   * method.
+   *
+   * @param num the number to calculate the order of.
+   * @return the number of spaces to prepend.
+   */
+  private int prependFunction(int num) {
+    return (getMaxNumSpaces() - ((int) Math.log10(num)) + 1) / 2;
+  }
+
+  /**
+   * Calculate the number of spaces to append to an element in a block for the {@code toString}
+   * method.
+   *
+   * @param num the number to calculate the order of.
+   * @return the number of spaces to append.
+   */
+  private int appendFunction(int num) {
+    return (getMaxNumSpaces() - ((int) Math.log10(num))) / 2;
   }
 }
