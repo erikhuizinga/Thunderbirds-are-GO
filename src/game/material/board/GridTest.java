@@ -7,11 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import game.material.board.Grid;
 import game.material.BoardFeature;
 import game.material.Stone;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,12 +25,17 @@ class GridTest {
   private Grid grid1;
   private List<Integer> sub1;
   private int ind1;
+
   private Grid grid2;
   private List<Integer> sub2;
   private int ind2;
+
   private Grid grid3;
   private List<Integer> sub3;
   private int ind3;
+
+  private Grid grid19;
+
   private int failInd;
   private List<Integer> failSub;
 
@@ -45,6 +52,8 @@ class GridTest {
     grid3 = new Grid(3);
     sub3 = Arrays.asList(2, 2);
     ind3 = 12;
+
+    grid19 = new Grid(19);
 
     failInd = -1;
     failSub = Arrays.asList(-1, -1);
@@ -117,7 +126,57 @@ class GridTest {
 
   @Test
   void testToString() {
-    String grid1String = grid1.toString();
-    System.out.println(grid1String);
+    String grid1FilePath = "src/game/material/board/GridTestString1.txt";
+    String grid19FilePath = "src/game/material/board/GridTestString19.txt";
+
+    // Write some grids to text files
+    /*
+    try {
+      Writer writer = new PrintWriter(
+          new FileOutputStream(grid1FilePath));
+      writer.write(grid1.toString());
+      writer.flush();
+
+      writer = new PrintWriter(
+          new FileOutputStream(grid19FilePath));
+      writer.write(grid19.toString());
+      writer.flush();
+
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+      System.exit(1);
+    } catch (IOException e) {
+      e.printStackTrace();
+      System.exit(2);
+    }
+    */
+
+    String grid1String = "";
+    try (Scanner scanner = new Scanner(new FileReader(grid1FilePath))) {
+      while (scanner.hasNextLine()) {
+        grid1String += scanner.nextLine() + "\n";
+      }
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+
+    String grid19String = "";
+    try (Scanner scanner = new Scanner(new FileReader(grid19FilePath))) {
+      while (scanner.hasNextLine()) {
+        grid19String += scanner.nextLine() + "\n";
+      }
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+
+    System.out.println(grid1);
+    System.out.println(grid19);
+
+    grid1String = grid1String.substring(0, grid1String.length() - 1);
+    assertEquals(grid1String, grid1.toString());
+    grid19String = grid19String.substring(0, grid19String.length() - 1);
+    assertEquals(grid19String, grid19.toString());
   }
 }
