@@ -1,5 +1,7 @@
 package game.material;
 
+import game.material.board.Grid;
+
 /**
  * Points on the actual board, i.e., empty spaces and outer sides of the grid.
  *
@@ -7,7 +9,9 @@ package game.material;
  */
 public enum BoardFeature implements GameMaterial {
 
-  /** An empty point, i.e., a {@code BoardFeature} without a {@code Stone} on the {@code Grid}. */
+  /**
+   * An empty point, i.e., a {@code BoardFeature} without a {@code Stone} on the {@code Grid}.
+   */
   EMPTY,
 
   /**
@@ -18,7 +22,7 @@ public enum BoardFeature implements GameMaterial {
 
   /**
    * @return {@code true} if a {@code Stone} can be played on top of this {@code GameMaterial};
-   *     {@code false} otherwise.
+   * {@code false} otherwise.
    */
   @Override
   public boolean isPlayable() {
@@ -30,7 +34,9 @@ public enum BoardFeature implements GameMaterial {
     }
   }
 
-  /** @return the {@code BoardFeature} as a {@code String}. */
+  /**
+   * @return the {@code BoardFeature} as a {@code String}.
+   */
   @Override
   public String toString() {
     String string;
@@ -39,7 +45,7 @@ public enum BoardFeature implements GameMaterial {
         string = "·";
         break;
       case SIDE:
-        string = " ";
+        string = Grid.SPACE;
         break;
       default:
         string = null;
