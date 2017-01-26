@@ -337,33 +337,34 @@ public class Grid {
       if (isBoundary(sub)) { // Set boundary numbers
         if (row == 0 || row == getDim() + 1) { // Set column number on first and last row
           if (col == 0 || col == getDim() + 1) {
-            string += generateSideBlock();
+            string += generateGameMaterialString(BoardFeature.SIDE);
 
           } else {
             spaces2Prepend = prependFunction(col);
             spaces2Append = appendFunction(col);
-            string += generateToStringBlock(Integer.toString(col), spaces2Prepend, spaces2Append);
+            string += generateGridString(Integer.toString(col), spaces2Prepend, spaces2Append);
           }
 
         } else { // Set row number on first and last column
           if (row == 0 || row == getDim() + 1) {
-            string += generateSideBlock();
+            string += generateGameMaterialString(BoardFeature.SIDE);
 
           } else {
-//            spaces2Prepend = (int) (maxNumSpaces - Math.log10(row) - 1) / 2 + 1;
-//            spaces2Append = (int) (maxNumSpaces - Math.log10(row)) / 2 + 1;
             spaces2Prepend = prependFunction(row);
             spaces2Append = appendFunction(row);
-            string += generateToStringBlock(Integer.toString(row), spaces2Prepend, spaces2Append);
+            string += generateGridString(Integer.toString(row), spaces2Prepend, spaces2Append);
           }
         }
+      } else { // Set playable field items
+        string += generateGameMaterialString(get(ind));
       }
 
-      if (col == getDim() + 1) { // Add a new line character at the end of every row
-        string += "\n";
-
-      } else { // Add a space between every column
-        string += SPACE;
+      if (ind != getFullDim() * getFullDim() - 1) { // Not last index
+        if (col == getDim() + 1) { // Add a new line character at the end of every row
+          string += "\n";
+        } else { // Add a space between every column
+          string += SPACE;
+        }
       }
     }
     return string;
@@ -372,11 +373,11 @@ public class Grid {
   /**
    * Generate a {@code toString} block for a {@code BoardFeature.SIDE}.
    */
-  private String generateSideBlock() {
-    String side = BoardFeature.SIDE.toString();
-    int spaces2Prepend = prependFunction(side.length());
-    int spaces2Append = appendFunction(side.length());
-    return generateToStringBlock(side, spaces2Prepend, spaces2Append);
+  private String generateGameMaterialString(GameMaterial material) {
+    String string = material.toString();
+    int spaces2Prepend = prependFunction(string.length());
+    int spaces2Append = appendFunction(string.length());
+    return generateGridString(string, spaces2Prepend, spaces2Append);
   }
 
   /**
@@ -409,7 +410,7 @@ public class Grid {
    * @param spaces2Append the number of spaces to append.
    * @return the block.
    */
-  private String generateToStringBlock(String element, int spaces2Prepend, int spaces2Append) {
+  private String generateGridString(String element, int spaces2Prepend, int spaces2Append) {
     String string = "";
     string += repeat(SPACE, spaces2Prepend);
     string += element;
