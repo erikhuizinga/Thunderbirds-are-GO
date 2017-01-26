@@ -1,14 +1,20 @@
 package game.material.board;
 
-import game.material.GameMaterial;
+import static util.StringTools.repeat;
+
 import game.material.BoardFeature;
+import game.material.GameMaterial;
+import game.material.Stone;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.UnaryOperator;
 
-/** A grid with contents to be used on a Go game board. Created by erik.huizinga on 23-1-17. */
+/**
+ * A grid with contents to be used on a Go game board. Created by erik.huizinga on 23-1-17.
+ */
 public class Grid {
 
   /**
@@ -19,10 +25,14 @@ public class Grid {
    */
   private final Map<List<Integer>, Integer> sub2IndMap;
 
-  /** The map of linear indices to subscript indices. */
+  /**
+   * The map of linear indices to subscript indices.
+   */
   private final Map<Integer, List<Integer>> ind2SubMap;
 
-  /** The full grid, a {@code Map} of {@code Integer} linear indices with {@code GameMaterial}s. */
+  /**
+   * The full grid, a {@code Map} of {@code Integer} linear indices with {@code GameMaterial}s.
+   */
   private final Map<Integer, GameMaterial> grid;
 
   /**
@@ -31,8 +41,20 @@ public class Grid {
    */
   private final Map<Integer, List<Integer>> neighborsMap;
 
-  /** The square playable grid single-side dimension. */
+  /**
+   * The square playable grid single-side dimension.
+   */
   private final int dim;
+
+  /**
+   * The maximum number of spaces around an element for padding in the {@code toString} method.
+   */
+  private final int maxNumSpaces;
+
+  /**
+   * The space character used by {@code Grid} in the {@code toString} method.
+   */
+  public static final String SPACE = " ";
 
   /**
    * Construct a square {@code Grid} with single-side dimensions as specified. The grid contains the
@@ -48,6 +70,7 @@ public class Grid {
       throw new AssertionError("dim must be greater than zero");
     }
     this.dim = dim;
+    maxNumSpaces = (int) Math.log10(dim);
     sub2IndMap = new HashMap<>();
     ind2SubMap = new HashMap<>();
     grid = new HashMap<>();
@@ -62,18 +85,23 @@ public class Grid {
    */
   public Grid(Grid grid) {
     dim = grid.getDim();
+    maxNumSpaces = grid.maxNumSpaces;
     sub2IndMap = grid.getSub2IndMap();
     ind2SubMap = grid.getInd2SubMap();
     this.grid = new HashMap<>(grid.getGrid());
     neighborsMap = grid.getNeighborsMap();
   }
 
-  /** @return the sub 2 ind map */
+  /**
+   * @return the sub 2 ind map
+   */
   private Map<List<Integer>, Integer> getSub2IndMap() {
     return sub2IndMap;
   }
 
-  /** @return the ind 2 sub map */
+  /**
+   * @return the ind 2 sub map
+   */
   private Map<Integer, List<Integer>> getInd2SubMap() {
     return ind2SubMap;
   }
@@ -82,12 +110,25 @@ public class Grid {
     return neighborsMap;
   }
 
-  /** @return the single-side dimension of the playable grid. */
+  /**
+   * @return the single-side dimension of the playable grid.
+   */
   private int getDim() {
     return dim;
   }
 
-  /** @return the full grid. */
+  /**
+   * Gets max num spaces.
+   *
+   * @return the max num spaces
+   */
+  public int getMaxNumSpaces() {
+    return maxNumSpaces;
+  }
+
+  /**
+   * @return the full grid.
+   */
   private Map<Integer, GameMaterial> getGrid() {
     return grid;
   }
@@ -132,7 +173,9 @@ public class Grid {
     }
   }
 
-  /** @return the full grid single-side dimension. */
+  /**
+   * @return the full grid single-side dimension.
+   */
   private int getFullDim() {
     return getDim() + 2;
   }
@@ -162,7 +205,7 @@ public class Grid {
         sub2Ind(Arrays.asList(row, col + 1)), // East
         sub2Ind(Arrays.asList(row + 1, col)), // South
         sub2Ind(Arrays.asList(row, col - 1)) // West
-        );
+    );
   }
 
   /**
@@ -194,7 +237,7 @@ public class Grid {
    * @param sub the subscript indices.
    * @return the linear index.
    */
-  public int sub2Ind(List<Integer> sub) {
+  int sub2Ind(List<Integer> sub) {
     return (sub2IndMap.containsKey(sub)) ? sub2IndMap.get(sub) : -1;
   }
 
@@ -204,7 +247,7 @@ public class Grid {
    * @param ind the linear index.
    * @return the subscript indices.
    */
-  public List<Integer> ind2Sub(int ind) {
+  List<Integer> ind2Sub(int ind) {
     return (ind2SubMap.containsKey(ind)) ? ind2SubMap.get(ind) : Arrays.asList(-1, -1);
   }
 
@@ -214,7 +257,7 @@ public class Grid {
    * @param playable the playable subscript indices.
    * @return the full grid linear index.
    */
-  public int playable2Ind(List<Integer> playable) {
+  int playable2Ind(List<Integer> playable) {
     for (int e : playable) {
       if (!(e >= 0 && e < getDim())) {
         throw new AssertionError("playable indices out of bounds");
@@ -239,5 +282,138 @@ public class Grid {
    */
   private int sub2Col(List<Integer> sub) {
     return sub.get(1);
+  }
+
+  /**
+   * @return the {@code Grid} represented as a {@code String}.
+   */
+  @Override
+  public String toString() {
+    // Preallocate variables
+    String string = "";
+    String side = BoardFeature.SIDE.toString();
+    String empty = BoardFeature.EMPTY.toString();
+    String black = Stone.BLACK.toString();
+    String white = Stone.WHITE.toString();
+    List<Integer> sub;
+    int row;
+    int col;
+    int spaces2Prepend;
+    int spaces2Append;
+    /*
+     * Example of spacing: the board dimensions are 19x19, so getDim() returns 19. This number
+     * requires two characters to be printed. The smallest number to print always is 1. This number
+     * would need to be padded with one additional space to align it correctly with the numbers of
+     * greater order of magnitude.
+     *
+     * Note: one space is always appended to any number to space them correctly.
+     *
+     * Output of an example with getDim() == 10 (with ␠ denoting horizontal whitespace):
+     * ␠␠␠1␠␠2␠␠3␠␠4␠␠5␠␠6␠␠7␠␠8␠␠9␠␠10␠␠\n
+     * ␠1␠·␠␠●␠␠·␠␠○␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠1\n
+     * ␠2␠●␠␠·␠␠●␠␠○␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠2\n
+     * ␠3␠·␠␠●␠␠·␠␠○␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠3\n
+     * ␠4␠·␠␠·␠␠○␠␠○␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠4\n
+     * ␠5␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠5\n
+     * ␠6␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠6\n
+     * ␠7␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠7\n
+     * ␠8␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠8\n
+     * ␠9␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠9\n
+     * 10␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠10\n
+     * ␠␠␠1␠␠2␠␠3␠␠4␠␠5␠␠6␠␠7␠␠8␠␠9␠␠10␠␠\n
+     *
+     * If the board size becomes of order of magnitude greater than 1, then spaces will be appended
+     * and prepended in an alternating pattern to numbers of smaller order of magnitude, e.g. ␠1␠␠,
+     * ␠10␠ and 100␠
+     */
+
+    for (Entry<Integer, List<Integer>> entry : getInd2SubMap().entrySet()) {
+      // Prepare iteration variables
+      int ind = entry.getKey();
+      sub = entry.getValue();
+      row = sub2Row(sub);
+      col = sub2Col(sub);
+
+      if (isBoundary(sub)) { // Set boundary numbers
+        if (row == 0 || row == getDim() + 1) { // Set column number on first and last row
+          if (col == 0 || col == getDim() + 1) {
+            string += generateSideBlock();
+
+          } else {
+            spaces2Prepend = prependFunction(col);
+            spaces2Append = appendFunction(col);
+            string += generateToStringBlock(Integer.toString(col), spaces2Prepend, spaces2Append);
+          }
+
+        } else { // Set row number on first and last column
+          if (row == 0 || row == getDim() + 1) {
+            string += generateSideBlock();
+
+          } else {
+//            spaces2Prepend = (int) (maxNumSpaces - Math.log10(row) - 1) / 2 + 1;
+//            spaces2Append = (int) (maxNumSpaces - Math.log10(row)) / 2 + 1;
+            spaces2Prepend = prependFunction(row);
+            spaces2Append = appendFunction(row);
+            string += generateToStringBlock(Integer.toString(row), spaces2Prepend, spaces2Append);
+          }
+        }
+      }
+
+      if (col == getDim() + 1) { // Add a new line character at the end of every row
+        string += "\n";
+
+      } else { // Add a space between every column
+        string += SPACE;
+      }
+    }
+    return string;
+  }
+
+  /**
+   * Generate a {@code toString} block for a {@code BoardFeature.SIDE}.
+   */
+  private String generateSideBlock() {
+    String side = BoardFeature.SIDE.toString();
+    int spaces2Prepend = prependFunction(side.length());
+    int spaces2Append = appendFunction(side.length());
+    return generateToStringBlock(side, spaces2Prepend, spaces2Append);
+  }
+
+  /**
+   * Calculate the number of spaces to prepend to an element in a block for the {@code toString}
+   * method.
+   *
+   * @param num the number to calculate the order of.
+   * @return the number of spaces to prepend.
+   */
+  private int prependFunction(int num) {
+    return (int) Math.floor((getMaxNumSpaces() - Math.log10(num) - 1) / 2) + 1;
+  }
+
+  /**
+   * Calculate the number of spaces to append to an element in a block for the {@code toString}
+   * method.
+   *
+   * @param num the number to calculate the order of.
+   * @return the number of spaces to append.
+   */
+  private int appendFunction(int num) {
+    return (int) Math.floor((getMaxNumSpaces() - Math.log10(num)) / 2);
+  }
+
+  /**
+   * Create one building block for the {@code toString} method.
+   *
+   * @param element the {@code String} element to put in the block.
+   * @param spaces2Prepend the number of spaces to prepend.
+   * @param spaces2Append the number of spaces to append.
+   * @return the block.
+   */
+  private String generateToStringBlock(String element, int spaces2Prepend, int spaces2Append) {
+    String string = "";
+    string += repeat(SPACE, spaces2Prepend);
+    string += element;
+    string += repeat(SPACE, spaces2Append);
+    return string;
   }
 }

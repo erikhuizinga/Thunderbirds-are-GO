@@ -15,7 +15,9 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/** Created by erik.huizinga on 24-1-17. */
+/**
+ * Created by erik.huizinga on 24-1-17.
+ */
 class GridTest {
 
   private Grid grid1;
@@ -49,7 +51,7 @@ class GridTest {
   }
 
   @Test
-  void testSub2Ind() {
+  void sub2Ind() {
     assertEquals(ind1, grid1.sub2Ind(sub1));
     assertEquals(ind1, grid2.sub2Ind(sub1));
     assertEquals(ind2, grid2.sub2Ind(sub2));
@@ -59,7 +61,7 @@ class GridTest {
   }
 
   @Test
-  void testInd2Sub() {
+  void ind2Sub() {
     assertEquals(sub1, grid1.ind2Sub(ind1));
     assertEquals(sub1, grid2.ind2Sub(ind1));
     assertEquals(sub2, grid2.ind2Sub(ind2));
@@ -69,7 +71,7 @@ class GridTest {
   }
 
   @Test
-  void testPlayable2Ind() {
+  void playable2Ind() {
     assertEquals(4, grid1.playable2Ind(Arrays.asList(0, 0)));
     assertEquals(5, grid2.playable2Ind(Arrays.asList(0, 0)));
     assertEquals(18, grid3.playable2Ind(Arrays.asList(2, 2)));
@@ -78,7 +80,7 @@ class GridTest {
   }
 
   @Test
-  void testInit() {
+  void init() {
     assertThrows(AssertionError.class, () -> new Grid(0));
     assertEquals(BoardFeature.SIDE, grid1.get(0));
     assertEquals(BoardFeature.EMPTY, grid1.get(4));
@@ -86,21 +88,21 @@ class GridTest {
   }
 
   @Test
-  void testNeighbors() {
+  void getNeighbors() {
     int result = grid1.getNeighborsMap().get(4).get(0);
     assertEquals(1, result);
     assertThrows(NullPointerException.class, () -> grid1.getNeighborsMap().get(5).get(0));
   }
 
   @Test
-  void testGridCopy() {
+  void gridCopy() {
     Grid grid1Copy = new Grid(grid1);
     assertFalse(grid1.equals(grid1Copy));
     assertTrue(grid1.get(5).equals(grid1Copy.get(5)));
   }
 
   @Test
-  void testPut() {
+  void put() {
     Stone black = Stone.BLACK;
     Stone white = Stone.WHITE;
     grid1.put(4, black);
@@ -111,5 +113,11 @@ class GridTest {
     assertEquals(black, grid1Copy.get(4));
     grid1Copy.put(4, white);
     assertNotEquals(white, grid1.get(4));
+  }
+
+  @Test
+  void testToString() {
+    String grid1String = grid1.toString();
+    System.out.println(grid1String);
   }
 }

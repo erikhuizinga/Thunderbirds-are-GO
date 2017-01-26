@@ -4,13 +4,19 @@ import game.material.GameMaterial;
 import game.material.Stone;
 import java.util.Arrays;
 
-/** A Go board. Created by erik.huizinga on 23-1-17. */
+/**
+ * A Go board. Created by erik.huizinga on 23-1-17.
+ */
 public class Board {
 
-  /** The single-side dimension of the playable square grid. */
+  /**
+   * The single-side dimension of the playable square grid.
+   */
   private final int dim;
 
-  /** The grid in which the board's material is stored. */
+  /**
+   * The grid in which the board's material is stored.
+   */
   private Grid grid;
 
   /**
@@ -33,17 +39,23 @@ public class Board {
     setGrid(new Grid(board.getGrid()));
   }
 
-  /** @return the grid */
+  /**
+   * @return the grid
+   */
   private Grid getGrid() {
     return grid;
   }
 
-  /** @param grid the grid */
+  /**
+   * @param grid the grid
+   */
   private void setGrid(Grid grid) {
     this.grid = grid;
   }
 
-  /** @return the single-side dimension of the playable square grid. */
+  /**
+   * @return the single-side dimension of the playable square grid.
+   */
   public int getDim() {
     return dim;
   }
@@ -68,5 +80,13 @@ public class Board {
    */
   public GameMaterial get(int x, int y) {
     return getGrid().get(getGrid().playable2Ind(Arrays.asList(x, y)));
+  }
+
+  /**
+   * @return the {@code Board} as a {@code String}.
+   */
+  @Override
+  public String toString() {
+    return getGrid().toString();
   }
 }
