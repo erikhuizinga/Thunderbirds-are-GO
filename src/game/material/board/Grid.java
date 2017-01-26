@@ -308,7 +308,8 @@ public class Grid {
      *
      * Note: one space is always appended to any number to space them correctly.
      *
-     * Output of an example with getDim() == 10 (with ␠ denoting horizontal whitespace):
+     * Output of an example board with getDim() == 10 (with ␠ denoting horizontal whitespace) and a
+     * few stones played:
      * ␠␠␠1␠␠2␠␠3␠␠4␠␠5␠␠6␠␠7␠␠8␠␠9␠␠10␠␠\n
      * ␠1␠·␠␠●␠␠·␠␠○␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠1\n
      * ␠2␠●␠␠·␠␠●␠␠○␠␠·␠␠·␠␠·␠␠·␠␠·␠␠·␠␠2\n
@@ -346,14 +347,9 @@ public class Grid {
           }
 
         } else { // Set row number on first and last column
-          if (row == 0 || row == getDim() + 1) {
-            string += generateGameMaterialString(BoardFeature.SIDE);
-
-          } else {
-            spaces2Prepend = prependFunction(row);
-            spaces2Append = appendFunction(row);
-            string += generateGridString(Integer.toString(row), spaces2Prepend, spaces2Append);
-          }
+          spaces2Prepend = prependFunction(row);
+          spaces2Append = appendFunction(row);
+          string += generateGridString(Integer.toString(row), spaces2Prepend, spaces2Append);
         }
       } else { // Set playable field items
         string += generateGameMaterialString(get(ind));
