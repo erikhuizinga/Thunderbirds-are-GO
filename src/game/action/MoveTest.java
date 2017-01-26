@@ -9,9 +9,7 @@ import game.material.Stone;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Created by erik.huizinga on 25-1-17.
- */
+/** Created by erik.huizinga on 25-1-17. */
 class MoveTest {
 
   int dim = 5;
@@ -24,7 +22,7 @@ class MoveTest {
 
   @BeforeEach
   void setUp() {
-    board = new Board(5);
+    board = new Board(dim);
     x = 0;
     y = 0;
     blackStone = Stone.BLACK;

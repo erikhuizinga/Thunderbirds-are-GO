@@ -3,14 +3,11 @@ package game.material;
 /**
  * Points on the actual board, i.e., empty spaces and outer sides of the grid.
  *
- * Created by erik.huizinga on 23-1-17.
+ * <p>Created by erik.huizinga on 23-1-17.
  */
-
 public enum BoardFeature implements GameMaterial {
 
-  /**
-   * An empty point, i.e., a {@code BoardFeature} without a {@code Stone} on the {@code Grid}.
-   */
+  /** An empty point, i.e., a {@code BoardFeature} without a {@code Stone} on the {@code Grid}. */
   EMPTY,
 
   /**
@@ -21,7 +18,7 @@ public enum BoardFeature implements GameMaterial {
 
   /**
    * @return {@code true} if a {@code Stone} can be played on top of this {@code GameMaterial};
-   * {@code false} otherwise.
+   *     {@code false} otherwise.
    */
   @Override
   public boolean isPlayable() {
@@ -33,9 +30,7 @@ public enum BoardFeature implements GameMaterial {
     }
   }
 
-  /**
-   * @return the {@code BoardFeature} as a {@code String}.
-   */
+  /** @return the {@code BoardFeature} as a {@code String}. */
   @Override
   public String toString() {
     String string;

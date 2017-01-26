@@ -15,9 +15,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Created by erik.huizinga on 24-1-17.
- */
+/** Created by erik.huizinga on 24-1-17. */
 class GridTest {
 
   private Grid grid1;
