@@ -125,14 +125,7 @@ public class TUI implements Observer {
     List<String> choiceNumbers = Arrays.asList("1", "2", "100");
     String[] choiceStrings = new String[] {"Local game", "Network game", "Exit"};
     MenuAction[] menuActions = new MenuAction[] {this::localMenu, this::netMenu, this::exitMenu};
-    Map<String, MenuAction> actionMap = new HashMap<>();
-    for (int i = 0; i < choiceNumbers.size(); i++) {
-      System.out.println(" " + choiceNumbers.get(i) + ". " + choiceStrings[i]);
-      actionMap.put(choiceNumbers.get(i), menuActions[i]);
-    }
-    System.out.println();
-
-    actionMap.get(readPromptWithLimitedChoices(DEFAULT_MENU_PROMPT, choiceNumbers)).go();
+    handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
   }
 
   /** Exit the {@code TUI}. */
@@ -172,14 +165,7 @@ public class TUI implements Observer {
           this::mainMenu,
           this::exitMenu
         };
-    Map<String, MenuAction> actionMap = new HashMap<>();
-    for (int i = 0; i < choiceNumbers.size(); i++) {
-      System.out.println(" " + choiceNumbers.get(i) + ". " + choiceStrings[i]);
-      actionMap.put(choiceNumbers.get(i), menuActions[i]);
-    }
-    System.out.println();
-
-    actionMap.get(readPromptWithLimitedChoices(DEFAULT_MENU_PROMPT, choiceNumbers)).go();
+    handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
   }
 
   /**
@@ -262,14 +248,7 @@ public class TUI implements Observer {
                     this::twoPlayerMenu),
             () -> keepIdenticalNames = true
           };
-      Map<String, MenuAction> actionMap = new HashMap<>();
-      for (int i = 0; i < choiceNumbers.size(); i++) {
-        System.out.println(" " + choiceNumbers.get(i) + ". " + choiceStrings[i]);
-        actionMap.put(choiceNumbers.get(i), menuActions[i]);
-      }
-      System.out.println();
-
-      actionMap.get(readPromptWithLimitedChoices(DEFAULT_MENU_PROMPT, choiceNumbers)).go();
+      handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
     }
 
     List<String> choiceNumbers = Arrays.asList("1", "2", "3", "4", "99", "100");
@@ -305,14 +284,24 @@ public class TUI implements Observer {
           this::localMenu,
           this::exitMenu
         };
-    Map<String, MenuAction> actionMap = new HashMap<>();
-    for (int i = 0; i < choiceNumbers.size(); i++) {
-      System.out.println(" " + choiceNumbers.get(i) + ". " + choiceStrings[i]);
-      actionMap.put(choiceNumbers.get(i), menuActions[i]);
-    }
-    System.out.println();
+    handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
+  }
 
-    actionMap.get(readPromptWithLimitedChoices(DEFAULT_MENU_PROMPT, choiceNumbers)).go();
+  private void changePlayerNameMenu(
+      String currentName, MenuAction setPName, MenuAction randomName, MenuAction previousMenu) {
+    System.out.println();
+    System.out.println("Changing name of " + currentName + "...");
+
+    List<String> choiceNumbers = Arrays.asList("1", "2", "9");
+    String[] choiceStrings =
+        new String[] {"Set a custom name", "Set a random name", "Keep current name"};
+    MenuAction[] menuActions =
+        new MenuAction[] {() -> setPName.go(), () -> randomName.go(), () -> {}};
+
+    handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
+
+    // Go back to previous menu
+    previousMenu.go();
   }
 
   /**
@@ -346,20 +335,35 @@ public class TUI implements Observer {
           this::exitMenu
         };
 
-    Map<String, MenuAction> actionMap = new HashMap<>();
-    for (int i = 0; i < choiceNumbers.size(); i++) {
-      System.out.println(" " + choiceNumbers.get(i) + ". " + choiceStrings[i]);
-      actionMap.put(choiceNumbers.get(i), menuActions[i]);
-    }
-    System.out.println();
-
-    actionMap.get(readPromptWithLimitedChoices(DEFAULT_MENU_PROMPT, choiceNumbers)).go();
+    handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
 
     // Go to review menu
     reviewMenu(previousMenu);
   }
 
   private void reviewMenu(MenuAction previousMenu) {
+    System.out.println();
+    System.out.println("G---------------------------o");
+    System.out.println("| REVIEW GAME CONFIGURATION |");
+    System.out.println("o---------------------------G");
+    System.out.println();
+
+    List<String> choiceNumbers = Arrays.asList();
+    String[] choiceStrings = new String[] {};
+    MenuAction[] menuActions = new MenuAction[] {};
+
+    handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
+  }
+
+  private void handleChoices(String prompt, List<String> choiceNumbers, String[] choiceStrings,
+      MenuAction[] menuActions) {
+    Map<String, MenuAction> actionMap = new HashMap<>();
+    for (int i = 0; i < choiceNumbers.size(); i++) {
+      System.out.println(" " + choiceNumbers.get(i) + ". " + choiceStrings[i]);
+      actionMap.put(choiceNumbers.get(i), menuActions[i]);
+    }
+    System.out.println();
+    actionMap.get(readPromptWithLimitedChoices(prompt, choiceNumbers)).go();
   }
 
   private String readName() {
@@ -375,30 +379,6 @@ public class TUI implements Observer {
     String oldP1Name = p1Name;
     setP1Name(p2Name);
     setP2Name(oldP1Name);
-    previousMenu.go();
-  }
-
-  private void changePlayerNameMenu(
-      String currentName, MenuAction setPName, MenuAction randomName, MenuAction previousMenu) {
-    System.out.println();
-    System.out.println("Changing name of " + currentName + "...");
-
-    List<String> choiceNumbers = Arrays.asList("1", "2", "9");
-    String[] choiceStrings =
-        new String[] {"Set a custom name", "Set a random name", "Keep current name"};
-    MenuAction[] menuActions =
-        new MenuAction[] {() -> setPName.go(), () -> randomName.go(), () -> {}};
-
-    Map<String, MenuAction> actionMap = new HashMap<>();
-    for (int i = 0; i < choiceNumbers.size(); i++) {
-      System.out.println(" " + choiceNumbers.get(i) + ". " + choiceStrings[i]);
-      actionMap.put(choiceNumbers.get(i), menuActions[i]);
-    }
-    System.out.println();
-
-    actionMap.get(readPromptWithLimitedChoices(DEFAULT_MENU_PROMPT, choiceNumbers)).go();
-
-    // Go back to previous menu
     previousMenu.go();
   }
 
