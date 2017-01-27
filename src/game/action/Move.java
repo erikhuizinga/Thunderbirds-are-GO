@@ -14,7 +14,7 @@ public class Move {
    * Instantiates a new {@code Move} at the specified position and the
    *
    * @param x the x position
-   * @param y the y
+   * @param y the y position
    * @param stone the stone
    */
   public Move(int x, int y, Stone stone) {
