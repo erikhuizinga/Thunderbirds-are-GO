@@ -12,9 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.UnaryOperator;
 
-/**
- * A grid with contents to be used on a Go game board. Created by erik.huizinga on 23-1-17.
- */
+/** A grid with contents to be used on a Go game board. Created by erik.huizinga on 23-1-17. */
 public class Grid {
 
   /**
@@ -25,14 +23,10 @@ public class Grid {
    */
   private final Map<List<Integer>, Integer> sub2IndMap;
 
-  /**
-   * The map of linear indices to subscript indices.
-   */
+  /** The map of linear indices to subscript indices. */
   private final Map<Integer, List<Integer>> ind2SubMap;
 
-  /**
-   * The full grid, a {@code Map} of {@code Integer} linear indices with {@code GameMaterial}s.
-   */
+  /** The full grid, a {@code Map} of {@code Integer} linear indices with {@code GameMaterial}s. */
   private final Map<Integer, GameMaterial> grid;
 
   /**
@@ -41,19 +35,13 @@ public class Grid {
    */
   private final Map<Integer, List<Integer>> neighborsMap;
 
-  /**
-   * The square playable grid single-side dimension.
-   */
+  /** The square playable grid single-side dimension. */
   private final int dim;
 
-  /**
-   * The maximum number of spaces around an element for padding in the {@code toString} method.
-   */
+  /** The maximum number of spaces around an element for padding in the {@code toString} method. */
   private final int maxNumSpaces;
 
-  /**
-   * The space character used by {@code Grid} in the {@code toString} method.
-   */
+  /** The space character used by {@code Grid} in the {@code toString} method. */
   public static final String SPACE = " ";
 
   /**
@@ -92,16 +80,12 @@ public class Grid {
     neighborsMap = grid.getNeighborsMap();
   }
 
-  /**
-   * @return the sub 2 ind map
-   */
+  /** @return the sub 2 ind map */
   private Map<List<Integer>, Integer> getSub2IndMap() {
     return sub2IndMap;
   }
 
-  /**
-   * @return the ind 2 sub map
-   */
+  /** @return the ind 2 sub map */
   private Map<Integer, List<Integer>> getInd2SubMap() {
     return ind2SubMap;
   }
@@ -110,9 +94,7 @@ public class Grid {
     return neighborsMap;
   }
 
-  /**
-   * @return the single-side dimension of the playable grid.
-   */
+  /** @return the single-side dimension of the playable grid. */
   private int getDim() {
     return dim;
   }
@@ -126,9 +108,7 @@ public class Grid {
     return maxNumSpaces;
   }
 
-  /**
-   * @return the full grid.
-   */
+  /** @return the full grid. */
   private Map<Integer, GameMaterial> getGrid() {
     return grid;
   }
@@ -173,9 +153,7 @@ public class Grid {
     }
   }
 
-  /**
-   * @return the full grid single-side dimension.
-   */
+  /** @return the full grid single-side dimension. */
   private int getFullDim() {
     return getDim() + 2;
   }
@@ -205,7 +183,7 @@ public class Grid {
         sub2Ind(Arrays.asList(row, col + 1)), // East
         sub2Ind(Arrays.asList(row + 1, col)), // South
         sub2Ind(Arrays.asList(row, col - 1)) // West
-    );
+        );
   }
 
   /**
@@ -284,9 +262,7 @@ public class Grid {
     return sub.get(1);
   }
 
-  /**
-   * @return the {@code Grid} represented as a {@code String}.
-   */
+  /** @return the {@code Grid} represented as a {@code String}. */
   @Override
   public String toString() {
     // Preallocate variables
@@ -367,7 +343,10 @@ public class Grid {
   }
 
   /**
-   * Generate a {@code toString} block for a {@code BoardFeature.SIDE}.
+   * Generate a {@code toString} block for the specified {@code GameMaterial}.
+   *
+   * @param material the {@code GameMaterial}.
+   * @return the {@code GameMaterial} as a {@code String} block.
    */
   private String generateGameMaterialString(GameMaterial material) {
     String string = material.toString();

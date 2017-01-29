@@ -3,20 +3,15 @@ package game.material.board;
 import game.material.GameMaterial;
 import game.material.Stone;
 import java.util.Arrays;
+import java.util.HashMap;
 
-/**
- * A Go board. Created by erik.huizinga on 23-1-17.
- */
+/** A Go board. Created by erik.huizinga on 23-1-17. */
 public class Board {
 
-  /**
-   * The single-side dimension of the playable square grid.
-   */
+  /** The single-side dimension of the playable square grid. */
   private final int dim;
 
-  /**
-   * The grid in which the board's material is stored.
-   */
+  /** The grid in which the board's material is stored. */
   private Grid grid;
 
   /**
@@ -39,23 +34,17 @@ public class Board {
     setGrid(new Grid(board.getGrid()));
   }
 
-  /**
-   * @return the grid
-   */
+  /** @return the grid */
   private Grid getGrid() {
     return grid;
   }
 
-  /**
-   * @param grid the grid
-   */
+  /** @param grid the grid */
   private void setGrid(Grid grid) {
     this.grid = grid;
   }
 
-  /**
-   * @return the single-side dimension of the playable square grid.
-   */
+  /** @return the single-side dimension of the playable square grid. */
   public int getDim() {
     return dim;
   }
@@ -82,11 +71,44 @@ public class Board {
     return getGrid().get(getGrid().playable2Ind(Arrays.asList(x, y)));
   }
 
-  /**
-   * @return the {@code Board} as a {@code String}.
-   */
+  /** @return the {@code Board} as a {@code String}. */
   @Override
   public String toString() {
     return getGrid().toString();
+  }
+
+  /**
+   * Returns a hash code value for the object. This method is supported for the benefit of hash
+   * tables such as those provided by {@link HashMap}.
+   *
+   * <p>The general contract of {@code hashCode} is:
+   *
+   * <ul>
+   * <li>Whenever it is invoked on the same object more than once during an execution of a Java
+   *     application, the {@code hashCode} method must consistently return the same integer,
+   *     provided no information used in {@code equals} comparisons on the object is modified. This
+   *     integer need not remain consistent from one execution of an application to another
+   *     execution of the same application.
+   * <li>If two objects are equal according to the {@code equals(Object)} method, then calling the
+   *     {@code hashCode} method on each of the two objects must produce the same integer result.
+   * <li>It is <em>not</em> required that if two objects are unequal according to the {@link
+   *     Object#equals(Object)} method, then calling the {@code hashCode} method on each of the two
+   *     objects must produce distinct integer results. However, the programmer should be aware that
+   *     producing distinct integer results for unequal objects may improve the performance of hash
+   *     tables.
+   * </ul>
+   *
+   * <p>As much as is reasonably practical, the hashCode method defined by class {@code Object} does
+   * return distinct integers for distinct objects. (This is typically implemented by converting the
+   * internal address of the object into an integer, but this implementation technique is not
+   * required by the Java&trade; programming language.)
+   *
+   * @return a hash code value for this object.
+   * @see Object#equals(Object)
+   * @see System#identityHashCode
+   */
+  @Override
+  public int hashCode() {
+    return super.hashCode();
   }
 }

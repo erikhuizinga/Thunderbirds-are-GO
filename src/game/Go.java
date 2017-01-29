@@ -51,7 +51,7 @@ public class Go extends Observable implements Runnable {
         move = getPlayers()[getCurrentPlayerIndex()].nextMove();
 
         // Ensure move validity
-      } while (!Rules.isValidMove(this, move)); //TODO to become: (isValid(move));
+      } while (!Rules.isValidMove(this, move));
 
       // Play move
       setBoard(move.apply(getBoard()));
@@ -63,7 +63,7 @@ public class Go extends Observable implements Runnable {
 
       // Set next player's turn
       nextPlayer();
-    } while (!isFinished(this));
+    } while (!Rules.isFinished(this));
   }
 
   /** @param board the {@code Board} to set. */
@@ -108,14 +108,5 @@ public class Go extends Observable implements Runnable {
   /** @return the current {@code Player}. */
   private Player getCurrentPlayer() {
     return getPlayers()[getCurrentPlayerIndex()];
-  }
-
-  /**
-   * Determine the finished state of the {@code Go} game.
-   *
-   * @return {@code true} if the game is finished; {@code false} otherwise.
-   */
-  public boolean isFinished(Go go) {
-    return false;
   }
 }

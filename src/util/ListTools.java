@@ -6,10 +6,11 @@ import java.util.List;
 public class ListTools {
 
   /**
-   * Get a random element from a list.
+   * Get a random element from the specified {@code List<E>}.
    *
-   * @param list
-   * @return
+   * @param <E> the type parameter.
+   * @param list the {@code List<E>}.
+   * @return a random {@code E} element from the {@code List<E>}.
    */
   public static <E> E random(List<E> list) {
     return list.get((int) (Math.random() * list.size()));
