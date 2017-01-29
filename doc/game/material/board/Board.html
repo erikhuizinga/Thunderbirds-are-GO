@@ -157,8 +157,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code><a href="../../../game/material/GameMaterial.html" title="interface in game.material">GameMaterial</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../game/material/board/Board.html#get-int-int-">get</a></span>(int&nbsp;x,
-   int&nbsp;y)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../game/material/board/Board.html#get-int-int-">get</a></span>(int&nbsp;horzPos,
+   int&nbsp;vertPos)</code>
 <div class="block">Get the <code>GameMaterial</code> on the <code>Board</code> at the specified playable indices.</div>
 </td>
 </tr>
@@ -168,8 +168,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../game/material/board/Board.html#put-int-int-game.material.Stone-">put</a></span>(int&nbsp;x,
-   int&nbsp;y,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../game/material/board/Board.html#put-int-int-game.material.Stone-">put</a></span>(int&nbsp;horzPos,
+   int&nbsp;vertPos,
    <a href="../../../game/material/Stone.html" title="enum in game.material">Stone</a>&nbsp;stone)</code>
 <div class="block">Put the specified <code>Stone</code> on the <code>Board</code> at the specified playable grid indices.</div>
 </td>
@@ -251,14 +251,14 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>put</h4>
-<pre>public&nbsp;void&nbsp;put(int&nbsp;x,
-                int&nbsp;y,
+<pre>public&nbsp;void&nbsp;put(int&nbsp;horzPos,
+                int&nbsp;vertPos,
                 <a href="../../../game/material/Stone.html" title="enum in game.material">Stone</a>&nbsp;stone)</pre>
 <div class="block">Put the specified <code>Stone</code> on the <code>Board</code> at the specified playable grid indices.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>x</code> - the horizontal index of the playable grid.</dd>
-<dd><code>y</code> - the vertical index of the playable grid.</dd>
+<dd><code>horzPos</code> - the horizontal index of the playable grid.</dd>
+<dd><code>vertPos</code> - the vertical index of the playable grid.</dd>
 <dd><code>stone</code> - the <code>Stone</code>.</dd>
 </dl>
 </li>
@@ -269,13 +269,13 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>get</h4>
-<pre>public&nbsp;<a href="../../../game/material/GameMaterial.html" title="interface in game.material">GameMaterial</a>&nbsp;get(int&nbsp;x,
-                        int&nbsp;y)</pre>
+<pre>public&nbsp;<a href="../../../game/material/GameMaterial.html" title="interface in game.material">GameMaterial</a>&nbsp;get(int&nbsp;horzPos,
+                        int&nbsp;vertPos)</pre>
 <div class="block">Get the <code>GameMaterial</code> on the <code>Board</code> at the specified playable indices.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>x</code> - the horizontal playable index.</dd>
-<dd><code>y</code> - the vertical playable index.</dd>
+<dd><code>horzPos</code> - the horizontal playable index.</dd>
+<dd><code>vertPos</code> - the vertical playable index.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the <code>GameMaterial</code>.</dd>
 </dl>

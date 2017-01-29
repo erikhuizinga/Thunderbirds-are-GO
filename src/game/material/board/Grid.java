@@ -257,7 +257,7 @@ public class Grid {
    * @param playable the playable subscript indices.
    * @return the full grid linear index.
    */
-  int playable2Ind(List<Integer> playable) {
+  int playable2Ind(List<Integer> playable) throws AssertionError {
     for (int e : playable) {
       if (!(e >= 0 && e < getDim())) {
         throw new AssertionError("playable indices out of bounds");

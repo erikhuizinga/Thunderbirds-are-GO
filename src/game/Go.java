@@ -2,6 +2,8 @@ package game;
 
 import game.action.Move;
 import game.material.board.Board;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Observable;
 import players.Player;
 
@@ -9,7 +11,7 @@ import players.Player;
 public class Go extends Observable implements Runnable {
 
   /** The Go game {@code Board}. */
-  private final Board board;
+  private Board board;
 
   /**
    * The players in a {@code Player} array, the first element being the first {@code Player}, which
@@ -18,7 +20,13 @@ public class Go extends Observable implements Runnable {
   private final Player[] players;
 
   /** Equal to 0 or 1, indicating the first (black) or second (white) player's turn respectively. */
-  private int currentPlayer = 0;
+  private int currentPlayerIndex = 0;
+
+  /**
+   * The board history as a {@code Collection} of the {@code hashCode} values of all previous {@code
+   * Board} layouts.
+   */
+  private final Collection<Integer> boardHistory = new HashSet<Integer>();
 
   /**
    * Instantiates a game of Go with specified {@code Board} dimension and
@@ -37,15 +45,17 @@ public class Go extends Observable implements Runnable {
   @Override
   public void run() {
     do {
-      // Get move from player
       Move move;
       do {
-        move = players[getCurrentPlayer()].nextMove();
+        // Get next move from current player
+        move = getPlayers()[getCurrentPlayerIndex()].nextMove();
 
-        // Check move validity
-      } while (false); //TODO to become: (isValid(move));
+        // Ensure move validity
+      } while (!Rules.isValidMove(this, move)); //TODO to become: (isValid(move));
 
       // Play move
+      setBoard(move.apply(getBoard()));
+      getBoardHistory().add(getBoard().hashCode());
 
       // Notify observers of the new board
       setChanged();
@@ -56,9 +66,19 @@ public class Go extends Observable implements Runnable {
     } while (!isFinished(this));
   }
 
+  /** @param board the {@code Board} to set. */
+  public void setBoard(Board board) {
+    this.board = board;
+  }
+
   /** @return the {@code Board}. */
   public Board getBoard() {
     return board;
+  }
+
+  /** @return the board history */
+  public Collection<Integer> getBoardHistory() {
+    return boardHistory;
   }
 
   /** @return the {@code Player} array. */
@@ -67,16 +87,27 @@ public class Go extends Observable implements Runnable {
   }
 
   /** @return the current {@code Player}. */
-  public int getCurrentPlayer() {
-    return currentPlayer;
+  public int getCurrentPlayerIndex() {
+    return currentPlayerIndex;
   }
 
-  public void setCurrentPlayer(int currentPlayer) {
-    this.currentPlayer = currentPlayer;
+  /**
+   * Set the current player index into {@code getPlayers()}.
+   *
+   * @param currentPlayerIndex the index.
+   */
+  public void setCurrentPlayerIndex(int currentPlayerIndex) {
+    this.currentPlayerIndex = currentPlayerIndex;
   }
 
+  /** Set the currrent player index to the next player. */
   private void nextPlayer() {
-    setCurrentPlayer(getCurrentPlayer() ^ 1);
+    setCurrentPlayerIndex(getCurrentPlayerIndex() ^ 1);
+  }
+
+  /** @return the current {@code Player}. */
+  private Player getCurrentPlayer() {
+    return getPlayers()[getCurrentPlayerIndex()];
   }
 
   /**

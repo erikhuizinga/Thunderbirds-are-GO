@@ -6,20 +6,25 @@ import game.material.Stone;
 /** A move by a player. Created by erik.huizinga on 24-1-17. */
 public class Move {
 
+  /** The {@code Stone} being moved. */
   private final Stone stone;
-  private final int x;
-  private final int y;
+
+  /** The horizontal position on the playable grid. */
+  private final int horzPos;
+
+  /** The vertical position on the playable grid. */
+  private final int vertPos;
 
   /**
-   * Instantiates a new {@code Move} at the specified position and the
+   * Instantiates a new {@code Move} at the specified position with the specified {@code Stone}.
    *
-   * @param x the x position
-   * @param y the y position
+   * @param horzPos the horizontal position
+   * @param vertPos the vertical position
    * @param stone the stone
    */
-  public Move(int x, int y, Stone stone) {
-    this.x = x;
-    this.y = y;
+  public Move(int horzPos, int vertPos, Stone stone) {
+    this.horzPos = horzPos;
+    this.vertPos = vertPos;
     this.stone = stone;
   }
 
@@ -32,7 +37,22 @@ public class Move {
    */
   public Board apply(Board board) {
     Board newBoard = new Board(board);
-    newBoard.put(x, y, stone);
+    newBoard.put(horzPos, vertPos, stone);
     return newBoard;
+  }
+
+  /** @return the {@code Stone}. */
+  public Stone getStone() {
+    return stone;
+  }
+
+  /** @return the horizontal position. */
+  public int getHorzPos() {
+    return horzPos;
+  }
+
+  /** @return the vertical position. */
+  public int getVertPos() {
+    return vertPos;
   }
 }

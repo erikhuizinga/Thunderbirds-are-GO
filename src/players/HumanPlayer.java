@@ -51,6 +51,7 @@ public class HumanPlayer extends Player {
 
   @Override
   public Move nextMove() {
+    System.out.println(this + ": what is your next move?");
     return null;
   }
 
