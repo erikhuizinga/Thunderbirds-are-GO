@@ -58,7 +58,7 @@ public class Go extends Observable implements Runnable {
       board = move.apply(getBoard());
 
       // Handle changes in dynamical validity
-      //TODO
+      handleDynamicalValidity(board, move);
 
       // Add the old board to the history and set the new board as the current
       getBoardHistory().add(getBoard().hashCode());
@@ -71,6 +71,16 @@ public class Go extends Observable implements Runnable {
       // Set next player's turn
       nextPlayer();
     } while (!Rules.isFinished(this));
+  }
+
+  private void handleDynamicalValidity(Board board, Move move) {
+    // Get neighbours
+    int moveX = move.getHorzPos();
+    int moveY = move.getVertPos();
+    board.getNeighbors(moveX, moveY);
+//    for ( : ) {
+//
+//    }
   }
 
   /** @param board the {@code Board} to set. */

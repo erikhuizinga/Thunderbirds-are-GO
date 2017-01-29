@@ -97,7 +97,7 @@ class GridTest {
   }
 
   @Test
-  void getNeighbors() {
+  void getNeighborsMap() {
     int result = grid1.getNeighborsMap().get(4).get(0);
     assertEquals(1, result);
     assertThrows(NullPointerException.class, () -> grid1.getNeighborsMap().get(5).get(0));

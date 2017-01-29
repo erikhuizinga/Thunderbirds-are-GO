@@ -397,4 +397,15 @@ public class Grid {
   public int hashCode() {
     return getGrid().hashCode();
   }
+
+  public Map<Integer, List<Integer>> getNeighbors(int playableX, int playableY) {
+    Map<Integer, GameMaterial> result = new HashMap<>();
+    for (Entry<Integer, List<Integer>> entry : getNeighborsMap().entrySet()) {
+      int ind = entry.getKey();
+      for (Integer gameMaterialIndex : entry.getValue()) {
+            result.put(ind, );
+      }
+    }
+    return result;
+  }
 }

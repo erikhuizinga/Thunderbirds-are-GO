@@ -3,6 +3,9 @@ package game.material.board;
 import game.material.GameMaterial;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /** A Go board. Created by erik.huizinga on 23-1-17. */
 public class Board {
@@ -67,7 +70,17 @@ public class Board {
    * @return the {@code GameMaterial}.
    */
   public GameMaterial get(int x, int y) {
-    return getGrid().get(getGrid().playable2Ind(Arrays.asList(x, y)));
+    return get(getGrid().playable2Ind(Arrays.asList(x, y)));
+  }
+
+  /**
+   * Get the {@code GameMaterial} on the {@code Board} at the specified full grid linear index.
+   *
+   * @param index the index.
+   * @return the {@code GameMaterial}.
+   */
+  private GameMaterial get(int index) {
+    return getGrid().get(index);
   }
 
   /** @return the {@code Board} as a {@code String}. */
@@ -109,5 +122,9 @@ public class Board {
   @Override
   public int hashCode() {
     return getGrid().hashCode();
+  }
+
+  public Map<Integer, List<Integer>> getNeighbors(int playableX, int playableY) {
+    return getGrid().getNeighbors(playableX, playableY);
   }
 }
