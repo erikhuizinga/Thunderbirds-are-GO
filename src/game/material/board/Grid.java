@@ -45,8 +45,8 @@ public class Grid {
   public static final String SPACE = " ";
 
   /**
-   * Construct a square {@code Grid} with single-side dimensions as specified. The grid contains the
-   * playable part of the game board, initialised as {@code BoardFeature.EMPTY}, as well as the
+   * Instantiate a square {@code Grid} with single-side dimensions as specified. The grid contains
+   * the playable part of the game board, initialised as {@code BoardFeature.EMPTY}, as well as the
    * surrounding sides, initialised as {@code BoardFeature.SIDE}. Therefore, the playable grid has
    * the dimension as specified, but with the boundaries included the full grid single-side
    * dimension is the playable single-side dimension plus two.

@@ -57,6 +57,9 @@ public class Go extends Observable implements Runnable {
       // Play move
       board = move.apply(getBoard());
 
+      // Handle changes in dynamical validity
+      //TODO
+
       // Add the old board to the history and set the new board as the current
       getBoardHistory().add(getBoard().hashCode());
       setBoard(board);

@@ -1,7 +1,6 @@
 package game.material.board;
 
 import game.material.GameMaterial;
-import game.material.Stone;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -54,10 +53,10 @@ public class Board {
    *
    * @param x the horizontal index of the playable grid.
    * @param y the vertical index of the playable grid.
-   * @param stone the {@code Stone}.
+   * @param material the {@code GameMaterial}.
    */
-  public void put(int x, int y, Stone stone) {
-    getGrid().put(getGrid().playable2Ind(Arrays.asList(x, y)), stone);
+  public void put(int x, int y, GameMaterial material) {
+    getGrid().put(getGrid().playable2Ind(Arrays.asList(x, y)), material);
   }
 
   /**
