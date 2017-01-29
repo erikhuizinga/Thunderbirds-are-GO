@@ -1,7 +1,6 @@
 package game;
 
 import game.action.Move;
-import game.material.BoardFeature;
 import game.material.Stone;
 import game.material.board.Board;
 
@@ -14,6 +13,7 @@ import game.material.board.Board;
  *     <li>it is not located outside the {@code Board} playable grid, i.e., where the {@code Board}
  *         is {@code BoardFeature.SIDE},
  *     <li>it is not located on top of another {@code Stone},
+ *     <li>it is not located outside the bounds of the full grid,
  *     </ol>
  *
  * <li>it commits suicide: it will immediately be removed from the board (along with any group it
@@ -72,7 +72,7 @@ public abstract class Rules {
   private static boolean isTechnicallyValid(Board board, Move move) {
     boolean isValid;
     try {
-      isValid = board.get(move.getHorzPos(), move.getVertPos()) == BoardFeature.EMPTY;
+      isValid = board.get(move.getHorzPos(), move.getVertPos()).isPlayable();
     } catch (AssertionError e) { // Thrown if the position is out of bounds
       isValid = false;
     }
