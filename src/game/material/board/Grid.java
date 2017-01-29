@@ -392,4 +392,9 @@ public class Grid {
   private int appendFunction(int num) {
     return (getMaxNumSpaces() - ((int) Math.log10(num))) / 2;
   }
+
+  @Override
+  public int hashCode() {
+    return getGrid().hashCode();
+  }
 }

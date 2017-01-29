@@ -44,8 +44,9 @@ public class Go extends Observable implements Runnable {
 
   @Override
   public void run() {
+    Move move;
+    Board board;
     do {
-      Move move;
       do {
         // Get next move from current player
         move = getPlayers()[getCurrentPlayerIndex()].nextMove();
@@ -54,8 +55,11 @@ public class Go extends Observable implements Runnable {
       } while (!Rules.isValidMove(this, move));
 
       // Play move
-      setBoard(move.apply(getBoard()));
+      board = move.apply(getBoard());
+
+      // Add the old board to the history and set the new board as the current
       getBoardHistory().add(getBoard().hashCode());
+      setBoard(board);
 
       // Notify observers of the new board
       setChanged();

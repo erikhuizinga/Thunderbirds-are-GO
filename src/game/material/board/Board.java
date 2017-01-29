@@ -109,6 +109,6 @@ public class Board {
    */
   @Override
   public int hashCode() {
-    return super.hashCode();
+    return getGrid().hashCode();
   }
 }
