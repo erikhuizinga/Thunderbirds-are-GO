@@ -72,7 +72,7 @@ public abstract class Rules {
   private static boolean isTechnicallyValid(Board board, Move move) {
     boolean isValid;
     try {
-      isValid = board.get(move.getHorzPos(), move.getVertPos()).isPlayable();
+      isValid = board.get(move.getPlayableX(), move.getPlayableY()).isPlayable();
     } catch (AssertionError e) { // Thrown if the position is out of bounds
       isValid = false;
     }

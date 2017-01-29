@@ -1,32 +1,35 @@
 package game.action;
 
 import game.material.Material;
+import game.material.PositionedMaterial;
 import game.material.board.Board;
 
 /** A move by a player. Created by erik.huizinga on 24-1-17. */
-public class Move {
-
-  /** The {@code Material} being placed. */
-  private final Material material;
-
-  /** The horizontal position on the playable grid. */
-  private final int horzPos;
-
-  /** The vertical position on the playable grid. */
-  private final int vertPos;
+public class Move extends PositionedMaterial {
 
   /**
-   * Instantiate a new {@code Move} at the specified position with the specified {@code
-   * Material}.
+   * Instantiate a new {@code Move}, which is a {@code PositionedMaterial} that can be applied to a
+   * {@code Board}.
    *
-   * @param horzPos the horizontal position.
-   * @param vertPos the vertical position.
+   * @param playableX the horizontal position on the playable grid.
+   * @param playableY the vertical position on the playable grid.
    * @param material the {@code Material}.
    */
-  public Move(int horzPos, int vertPos, Material material) {
-    this.horzPos = horzPos;
-    this.vertPos = vertPos;
-    this.material = material;
+  public Move(int playableX, int playableY, Material material) {
+    super(playableX, playableY, material);
+  }
+
+  /**
+   * Instantiate a new {@code Move}, which is a {@code PositionedMaterial} that can be applied to a
+   * {@code Board}.
+   *
+   * @param positionedMaterial the {@code PositionedMaterial}.
+   */
+  public Move(PositionedMaterial positionedMaterial) {
+    super(
+        positionedMaterial.getPlayableX(),
+        positionedMaterial.getPlayableY(),
+        positionedMaterial.getMaterial());
   }
 
   /**
@@ -38,22 +41,7 @@ public class Move {
    */
   public Board apply(Board board) {
     Board newBoard = new Board(board);
-    newBoard.put(getHorzPos(), getVertPos(), getMaterial());
+    newBoard.put(getPlayableX(), getPlayableY(), getMaterial());
     return newBoard;
-  }
-
-  /** @return the {@code Stone}. */
-  public Material getMaterial() {
-    return material;
-  }
-
-  /** @return the horizontal position. */
-  public int getHorzPos() {
-    return horzPos;
-  }
-
-  /** @return the vertical position. */
-  public int getVertPos() {
-    return vertPos;
   }
 }

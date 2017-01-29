@@ -75,9 +75,9 @@ public class Go extends Observable implements Runnable {
 
   private void handleDynamicalValidity(Board board, Move move) {
     // Get neighbours
-    int moveX = move.getHorzPos();
-    int moveY = move.getVertPos();
-    board.getNeighbors(moveX, moveY);
+//    int moveX = move.getPlayableX();
+//    int moveY = move.getPlayableY();
+//    board.getNeighbors(moveX, moveY);
 //    for ( : ) {
 //
 //    }

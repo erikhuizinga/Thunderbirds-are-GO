@@ -398,14 +398,14 @@ public class Grid {
     return getGrid().hashCode();
   }
 
-  public Map<Integer, List<Integer>> getNeighbors(int playableX, int playableY) {
-    Map<Integer, Material> result = new HashMap<>();
-    for (Entry<Integer, List<Integer>> entry : getNeighborsMap().entrySet()) {
-      int ind = entry.getKey();
-      for (Integer gameMaterialIndex : entry.getValue()) {
-            result.put(ind, );
-      }
-    }
-    return result;
-  }
+//  public Map<Integer, List<Integer>> getNeighbors(int playableX, int playableY) {
+//    Map<Integer, Material> result = new HashMap<>();
+//    for (Entry<Integer, List<Integer>> entry : getNeighborsMap().entrySet()) {
+//      int ind = entry.getKey();
+//      for (Integer gameMaterialIndex : entry.getValue()) {
+//            result.put(ind, );
+//      }
+//    }
+//    return result;
+//  }
 }

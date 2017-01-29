@@ -123,7 +123,7 @@ public class Board {
     return getGrid().hashCode();
   }
 
-  public Map<Integer, List<Integer>> getNeighbors(int playableX, int playableY) {
-    return getGrid().getNeighbors(playableX, playableY);
-  }
+//  public Map<Integer, List<Integer>> getNeighbors(int playableX, int playableY) {
+//    return getGrid().getNeighbors(playableX, playableY);
+//  }
 }
