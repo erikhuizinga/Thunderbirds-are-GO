@@ -3,7 +3,7 @@ package game.material.board;
 import static util.StringTools.repeat;
 
 import game.material.BoardFeature;
-import game.material.GameMaterial;
+import game.material.Material;
 import game.material.Stone;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,8 +26,8 @@ public class Grid {
   /** The map of linear indices to subscript indices. */
   private final Map<Integer, List<Integer>> ind2SubMap;
 
-  /** The full grid, a {@code Map} of {@code Integer} linear indices with {@code GameMaterial}s. */
-  private final Map<Integer, GameMaterial> grid;
+  /** The full grid, a {@code Map} of {@code Integer} linear indices with {@code Material}s. */
+  private final Map<Integer, Material> grid;
 
   /**
    * The neighbour map, containing the linear indices to the four neighbours as value to the linear
@@ -109,18 +109,18 @@ public class Grid {
   }
 
   /** @return the full grid. */
-  private Map<Integer, GameMaterial> getGrid() {
+  private Map<Integer, Material> getGrid() {
     return grid;
   }
 
   /**
-   * Put the specified {@code GameMaterial} in the full grid at the specified linear index.
+   * Put the specified {@code Material} in the full grid at the specified linear index.
    *
    * @param ind the linear index.
-   * @param gameMaterial the {@code GameMaterial}.
+   * @param material the {@code Material}.
    */
-  public void put(int ind, GameMaterial gameMaterial) {
-    getGrid().put(ind, gameMaterial);
+  public void put(int ind, Material material) {
+    getGrid().put(ind, material);
   }
 
   /**
@@ -200,12 +200,12 @@ public class Grid {
   }
 
   /**
-   * Get the {@code GameMaterial} of the {@code Grid} at the specified linear index.
+   * Get the {@code Material} of the {@code Grid} at the specified linear index.
    *
    * @param ind the linear index.
-   * @return the {@code GameMaterial}.
+   * @return the {@code Material}.
    */
-  public GameMaterial get(int ind) {
+  public Material get(int ind) {
     return getGrid().get(ind);
   }
 
@@ -343,12 +343,12 @@ public class Grid {
   }
 
   /**
-   * Generate a {@code toString} block for the specified {@code GameMaterial}.
+   * Generate a {@code toString} block for the specified {@code Material}.
    *
-   * @param material the {@code GameMaterial}.
-   * @return the {@code GameMaterial} as a {@code String} block.
+   * @param material the {@code Material}.
+   * @return the {@code Material} as a {@code String} block.
    */
-  private String generateGameMaterialString(GameMaterial material) {
+  private String generateGameMaterialString(Material material) {
     String string = material.toString();
     int spaces2Prepend = prependFunction(string.length());
     int spaces2Append = appendFunction(string.length());
@@ -399,7 +399,7 @@ public class Grid {
   }
 
   public Map<Integer, List<Integer>> getNeighbors(int playableX, int playableY) {
-    Map<Integer, GameMaterial> result = new HashMap<>();
+    Map<Integer, Material> result = new HashMap<>();
     for (Entry<Integer, List<Integer>> entry : getNeighborsMap().entrySet()) {
       int ind = entry.getKey();
       for (Integer gameMaterialIndex : entry.getValue()) {

@@ -1,14 +1,13 @@
 package game.action;
 
-import game.material.GameMaterial;
+import game.material.Material;
 import game.material.board.Board;
-import game.material.Stone;
 
 /** A move by a player. Created by erik.huizinga on 24-1-17. */
 public class Move {
 
-  /** The {@code GameMaterial} being placed. */
-  private final GameMaterial material;
+  /** The {@code Material} being placed. */
+  private final Material material;
 
   /** The horizontal position on the playable grid. */
   private final int horzPos;
@@ -18,13 +17,13 @@ public class Move {
 
   /**
    * Instantiate a new {@code Move} at the specified position with the specified {@code
-   * GameMaterial}.
+   * Material}.
    *
    * @param horzPos the horizontal position.
    * @param vertPos the vertical position.
-   * @param material the {@code GameMaterial}.
+   * @param material the {@code Material}.
    */
-  public Move(int horzPos, int vertPos, GameMaterial material) {
+  public Move(int horzPos, int vertPos, Material material) {
     this.horzPos = horzPos;
     this.vertPos = vertPos;
     this.material = material;
@@ -44,7 +43,7 @@ public class Move {
   }
 
   /** @return the {@code Stone}. */
-  public GameMaterial getMaterial() {
+  public Material getMaterial() {
     return material;
   }
 

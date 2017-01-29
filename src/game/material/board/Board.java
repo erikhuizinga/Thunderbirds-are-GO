@@ -1,11 +1,10 @@
 package game.material.board;
 
-import game.material.GameMaterial;
+import game.material.Material;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 /** A Go board. Created by erik.huizinga on 23-1-17. */
 public class Board {
@@ -56,30 +55,30 @@ public class Board {
    *
    * @param x the horizontal index of the playable grid.
    * @param y the vertical index of the playable grid.
-   * @param material the {@code GameMaterial}.
+   * @param material the {@code Material}.
    */
-  public void put(int x, int y, GameMaterial material) {
+  public void put(int x, int y, Material material) {
     getGrid().put(getGrid().playable2Ind(Arrays.asList(x, y)), material);
   }
 
   /**
-   * Get the {@code GameMaterial} on the {@code Board} at the specified playable indices.
+   * Get the {@code Material} on the {@code Board} at the specified playable indices.
    *
    * @param x the horizontal playable index.
    * @param y the vertical playable index.
-   * @return the {@code GameMaterial}.
+   * @return the {@code Material}.
    */
-  public GameMaterial get(int x, int y) {
+  public Material get(int x, int y) {
     return get(getGrid().playable2Ind(Arrays.asList(x, y)));
   }
 
   /**
-   * Get the {@code GameMaterial} on the {@code Board} at the specified full grid linear index.
+   * Get the {@code Material} on the {@code Board} at the specified full grid linear index.
    *
    * @param index the index.
-   * @return the {@code GameMaterial}.
+   * @return the {@code Material}.
    */
-  private GameMaterial get(int index) {
+  private Material get(int index) {
     return getGrid().get(index);
   }
 

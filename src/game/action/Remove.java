@@ -1,7 +1,7 @@
 package game.action;
 
 import game.material.BoardFeature;
-import game.material.GameMaterial;
+import game.material.Material;
 import game.material.board.Board;
 
 /** Created by erik.huizinga on 29-1-17. */
@@ -13,9 +13,9 @@ public class Remove extends Move {
    *
    * @param horzPos the horizontal position.
    * @param vertPos the vertical position.
-   * @param material the {@code GameMaterial}.
+   * @param material the {@code Material}.
    */
-  public Remove(int horzPos, int vertPos, GameMaterial material) {
+  public Remove(int horzPos, int vertPos, Material material) {
     super(horzPos, vertPos, material);
   }
 

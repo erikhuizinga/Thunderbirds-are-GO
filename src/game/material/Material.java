@@ -1,7 +1,7 @@
 package game.material;
 
 /** Created by erik.huizinga on 25-1-17. */
-public interface GameMaterial {
+public interface Material {
 
   /**
    * @return {@code true} if a {@code Stone} can be played on top of this {@code GameMaterial};

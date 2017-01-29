@@ -7,7 +7,7 @@ import game.material.board.Grid;
  *
  * <p>Created by erik.huizinga on 23-1-17.
  */
-public enum BoardFeature implements GameMaterial {
+public enum BoardFeature implements Material {
 
   /**
    * An empty point, i.e., a {@code BoardFeature} without a {@code Stone} on the {@code Grid}.
@@ -21,7 +21,7 @@ public enum BoardFeature implements GameMaterial {
   SIDE;
 
   /**
-   * @return {@code true} if a {@code Stone} can be played on top of this {@code GameMaterial};
+   * @return {@code true} if a {@code Stone} can be played on top of this {@code Material};
    * {@code false} otherwise.
    */
   @Override
