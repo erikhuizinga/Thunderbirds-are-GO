@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import game.material.BoardFeature;
 import game.material.Stone;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -89,8 +88,8 @@ public class GridTest {
   @Test
   void init() {
     assertThrows(AssertionError.class, () -> new Grid(0));
-    assertEquals(BoardFeature.SIDE, grid1.get(0));
-    assertEquals(BoardFeature.EMPTY, grid1.get(4));
+    assertEquals(Feature.SIDE, grid1.get(0));
+    assertEquals(Feature.EMPTY, grid1.get(4));
     assertNull(grid1.get(100));
   }
 

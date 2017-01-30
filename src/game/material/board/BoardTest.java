@@ -3,7 +3,6 @@ package game.material.board;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import game.material.BoardFeature;
 import game.material.Stone;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -122,7 +121,7 @@ public class BoardTest {
     assertEquals(post, postCopy);
 
     // Assert equality of the hash codes of an identical board layout that changed intermediately
-    board5.put(horzPos, vertPos, BoardFeature.EMPTY);
+    board5.put(horzPos, vertPos, Feature.EMPTY);
     int pre2 = board5.hashCode();
     assertEquals(pre, pre2);
 

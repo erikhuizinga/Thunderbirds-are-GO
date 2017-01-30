@@ -1,6 +1,6 @@
 package game.action;
 
-import game.material.BoardFeature;
+import game.material.board.Feature;
 import game.material.Material;
 import game.material.PositionedMaterial;
 import game.material.board.Board;
@@ -40,7 +40,7 @@ public class Remove extends Move {
       throw new AssertionError("expected material not found at specified remove position");
     }
     Board newBoard = new Board(board);
-    newBoard.put(getPlayableX(), getPlayableY(), BoardFeature.EMPTY);
+    newBoard.put(getPlayableX(), getPlayableY(), Feature.EMPTY);
     return newBoard;
   }
 }

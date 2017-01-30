@@ -8,10 +8,10 @@ import game.material.board.Board;
  * A placed {@code Stone} is valid if:
  *
  * <ol>
- * <li>it is located on a location where the {@code Board} is {@code BoardFeature.EMPTY}, i.e.:
+ * <li>it is located on a location where the {@code Board} is {@code Feature.EMPTY}, i.e.:
  *     <ol>
  *     <li>it is not located outside the {@code Board} playable grid, i.e., where the {@code Board}
- *         is {@code BoardFeature.SIDE},
+ *         is {@code Feature.SIDE},
  *     <li>it is not located on top of another {@code Stone},
  *     <li>it is not located outside the bounds of the full grid,
  *     </ol>

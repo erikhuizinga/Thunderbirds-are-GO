@@ -1,5 +1,6 @@
-package game.material;
+package game.material.board;
 
+import game.material.Material;
 import game.material.board.Grid;
 
 /**
@@ -7,10 +8,10 @@ import game.material.board.Grid;
  *
  * <p>Created by erik.huizinga on 23-1-17.
  */
-public enum BoardFeature implements Material {
+public enum Feature implements Material {
 
   /**
-   * An empty point, i.e., a {@code BoardFeature} without a {@code Stone} on the {@code Grid}.
+   * An empty point, i.e., a {@code Feature} without a {@code Stone} on the {@code Grid}.
    */
   EMPTY,
 
@@ -35,7 +36,7 @@ public enum BoardFeature implements Material {
   }
 
   /**
-   * @return the {@code BoardFeature} as a {@code String}.
+   * @return the {@code Feature} as a {@code String}.
    */
   @Override
   public String toString() {

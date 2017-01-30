@@ -2,7 +2,6 @@ package game.material.board;
 
 import static util.StringTools.repeat;
 
-import game.material.BoardFeature;
 import game.material.Material;
 import game.material.Stone;
 import java.util.Arrays;
@@ -46,8 +45,8 @@ public class Grid {
 
   /**
    * Instantiate a square {@code Grid} with single-side dimensions as specified. The grid contains
-   * the playable part of the game board, initialised as {@code BoardFeature.EMPTY}, as well as the
-   * surrounding sides, initialised as {@code BoardFeature.SIDE}. Therefore, the playable grid has
+   * the playable part of the game board, initialised as {@code Feature.EMPTY}, as well as the
+   * surrounding sides, initialised as {@code Feature.SIDE}. Therefore, the playable grid has
    * the dimension as specified, but with the boundaries included the full grid single-side
    * dimension is the playable single-side dimension plus two.
    *
@@ -125,7 +124,7 @@ public class Grid {
 
   /**
    * Initialise the {@code Grid} by setting the material of the playable grid to {@code
-   * BoardFeature.EMPTY}, the material of the boundaries to {@code BoardFeature.SIDE} and initialise
+   * Feature.EMPTY}, the material of the boundaries to {@code Feature.SIDE} and initialise
    * the {@code sub2Ind} and {@code ind2Sub} methods.
    */
   private void init() {
@@ -138,10 +137,10 @@ public class Grid {
       // Check location of current index and put material on the full grid
       if (isBoundary(sub)) {
         // Boundary of full grid
-        getGrid().put(ind, BoardFeature.SIDE);
+        getGrid().put(ind, Feature.SIDE);
       } else {
         // Playable grid
-        getGrid().put(ind, BoardFeature.EMPTY);
+        getGrid().put(ind, Feature.EMPTY);
       }
     }
     for (int ind = 0; ind < getFullDim() * getFullDim(); ind++) {
@@ -267,8 +266,8 @@ public class Grid {
   public String toString() {
     // Preallocate variables
     String string = "";
-    String side = BoardFeature.SIDE.toString();
-    String empty = BoardFeature.EMPTY.toString();
+    String side = Feature.SIDE.toString();
+    String empty = Feature.EMPTY.toString();
     String black = Stone.BLACK.toString();
     String white = Stone.WHITE.toString();
     List<Integer> sub;
@@ -314,7 +313,7 @@ public class Grid {
       if (isBoundary(sub)) { // Set boundary numbers
         if (row == 0 || row == getDim() + 1) { // Set column number on first and last row
           if (col == 0 || col == getDim() + 1) {
-            string += generateGameMaterialString(BoardFeature.SIDE);
+            string += generateGameMaterialString(Feature.SIDE);
 
           } else {
             spaces2Prepend = prependFunction(col);
