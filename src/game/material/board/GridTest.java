@@ -17,10 +17,8 @@ import java.util.Scanner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Created by erik.huizinga on 24-1-17.
- */
-class GridTest {
+/** Created by erik.huizinga on 24-1-17. */
+public class GridTest {
 
   private Grid grid1;
   private List<Integer> sub1;

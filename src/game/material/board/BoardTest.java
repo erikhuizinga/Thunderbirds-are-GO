@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /** Created by erik.huizinga on 25-1-17. */
-class BoardTest {
+public class BoardTest {
 
   private Board board5;
   private Stone blackStone;
