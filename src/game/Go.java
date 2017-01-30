@@ -1,5 +1,6 @@
 package game;
 
+import game.Rules.DynamicalValidator;
 import game.action.Move;
 import game.material.PositionedMaterial;
 import game.material.board.Board;
@@ -79,8 +80,19 @@ public class Go extends Observable implements Runnable {
    * @param posM
    */
   private void handleDynamicalValidity(Board board, PositionedMaterial posM) {
+    // Set validator
+    DynamicalValidator validator = new DynamicalValidator(board);
+
+
+
+
+
+
     // Get neighbouring positioned material
     List<PositionedMaterial> neigh = board.getNeighbors(posM);
+    for (PositionedMaterial neighPosM : neigh) {
+
+    }
   }
 
   /** @return the {@code Board}. */

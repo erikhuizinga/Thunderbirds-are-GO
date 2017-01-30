@@ -53,6 +53,7 @@ public class Remove extends Move {
    * @return board the {@code Board} with the {@code Move} applied to it.
    * @throws AssertionError if the expected {@code Material} is not found at the specified position.
    */
+  @Override
   public Board apply(Board board) throws AssertionError {
     if (board.get(getPlayableX(), getPlayableY()) != getMaterial()) {
       throw new AssertionError("expected material not found at specified remove position");

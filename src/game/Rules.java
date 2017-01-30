@@ -1,8 +1,10 @@
 package game;
 
 import game.action.Move;
-import game.material.Stone;
+import game.material.PositionedMaterial;
 import game.material.board.Board;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A placed {@code Stone} is valid if:
@@ -84,14 +86,16 @@ public abstract class Rules {
    * on the specified {@code Board}.
    *
    * @param board the {@code Board}.
-   * @param stone the {@code Stone}.
-   * @param horzPos the horizontal position on the playable grid.
-   * @param vertPos the vertical position on the playable grid.
-   * @return {@code true} if the {@code Move} is dynamically valid; {@code false} otherwise.
+   * @param posM the {@code PositionedMaterial}.
+   * @param validator the {@code DynamicalValidator}.
+   * @return {@code true} if dynamically valid; {@code false otherwise}.
    */
-  private static boolean isDynamicallyValid(Board board, Stone stone, int horzPos, int vertPos) {
-    boolean isValid = false;
-    return isValid;
+  private static boolean isDynamicallyValid(
+      Board board, PositionedMaterial posM, DynamicalValidator validator) {
+    //    if () { // TODO 1: vind lineaire index van posM a.d.h.v. grid. 2: return validator.getValid().get(index)
+    //
+    //    }
+    return false;
   }
 
   /**
@@ -114,5 +118,23 @@ public abstract class Rules {
    */
   public static boolean isFinished(Go go) {
     return false;
+  }
+
+  public static class DynamicalValidator {
+    private final Map<Integer, Integer> status = new HashMap<>();
+    private final Map<Integer, Boolean> valid = new HashMap<>();
+
+    public DynamicalValidator(Board board) {
+      for (int i = 0; i < (board.getDim() + 2) * (board.getDim() + 2); i++) {
+        valid.put(i, true);
+        status.put(i, 0);
+      }
+    }
+
+    DynamicalValidator validate(
+        Board board, PositionedMaterial posM, DynamicalValidator validator) {
+      
+      return validator;
+    }
   }
 }
