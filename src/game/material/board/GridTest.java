@@ -16,109 +16,117 @@ import java.util.Scanner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/** Created by erik.huizinga on 24-1-17. */
+/**
+ * Created by erik.huizinga on 24-1-17.
+ */
 public class GridTest {
 
+  private final int ind0 = 0;
+  private final int ind4 = 4;
+  private final int ind5 = 5;
+  private final int ind8 = 8;
+  private final int ind12 = 12;
+  private final int ind18 = 18;
+
+  private final List<Integer> playable00 = Arrays.asList(0, 0);
+  private final List<Integer> playable11 = Arrays.asList(1, 1);
+  private final List<Integer> playable22 = Arrays.asList(2, 2);
+
   private Grid grid1;
-  private List<Integer> sub1;
-  private int ind1;
-
   private Grid grid2;
-  private List<Integer> sub2;
-  private int ind2;
-
   private Grid grid3;
-  private List<Integer> sub3;
-  private int ind3;
-
   private Grid grid19;
 
-  private int failInd;
-  private List<Integer> failSub;
+  private List<Integer> sub00;
+  private List<Integer> sub11;
+  private List<Integer> sub22;
+
+
+  private int failInd = -1;
+  private List<Integer> failSub = Arrays.asList(-1, -1);
 
   @BeforeEach
   void setUp() {
+    sub00 = playable00;
+    sub11 = playable11;
+    sub22 = playable22;
+
     grid1 = new Grid(1);
-    sub1 = Arrays.asList(0, 0);
-    ind1 = 0;
-
     grid2 = new Grid(2);
-    sub2 = Arrays.asList(1, 1);
-    ind2 = 5;
-
     grid3 = new Grid(3);
-    sub3 = Arrays.asList(2, 2);
-    ind3 = 12;
-
     grid19 = new Grid(19);
-
-    failInd = -1;
-    failSub = Arrays.asList(-1, -1);
   }
 
   @Test
   void sub2Ind() {
-    assertEquals(ind1, grid1.sub2Ind(sub1));
-    assertEquals(ind1, grid2.sub2Ind(sub1));
-    assertEquals(ind2, grid2.sub2Ind(sub2));
-    assertEquals(ind1, grid3.sub2Ind(sub1));
-    assertEquals(ind3, grid3.sub2Ind(sub3));
+    assertEquals(ind0, grid1.sub2Ind(sub00));
+    assertEquals(ind0, grid2.sub2Ind(sub00));
+    assertEquals(ind5, grid2.sub2Ind(sub11));
+    assertEquals(ind0, grid3.sub2Ind(sub00));
+    assertEquals(ind12, grid3.sub2Ind(sub22));
     assertEquals(failInd, grid1.sub2Ind(Arrays.asList(100, 100)));
   }
 
   @Test
   void ind2Sub() {
-    assertEquals(sub1, grid1.ind2Sub(ind1));
-    assertEquals(sub1, grid2.ind2Sub(ind1));
-    assertEquals(sub2, grid2.ind2Sub(ind2));
-    assertEquals(sub1, grid3.ind2Sub(ind1));
-    assertEquals(sub3, grid3.ind2Sub(ind3));
+    assertEquals(sub00, grid1.ind2Sub(ind0));
+    assertEquals(sub00, grid2.ind2Sub(ind0));
+    assertEquals(sub11, grid2.ind2Sub(ind5));
+    assertEquals(sub00, grid3.ind2Sub(ind0));
+    assertEquals(sub22, grid3.ind2Sub(ind12));
     assertEquals(failSub, grid1.ind2Sub(100));
   }
 
   @Test
   void playable2Ind() {
-    assertEquals(4, grid1.playable2Ind(Arrays.asList(0, 0)));
-    assertEquals(5, grid2.playable2Ind(Arrays.asList(0, 0)));
-    assertEquals(18, grid3.playable2Ind(Arrays.asList(2, 2)));
-    assertThrows(AssertionError.class, () -> grid1.playable2Ind(Arrays.asList(1, 1)));
-    assertThrows(AssertionError.class, () -> grid1.playable2Ind(failSub));
+    assertEquals(ind4, grid1.playable2Ind(playable00));
+    assertEquals(ind5, grid2.playable2Ind(playable00));
+    assertEquals(ind18, grid3.playable2Ind(playable22));
+    assertEquals(ind8, grid1.playable2Ind(playable11));
+    assertThrows(AssertionError.class, () -> grid1.playable2Ind(playable22));
+  }
+
+  @Test
+  void ind2Playable() {
+    assertEquals(playable00, grid1.ind2Playable(ind4));
+    assertEquals(playable00, grid2.ind2Playable(ind5));
+    assertEquals(playable22, grid3.ind2Playable(ind18));
   }
 
   @Test
   void init() {
     assertThrows(AssertionError.class, () -> new Grid(0));
     assertEquals(Feature.SIDE, grid1.get(0));
-    assertEquals(Feature.EMPTY, grid1.get(4));
+    assertEquals(Feature.EMPTY, grid1.get(ind4));
     assertNull(grid1.get(100));
   }
 
   @Test
   void getNeighborsMap() {
-    int result = grid1.getNeighborsMap().get(4).get(0);
+    int result = grid1.getNeighborsMap().get(ind4).get(0);
     assertEquals(1, result);
-    assertThrows(NullPointerException.class, () -> grid1.getNeighborsMap().get(5).get(0));
+    assertThrows(NullPointerException.class, () -> grid1.getNeighborsMap().get(ind5).get(0));
   }
 
   @Test
   void gridCopy() {
     Grid grid1Copy = new Grid(grid1);
     assertFalse(grid1.equals(grid1Copy));
-    assertTrue(grid1.get(5).equals(grid1Copy.get(5)));
+    assertTrue(grid1.get(ind5).equals(grid1Copy.get(ind5)));
   }
 
   @Test
   void put() {
     Stone black = Stone.BLACK;
     Stone white = Stone.WHITE;
-    grid1.put(4, black);
-    assertEquals(black, grid1.get(4));
-    assertNotEquals(white, grid1.get(4));
+    grid1.put(ind4, black);
+    assertEquals(black, grid1.get(ind4));
+    assertNotEquals(white, grid1.get(ind4));
     // Test w/ copy
     Grid grid1Copy = new Grid(grid1);
-    assertEquals(black, grid1Copy.get(4));
-    grid1Copy.put(4, white);
-    assertNotEquals(white, grid1.get(4));
+    assertEquals(black, grid1Copy.get(ind4));
+    grid1Copy.put(ind4, white);
+    assertNotEquals(white, grid1.get(ind4));
   }
 
   @Test

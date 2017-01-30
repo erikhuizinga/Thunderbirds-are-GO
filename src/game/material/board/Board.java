@@ -2,7 +2,11 @@ package game.material.board;
 
 import game.material.Material;
 import game.material.PositionedMaterial;
+import game.material.PositionedStone;
+import game.material.Stone;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /** A Go board. Created by erik.huizinga on 23-1-17. */
 public class Board {
@@ -91,7 +95,40 @@ public class Board {
     return getGrid().hashCode();
   }
 
-  //  public Map<Integer, List<Integer>> getNeighbors(int playableX, int playableY) {
-  //    return getGrid().getNeighbors(playableX, playableY);
-  //  }
+  /**
+   * Get neighbouring {@code PositionedMaterial} of the specified {@code PositionedMaterial}.
+   *
+   * @param posM the {@code PositionedMaterial}.
+   * @return the {@code List<PositionedMaterial>} of neighbours.
+   */
+  public List<PositionedMaterial> getNeighbors(PositionedMaterial posM) {
+    List<PositionedMaterial> neighbors = new ArrayList<>();
+    Grid grid = getGrid();
+    int index = grid.playable2Ind(Arrays.asList(posM.getPlayableX(), posM.getPlayableY()));
+    List<Integer> neighborIndices = grid.getNeighborsMap().get(index);
+    List<Integer> neighborPlayableIndex;
+    PositionedMaterial neighbor = null;
+    Material neighborMaterial;
+    for (int neighborIndex : neighborIndices) {
+      neighborPlayableIndex = grid.ind2Playable(neighborIndex);
+
+      neighborMaterial = grid.get(neighborIndex);
+      if (neighborMaterial instanceof Stone) {
+        neighbor =
+            new PositionedStone(
+                neighborPlayableIndex.get(0),
+                neighborPlayableIndex.get(1),
+                (Stone) neighborMaterial);
+
+      } else if (neighborMaterial instanceof Feature) {
+        neighbor =
+            new PositionedFeature(
+                neighborPlayableIndex.get(0),
+                neighborPlayableIndex.get(1),
+                (Feature) neighborMaterial);
+      }
+      neighbors.add(neighbor);
+    }
+    return neighbors;
+  }
 }

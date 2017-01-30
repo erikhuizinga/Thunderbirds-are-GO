@@ -45,4 +45,14 @@ public abstract class PositionedMaterial implements Material {
   public Material getMaterial() {
     return material;
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof PositionedMaterial) {
+      return getMaterial().equals(((PositionedMaterial) obj).getMaterial());
+    } else if (obj instanceof Material) {
+      return getMaterial().equals(obj);
+    }
+    return false;
+  }
 }

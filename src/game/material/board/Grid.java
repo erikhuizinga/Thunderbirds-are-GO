@@ -4,6 +4,7 @@ import static util.StringTools.repeat;
 
 import game.material.Material;
 import game.material.Stone;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +15,8 @@ import java.util.function.UnaryOperator;
 /** A grid with contents to be used on a Go game board. Created by erik.huizinga on 23-1-17. */
 public class Grid {
 
+  /** The space character used by {@code Grid} in the {@code toString} method. */
+  public static final String SPACE = " ";
   /**
    * The map of subscript indices ({@code Arrays.asList(x, y)}) to linear indices (horizontally
    * incremental from the top left to bottom right), with {@code x} horizontally incremental from
@@ -21,34 +24,26 @@ public class Grid {
    * playable grid dimension plus two (see {@code Grid}).
    */
   private final Map<List<Integer>, Integer> sub2IndMap;
-
   /** The map of linear indices to subscript indices. */
   private final Map<Integer, List<Integer>> ind2SubMap;
-
   /** The full grid, a {@code Map} of {@code Integer} linear indices with {@code Material}s. */
   private final Map<Integer, Material> grid;
-
   /**
    * The neighbour map, containing the linear indices to the four neighbours as value to the linear
    * index keys.
    */
   private final Map<Integer, List<Integer>> neighborsMap;
-
   /** The square playable grid single-side dimension. */
   private final int dim;
-
   /** The maximum number of spaces around an element for padding in the {@code toString} method. */
   private final int maxNumSpaces;
-
-  /** The space character used by {@code Grid} in the {@code toString} method. */
-  public static final String SPACE = " ";
 
   /**
    * Instantiate a square {@code Grid} with single-side dimensions as specified. The grid contains
    * the playable part of the game board, initialised as {@code Feature.EMPTY}, as well as the
-   * surrounding sides, initialised as {@code Feature.SIDE}. Therefore, the playable grid has
-   * the dimension as specified, but with the boundaries included the full grid single-side
-   * dimension is the playable single-side dimension plus two.
+   * surrounding sides, initialised as {@code Feature.SIDE}. Therefore, the playable grid has the
+   * dimension as specified, but with the boundaries included the full grid single-side dimension is
+   * the playable single-side dimension plus two.
    *
    * @param dim the playable grid single-side dimension.
    */
@@ -124,8 +119,8 @@ public class Grid {
 
   /**
    * Initialise the {@code Grid} by setting the material of the playable grid to {@code
-   * Feature.EMPTY}, the material of the boundaries to {@code Feature.SIDE} and initialise
-   * the {@code sub2Ind} and {@code ind2Sub} methods.
+   * Feature.EMPTY}, the material of the boundaries to {@code Feature.SIDE} and initialise the
+   * {@code sub2Ind} and {@code ind2Sub} methods.
    */
   private void init() {
     for (int ind = 0; ind < getFullDim() * getFullDim(); ind++) {
@@ -229,20 +224,37 @@ public class Grid {
   }
 
   /**
-   * Get the full grid linear index from the specified playable grid subscript indices.
+   * Get the full grid linear index from the specified playable grid subscript indices. The playable
+   * indicices may point to an index on the full grid, but not outside it, i.e., the indices must be
+   * greater than or equal to -1 and less than or equal to {@code getDim}.
    *
    * @param playable the playable subscript indices.
    * @return the full grid linear index.
    */
   int playable2Ind(List<Integer> playable) throws AssertionError {
+    List<Integer> playableCopy = new ArrayList<>(playable);
     for (int e : playable) {
-      if (!(e >= 0 && e < getDim())) {
+      if (!(e >= -1 && e <= getDim())) {
         throw new AssertionError("playable indices out of bounds");
       }
     }
-    UnaryOperator<Integer> plusplus = a -> a + 1;
-    playable.replaceAll(plusplus);
-    return sub2Ind(playable);
+    UnaryOperator<Integer> increment = a -> a + 1;
+    playableCopy.replaceAll(increment);
+    return sub2Ind(playableCopy);
+  }
+
+  /**
+   * Get the playable subscript indices from the specified full grid linear index.
+   *
+   * @param ind the linear index.
+   * @return the playable subscript indices as a {@code List<Integer>}.
+   */
+  List<Integer> ind2Playable(int ind) {
+    List<Integer> playable = ind2Sub(ind);
+    List<Integer> playableCopy = new ArrayList<>(playable);
+    UnaryOperator<Integer> decrement = a -> a - 1;
+    playableCopy.replaceAll(decrement);
+    return playableCopy;
   }
 
   /**
@@ -397,14 +409,14 @@ public class Grid {
     return getGrid().hashCode();
   }
 
-//  public Map<Integer, List<Integer>> getNeighbors(int playableX, int playableY) {
-//    Map<Integer, Material> result = new HashMap<>();
-//    for (Entry<Integer, List<Integer>> entry : getNeighborsMap().entrySet()) {
-//      int ind = entry.getKey();
-//      for (Integer gameMaterialIndex : entry.getValue()) {
-//            result.put(ind, );
-//      }
-//    }
-//    return result;
-//  }
+  //  public Map<Integer, List<Integer>> getNeighbors(int playableX, int playableY) {
+  //    Map<Integer, Material> result = new HashMap<>();
+  //    for (Entry<Integer, List<Integer>> entry : getNeighborsMap().entrySet()) {
+  //      int ind = entry.getKey();
+  //      for (Integer gameMaterialIndex : entry.getValue()) {
+  //            result.put(ind, );
+  //      }
+  //    }
+  //    return result;
+  //  }
 }

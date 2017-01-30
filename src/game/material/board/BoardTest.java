@@ -8,6 +8,8 @@ import game.material.PositionedStone;
 import game.material.Stone;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +28,7 @@ public class BoardTest {
   private PositionedStone blackPositionedStone11;
   private int playableX1 = 1;
   private int playableY1 = 1;
-
+  private List<PositionedMaterial> expectedNeighbors;
 
   @BeforeEach
   void setUp() {
@@ -154,5 +156,24 @@ public class BoardTest {
     board5.put(blackPositionedStone00);
     board7.put(blackPositionedStone00);
     assertNotEquals(board5.hashCode(), board7.hashCode());
+  }
+
+  @Test
+  void getNeighbors() {
+    // Set up a board with some neighbours
+    board5.put(blackPositionedStone00);
+    board5.put(blackPositionedStone11);
+    // Now (1, 0) has two stones, an empty field and a side as its neighbors
+
+    PositionedMaterial emptyPositionedMaterial10 =
+        new PositionedFeature(1, 0, (Feature) board5.get(1, 0));
+    List<PositionedMaterial> neighbors = board5.getNeighbors(emptyPositionedMaterial10);
+    // The following works with both the actual Material object and a new Material object
+    PositionedMaterial side1m1 = new PositionedFeature(1, -1, Feature.SIDE);
+    PositionedMaterial empty20 = new PositionedFeature(2, 0, (Feature) board5.get(2, 0));
+    System.out.println(board5);
+    expectedNeighbors =
+        Arrays.asList(blackPositionedStone00, blackPositionedStone11, empty20, side1m1);
+    assertEquals(expectedNeighbors, neighbors);
   }
 }

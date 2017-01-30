@@ -1,32 +1,31 @@
 package game;
 
 import game.action.Move;
+import game.material.PositionedMaterial;
 import game.material.board.Board;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Observable;
 import players.Player;
 
 /** A Go game with a board and two players. Created by erik.huizinga on 24-1-17. */
 public class Go extends Observable implements Runnable {
 
-  /** The Go game {@code Board}. */
-  private Board board;
-
   /**
    * The players in a {@code Player} array, the first element being the first {@code Player}, which
    * plays as black.
    */
   private final Player[] players;
-
-  /** Equal to 0 or 1, indicating the first (black) or second (white) player's turn respectively. */
-  private int currentPlayerIndex = 0;
-
   /**
    * The board history as a {@code Collection} of the {@code hashCode} values of all previous {@code
    * Board} layouts.
    */
   private final Collection<Integer> boardHistory = new HashSet<Integer>();
+  /** The Go game {@code Board}. */
+  private Board board;
+  /** Equal to 0 or 1, indicating the first (black) or second (white) player's turn respectively. */
+  private int currentPlayerIndex = 0;
 
   /**
    * Instantiates a game of Go with specified {@code Board} dimension and
@@ -73,24 +72,25 @@ public class Go extends Observable implements Runnable {
     } while (!Rules.isFinished(this));
   }
 
-  private void handleDynamicalValidity(Board board, Move move) {
-    // Get neighbours
-//    int moveX = move.getPlayableX();
-//    int moveY = move.getPlayableY();
-//    board.getNeighbors(moveX, moveY);
-//    for ( : ) {
-//
-//    }
-  }
-
-  /** @param board the {@code Board} to set. */
-  public void setBoard(Board board) {
-    this.board = board;
+  /**
+   * TODO
+   *
+   * @param board
+   * @param posM
+   */
+  private void handleDynamicalValidity(Board board, PositionedMaterial posM) {
+    // Get neighbouring positioned material
+    List<PositionedMaterial> neigh = board.getNeighbors(posM);
   }
 
   /** @return the {@code Board}. */
   public Board getBoard() {
     return board;
+  }
+
+  /** @param board the {@code Board} to set. */
+  public void setBoard(Board board) {
+    this.board = board;
   }
 
   /** @return the board history */

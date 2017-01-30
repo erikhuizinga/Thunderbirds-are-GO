@@ -22,8 +22,8 @@ public class MoveTest {
   @BeforeEach
   void setUp() {
     board = new Board(dim);
-    x = 0;
-    y = 0;
+    x = 3;
+    y = 2;
     blackStone = Stone.BLACK;
     move = new Move(x, y, blackStone);
   }
