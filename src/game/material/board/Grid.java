@@ -24,17 +24,22 @@ public class Grid {
    * playable grid dimension plus two (see {@code Grid}).
    */
   private final Map<List<Integer>, Integer> sub2IndMap;
+
   /** The map of linear indices to subscript indices. */
   private final Map<Integer, List<Integer>> ind2SubMap;
+
   /** The full grid, a {@code Map} of {@code Integer} linear indices with {@code Material}s. */
   private final Map<Integer, Material> grid;
+
   /**
    * The neighbour map, containing the linear indices to the four neighbours as value to the linear
    * index keys.
    */
   private final Map<Integer, List<Integer>> neighborsMap;
-  /** The square playable grid single-side dimension. */
+
+  /** The single-side dimension of the playable square grid. */
   private final int dim;
+
   /** The maximum number of spaces around an element for padding in the {@code toString} method. */
   private final int maxNumSpaces;
 
@@ -63,7 +68,7 @@ public class Grid {
   /**
    * Instantiate a new {@code Grid} as a copy of another.
    *
-   * @param grid the grid to copy.
+   * @param grid the {@code Grid} to copy.
    */
   public Grid(Grid grid) {
     dim = grid.getDim();
@@ -89,7 +94,7 @@ public class Grid {
   }
 
   /** @return the single-side dimension of the playable grid. */
-  private int getDim() {
+  public int getDim() {
     return dim;
   }
 
@@ -98,12 +103,12 @@ public class Grid {
    *
    * @return the max num spaces
    */
-  public int getMaxNumSpaces() {
+  private int getMaxNumSpaces() {
     return maxNumSpaces;
   }
 
   /** @return the full grid. */
-  private Map<Integer, Material> getGrid() {
+  protected Map<Integer, Material> getGrid() {
     return grid;
   }
 

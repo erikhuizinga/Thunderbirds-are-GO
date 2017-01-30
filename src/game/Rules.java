@@ -133,7 +133,7 @@ public abstract class Rules {
 
     DynamicalValidator validate(
         Board board, PositionedMaterial posM, DynamicalValidator validator) {
-      
+
       return validator;
     }
   }
