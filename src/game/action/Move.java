@@ -41,7 +41,7 @@ public class Move extends PositionedMaterial {
    */
   public Board apply(Board board) {
     Board newBoard = new Board(board);
-    newBoard.put(getPlayableX(), getPlayableY(), getMaterial());
+    newBoard.put(this);
     return newBoard;
   }
 }

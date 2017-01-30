@@ -1,12 +1,15 @@
 package game.action;
 
-import game.material.board.Feature;
 import game.material.Material;
 import game.material.PositionedMaterial;
 import game.material.board.Board;
+import game.material.board.Feature;
+import game.material.board.PositionedFeature;
 
 /** Created by erik.huizinga on 29-1-17. */
 public class Remove extends Move {
+
+  private final PositionedFeature empty;
 
   /**
    * Instantiate a new {@code Remove} at the specified position. The position should hold the
@@ -18,10 +21,25 @@ public class Remove extends Move {
    */
   public Remove(int playableX, int playableY, Material material) {
     super(playableX, playableY, material);
+    empty = new PositionedFeature(playableX, playableY, Feature.EMPTY);
   }
 
+  /**
+   * Instantiate a new {@code Remove}, which is a {@code PositionedMaterial} that can be applied to
+   * a {@code Board}. The position should hold the specified {@code Stone} before the {@code Remove}
+   * is applied.
+   *
+   * @param positionedMaterial the {@code PositionedMaterial}.
+   */
   public Remove(PositionedMaterial positionedMaterial) {
     super(positionedMaterial);
+    empty =
+        new PositionedFeature(
+            positionedMaterial.getPlayableX(), positionedMaterial.getPlayableY(), Feature.EMPTY);
+  }
+
+  public PositionedFeature getEmpty() {
+    return empty;
   }
 
   /**
@@ -40,7 +58,7 @@ public class Remove extends Move {
       throw new AssertionError("expected material not found at specified remove position");
     }
     Board newBoard = new Board(board);
-    newBoard.put(getPlayableX(), getPlayableY(), Feature.EMPTY);
+    newBoard.put(getEmpty());
     return newBoard;
   }
 }
