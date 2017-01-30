@@ -4,6 +4,7 @@ import game.action.Move;
 import game.material.Stone;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 /** Created by erik.huizinga on 24-1-17. */
 public class HumanPlayer extends Player {
@@ -49,13 +50,40 @@ public class HumanPlayer extends Player {
     return randomName(NAMES);
   }
 
-  @Override
-  public Move nextMove() {
-    System.out.println(this + ": what is your next move?");
-    return null;
-  }
-
   public static String displayFormat(String name, Stone stone) {
     return Player.displayFormat(name, stone) + ", " + REALIZATION;
+  }
+
+  @Override
+  public Move nextMove() {
+    Move move;
+    String input;
+    String prompt = "> " + getName() + " (" + getStone() + "), what is your choice? ";
+    Scanner scanner = new Scanner(System.in);
+    do {
+      System.out.print(prompt);
+      input = (scanner.hasNextLine()) ? scanner.nextLine() : null;
+    } while (input == null);
+    int humanPlayableX = -1;
+    int humanPlayableY = -1;
+    switch (input.toUpperCase()) {
+      case "HELP":
+        //TODO
+      case "PASS":
+        //TODO
+      default:
+        // Try to recognise human playable indices from the string
+        input = input.replaceAll("\\D", " ").trim();
+        try {
+          Scanner intScanner = new Scanner(input);
+          humanPlayableX = intScanner.nextInt();
+          humanPlayableY = intScanner.nextInt();
+        } catch (Exception e) { //TODO specify
+          e.printStackTrace();
+          move = nextMove();
+        }
+    }
+    move = new Move(humanPlayableX - 1, humanPlayableY - 1, getStone());
+    return move;
   }
 }

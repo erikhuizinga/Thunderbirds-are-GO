@@ -72,7 +72,7 @@ public class Grid {
    */
   public Grid(Grid grid) {
     dim = grid.getDim();
-    maxNumSpaces = grid.maxNumSpaces;
+    maxNumSpaces = grid.getMaxNumSpaces();
     sub2IndMap = grid.getSub2IndMap();
     ind2SubMap = grid.getInd2SubMap();
     this.grid = new HashMap<>(grid.getGrid());
@@ -236,7 +236,7 @@ public class Grid {
    * @param playable the playable subscript indices.
    * @return the full grid linear index.
    */
-  int playable2Ind(List<Integer> playable) throws AssertionError {
+  public int playable2Ind(List<Integer> playable) throws AssertionError {
     List<Integer> playableCopy = new ArrayList<>(playable);
     for (int e : playable) {
       if (!(e >= -1 && e <= getDim())) {

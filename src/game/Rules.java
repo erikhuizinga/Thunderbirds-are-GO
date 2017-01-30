@@ -3,8 +3,11 @@ package game;
 import game.action.Move;
 import game.material.PositionedMaterial;
 import game.material.board.Board;
+import game.material.board.Feature;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * A placed {@code Stone} is valid if:
@@ -71,7 +74,7 @@ public abstract class Rules {
    * @param move the {@code Move}.
    * @return {@code true} if the {@code Move} is technically valid; {@code false} otherwise.
    */
-  private static boolean isTechnicallyValid(Board board, Move move) {
+  public static boolean isTechnicallyValid(Board board, Move move) {
     boolean isValid;
     try {
       isValid = board.get(move.getPlayableX(), move.getPlayableY()).isPlayable();
@@ -105,7 +108,7 @@ public abstract class Rules {
    * @param move the {@code Move}.
    * @return {@code true} if the {@code Move} is historically valid; {@code false} otherwise.
    */
-  private static boolean isHistoricallyValid(Go go, Move move) {
+  public static boolean isHistoricallyValid(Go go, Move move) {
     Board board = move.apply(go.getBoard());
     return !go.getBoardHistory().contains(board.hashCode());
   }
@@ -120,21 +123,115 @@ public abstract class Rules {
     return false;
   }
 
+  private static void setStatus(int status, int newStatus, List<Integer> illegal) {}
+
   public static class DynamicalValidator {
+
+    /**
+     * The status map contains the status of every board element mapped to its linear index. Status
+     * means the following:
+     *
+     * <dl>
+     * <dt>0: to do
+     * <dd>not yet validated,
+     * <dt>1: doing
+     * <dd>being validated,
+     * <dt>2: depends
+     * <dd>validity depends on neighbours,
+     * <dt>3: done
+     * <dd>done.
+     * </dl>
+     */
     private final Map<Integer, Integer> status = new HashMap<>();
+
+    private final int todo = 0;
+    private final int doing = 1;
+    private final int depends = 2;
+    private final int done = 3;
+
     private final Map<Integer, Boolean> valid = new HashMap<>();
+    private final Board board;
 
     public DynamicalValidator(Board board) {
+      this.board = board;
       for (int i = 0; i < (board.getDim() + 2) * (board.getDim() + 2); i++) {
         valid.put(i, true);
-        status.put(i, 0);
+        if (board.get(i) == Feature.SIDE || board.get(i) == Feature.EMPTY) {
+          // Set either the sides, or empty fields to done; they are always valid
+          status.put(i, done);
+        } else { // The board has a stone at this index
+          status.put(i, todo);
+        }
       }
     }
 
-    DynamicalValidator validate(
-        Board board, PositionedMaterial posM, DynamicalValidator validator) {
+    public Board getBoard() {
+      return board;
+    }
 
-      return validator;
+    DynamicalValidator validate(PositionedMaterial posM) {
+      List<Integer> playable = posM.getPlayablePosition();
+      int ind = getBoard().playable2Ind(playable);
+      List<Integer> neighborIndices = getBoard().getNeighborsMap().get(ind);
+      List<PositionedMaterial> neighboringMaterial = board.getNeighbors(posM); //TODO maak return type van getNeighbors(posM) een List<Material>
+
+      // Store a map of neighbouring indices to neighbouring material
+      Map<Integer, PositionedMaterial> neighIndexMaterialMap = new HashMap<>();
+      for (int i = 0; i < neighborIndices.size(); i++) {
+        neighIndexMaterialMap.put(neighborIndices.get(i), neighboringMaterial.get(i));
+      }
+
+      // Validate
+      do {
+        switch (status.get(ind)) {
+          case doing:
+            // Check all neighbours until a liberty (empty) is found
+            for (PositionedMaterial neighMat : neighboringMaterial) {
+              if (neighMat.containsMaterial(Feature.EMPTY)) {
+                status.put(ind, done);
+                break;
+              }
+            }
+
+            // Check neighbours for stones of the same colour
+            if (neighboringMaterial.contains(posM.getMaterial())) {
+              status.put(ind, depends);
+              break;
+            }
+
+            // Set this stone to be invalid as it has no liberties
+            status.put(ind, done);
+            valid.put(ind, false);
+
+            break;
+
+          case depends:
+            // Determine if all neighbours have been checked already
+            for (Entry entry : neighIndexMaterialMap.entrySet()) {
+                if (status.get(entry.getKey()) <= doing) {
+                  validate((PositionedMaterial) entry.getValue()); //TODO cast must stay?
+                  break;
+                }
+            }
+
+            break;
+
+          case done:
+            // Do nothing, continue to return
+            break;
+
+          default: // Initially, status.get(.) returns 0, which is the default
+            // Set this status to doing
+            status.put(ind, doing);
+            // Set neighbouring status to doing
+            for (int neighborIndex : neighborIndices) {
+              if (status.get(neighborIndex) == todo) {
+                status.put(neighborIndex, doing);
+              }
+            }
+        }
+      } while (status.get(ind) <= done);
+      return this;
     }
   }
 }

@@ -6,7 +6,6 @@ import game.material.PositionedMaterial;
 import game.material.board.Board;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Observable;
 import players.Player;
 
@@ -44,23 +43,32 @@ public class Go extends Observable implements Runnable {
 
   @Override
   public void run() {
+    // Update the view with the initial board
+    setChanged();
+    notifyObservers(getBoard());
+
+    // Play
     Move move;
     Board board;
     do {
       do {
-        // Get next move from current player
-        move = getPlayers()[getCurrentPlayerIndex()].nextMove();
+        do {
+          // Get next move from current player
+          move = getPlayers()[getCurrentPlayerIndex()].nextMove();
 
-        // Ensure move validity
-      } while (!Rules.isValidMove(this, move));
+          // Ensure technical validity of the move
+        } while (!Rules.isTechnicallyValid(getBoard(), move));
 
-      // Play move
-      board = move.apply(getBoard());
+        // Play move
+        board = move.apply(getBoard());
 
-      // Handle changes in dynamical validity
-      handleDynamicalValidity(board, move);
+        // Handle changes in dynamical validity
+        handleDynamicalValidity(board, move);
 
-      // Add the old board to the history and set the new board as the current
+        // Ensure historical validity
+      } while (!Rules.isHistoricallyValid(this, move));
+
+      // Add the current board to the history and set the new board as the current
       getBoardHistory().add(getBoard().hashCode());
       setBoard(board);
 
@@ -83,16 +91,10 @@ public class Go extends Observable implements Runnable {
     // Set validator
     DynamicalValidator validator = new DynamicalValidator(board);
 
+    // Validate
+    validator = validator.validate(posM);
 
-
-
-
-
-    // Get neighbouring positioned material
-    List<PositionedMaterial> neigh = board.getNeighbors(posM);
-    for (PositionedMaterial neighPosM : neigh) {
-
-    }
+    // Find invalid indices
   }
 
   /** @return the {@code Board}. */
