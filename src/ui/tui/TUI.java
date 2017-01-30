@@ -481,6 +481,7 @@ public class TUI implements Observer {
     if (go instanceof Go && board instanceof Board) {
       setGo((Go) go);
       System.out.println(board);
+      System.out.println();
       if (false) { //TODO to become:(isFinished(Go)) {
         continueMenu();
       }

@@ -2,9 +2,9 @@ package game.material.board;
 
 import static util.StringTools.repeat;
 
-import game.material.BoardFeature;
-import game.material.GameMaterial;
+import game.material.Material;
 import game.material.Stone;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -12,11 +12,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.UnaryOperator;
 
-/**
- * A grid with contents to be used on a Go game board. Created by erik.huizinga on 23-1-17.
- */
+/** A grid with contents to be used on a Go game board. Created by erik.huizinga on 23-1-17. */
 public class Grid {
 
+  /** The space character used by {@code Grid} in the {@code toString} method. */
+  public static final String SPACE = " ";
   /**
    * The map of subscript indices ({@code Arrays.asList(x, y)}) to linear indices (horizontally
    * incremental from the top left to bottom right), with {@code x} horizontally incremental from
@@ -25,15 +25,11 @@ public class Grid {
    */
   private final Map<List<Integer>, Integer> sub2IndMap;
 
-  /**
-   * The map of linear indices to subscript indices.
-   */
+  /** The map of linear indices to subscript indices. */
   private final Map<Integer, List<Integer>> ind2SubMap;
 
-  /**
-   * The full grid, a {@code Map} of {@code Integer} linear indices with {@code GameMaterial}s.
-   */
-  private final Map<Integer, GameMaterial> grid;
+  /** The full grid, a {@code Map} of {@code Integer} linear indices with {@code Material}s. */
+  private final Map<Integer, Material> grid;
 
   /**
    * The neighbour map, containing the linear indices to the four neighbours as value to the linear
@@ -41,27 +37,18 @@ public class Grid {
    */
   private final Map<Integer, List<Integer>> neighborsMap;
 
-  /**
-   * The square playable grid single-side dimension.
-   */
+  /** The single-side dimension of the playable square grid. */
   private final int dim;
 
-  /**
-   * The maximum number of spaces around an element for padding in the {@code toString} method.
-   */
+  /** The maximum number of spaces around an element for padding in the {@code toString} method. */
   private final int maxNumSpaces;
 
   /**
-   * The space character used by {@code Grid} in the {@code toString} method.
-   */
-  public static final String SPACE = " ";
-
-  /**
-   * Construct a square {@code Grid} with single-side dimensions as specified. The grid contains the
-   * playable part of the game board, initialised as {@code BoardFeature.EMPTY}, as well as the
-   * surrounding sides, initialised as {@code BoardFeature.SIDE}. Therefore, the playable grid has
-   * the dimension as specified, but with the boundaries included the full grid single-side
-   * dimension is the playable single-side dimension plus two.
+   * Instantiate a square {@code Grid} with single-side dimensions as specified. The grid contains
+   * the playable part of the game board, initialised as {@code Feature.EMPTY}, as well as the
+   * surrounding sides, initialised as {@code Feature.SIDE}. Therefore, the playable grid has the
+   * dimension as specified, but with the boundaries included the full grid single-side dimension is
+   * the playable single-side dimension plus two.
    *
    * @param dim the playable grid single-side dimension.
    */
@@ -81,27 +68,23 @@ public class Grid {
   /**
    * Instantiate a new {@code Grid} as a copy of another.
    *
-   * @param grid the grid to copy.
+   * @param grid the {@code Grid} to copy.
    */
   public Grid(Grid grid) {
     dim = grid.getDim();
-    maxNumSpaces = grid.maxNumSpaces;
+    maxNumSpaces = grid.getMaxNumSpaces();
     sub2IndMap = grid.getSub2IndMap();
     ind2SubMap = grid.getInd2SubMap();
     this.grid = new HashMap<>(grid.getGrid());
     neighborsMap = grid.getNeighborsMap();
   }
 
-  /**
-   * @return the sub 2 ind map
-   */
+  /** @return the sub 2 ind map */
   private Map<List<Integer>, Integer> getSub2IndMap() {
     return sub2IndMap;
   }
 
-  /**
-   * @return the ind 2 sub map
-   */
+  /** @return the ind 2 sub map */
   private Map<Integer, List<Integer>> getInd2SubMap() {
     return ind2SubMap;
   }
@@ -110,10 +93,8 @@ public class Grid {
     return neighborsMap;
   }
 
-  /**
-   * @return the single-side dimension of the playable grid.
-   */
-  private int getDim() {
+  /** @return the single-side dimension of the playable grid. */
+  public int getDim() {
     return dim;
   }
 
@@ -122,31 +103,29 @@ public class Grid {
    *
    * @return the max num spaces
    */
-  public int getMaxNumSpaces() {
+  private int getMaxNumSpaces() {
     return maxNumSpaces;
   }
 
-  /**
-   * @return the full grid.
-   */
-  private Map<Integer, GameMaterial> getGrid() {
+  /** @return the full grid. */
+  protected Map<Integer, Material> getGrid() {
     return grid;
   }
 
   /**
-   * Put the specified {@code GameMaterial} in the full grid at the specified linear index.
+   * Put the specified {@code Material} in the full grid at the specified linear index.
    *
    * @param ind the linear index.
-   * @param gameMaterial the {@code GameMaterial}.
+   * @param material the {@code Material}.
    */
-  public void put(int ind, GameMaterial gameMaterial) {
-    getGrid().put(ind, gameMaterial);
+  public void put(int ind, Material material) {
+    getGrid().put(ind, material);
   }
 
   /**
    * Initialise the {@code Grid} by setting the material of the playable grid to {@code
-   * BoardFeature.EMPTY}, the material of the boundaries to {@code BoardFeature.SIDE} and initialise
-   * the {@code sub2Ind} and {@code ind2Sub} methods.
+   * Feature.EMPTY}, the material of the boundaries to {@code Feature.SIDE} and initialise the
+   * {@code sub2Ind} and {@code ind2Sub} methods.
    */
   private void init() {
     for (int ind = 0; ind < getFullDim() * getFullDim(); ind++) {
@@ -158,10 +137,10 @@ public class Grid {
       // Check location of current index and put material on the full grid
       if (isBoundary(sub)) {
         // Boundary of full grid
-        getGrid().put(ind, BoardFeature.SIDE);
+        getGrid().put(ind, Feature.SIDE);
       } else {
         // Playable grid
-        getGrid().put(ind, BoardFeature.EMPTY);
+        getGrid().put(ind, Feature.EMPTY);
       }
     }
     for (int ind = 0; ind < getFullDim() * getFullDim(); ind++) {
@@ -173,9 +152,7 @@ public class Grid {
     }
   }
 
-  /**
-   * @return the full grid single-side dimension.
-   */
+  /** @return the full grid single-side dimension. */
   private int getFullDim() {
     return getDim() + 2;
   }
@@ -205,7 +182,7 @@ public class Grid {
         sub2Ind(Arrays.asList(row, col + 1)), // East
         sub2Ind(Arrays.asList(row + 1, col)), // South
         sub2Ind(Arrays.asList(row, col - 1)) // West
-    );
+        );
   }
 
   /**
@@ -222,12 +199,12 @@ public class Grid {
   }
 
   /**
-   * Get the {@code GameMaterial} of the {@code Grid} at the specified linear index.
+   * Get the {@code Material} of the {@code Grid} at the specified linear index.
    *
    * @param ind the linear index.
-   * @return the {@code GameMaterial}.
+   * @return the {@code Material}.
    */
-  public GameMaterial get(int ind) {
+  public Material get(int ind) {
     return getGrid().get(ind);
   }
 
@@ -252,20 +229,37 @@ public class Grid {
   }
 
   /**
-   * Get the full grid linear index from the specified playable grid subscript indices.
+   * Get the full grid linear index from the specified playable grid subscript indices. The playable
+   * indicices may point to an index on the full grid, but not outside it, i.e., the indices must be
+   * greater than or equal to -1 and less than or equal to {@code getDim}.
    *
    * @param playable the playable subscript indices.
    * @return the full grid linear index.
    */
-  int playable2Ind(List<Integer> playable) {
+  public int playable2Ind(List<Integer> playable) throws AssertionError {
+    List<Integer> playableCopy = new ArrayList<>(playable);
     for (int e : playable) {
-      if (!(e >= 0 && e < getDim())) {
+      if (!(e >= -1 && e <= getDim())) {
         throw new AssertionError("playable indices out of bounds");
       }
     }
-    UnaryOperator<Integer> plusplus = a -> a + 1;
-    playable.replaceAll(plusplus);
-    return sub2Ind(playable);
+    UnaryOperator<Integer> increment = a -> a + 1;
+    playableCopy.replaceAll(increment);
+    return sub2Ind(playableCopy);
+  }
+
+  /**
+   * Get the playable subscript indices from the specified full grid linear index.
+   *
+   * @param ind the linear index.
+   * @return the playable subscript indices as a {@code List<Integer>}.
+   */
+  List<Integer> ind2Playable(int ind) {
+    List<Integer> playable = ind2Sub(ind);
+    List<Integer> playableCopy = new ArrayList<>(playable);
+    UnaryOperator<Integer> decrement = a -> a - 1;
+    playableCopy.replaceAll(decrement);
+    return playableCopy;
   }
 
   /**
@@ -284,15 +278,13 @@ public class Grid {
     return sub.get(1);
   }
 
-  /**
-   * @return the {@code Grid} represented as a {@code String}.
-   */
+  /** @return the {@code Grid} represented as a {@code String}. */
   @Override
   public String toString() {
     // Preallocate variables
     String string = "";
-    String side = BoardFeature.SIDE.toString();
-    String empty = BoardFeature.EMPTY.toString();
+    String side = Feature.SIDE.toString();
+    String empty = Feature.EMPTY.toString();
     String black = Stone.BLACK.toString();
     String white = Stone.WHITE.toString();
     List<Integer> sub;
@@ -338,7 +330,7 @@ public class Grid {
       if (isBoundary(sub)) { // Set boundary numbers
         if (row == 0 || row == getDim() + 1) { // Set column number on first and last row
           if (col == 0 || col == getDim() + 1) {
-            string += generateGameMaterialString(BoardFeature.SIDE);
+            string += generateGameMaterialString(Feature.SIDE);
 
           } else {
             spaces2Prepend = prependFunction(col);
@@ -367,9 +359,12 @@ public class Grid {
   }
 
   /**
-   * Generate a {@code toString} block for a {@code BoardFeature.SIDE}.
+   * Generate a {@code toString} block for the specified {@code Material}.
+   *
+   * @param material the {@code Material}.
+   * @return the {@code Material} as a {@code String} block.
    */
-  private String generateGameMaterialString(GameMaterial material) {
+  private String generateGameMaterialString(Material material) {
     String string = material.toString();
     int spaces2Prepend = prependFunction(string.length());
     int spaces2Append = appendFunction(string.length());
@@ -413,4 +408,20 @@ public class Grid {
   private int appendFunction(int num) {
     return (getMaxNumSpaces() - ((int) Math.log10(num))) / 2;
   }
+
+  @Override
+  public int hashCode() {
+    return getGrid().hashCode();
+  }
+
+  //  public Map<Integer, List<Integer>> getNeighbors(int playableX, int playableY) {
+  //    Map<Integer, Material> result = new HashMap<>();
+  //    for (Entry<Integer, List<Integer>> entry : getNeighborsMap().entrySet()) {
+  //      int ind = entry.getKey();
+  //      for (Integer gameMaterialIndex : entry.getValue()) {
+  //            result.put(ind, );
+  //      }
+  //    }
+  //    return result;
+  //  }
 }

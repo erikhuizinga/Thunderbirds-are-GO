@@ -1,92 +1,89 @@
 package game.material.board;
 
-import game.material.GameMaterial;
+import game.material.Material;
+import game.material.PositionedMaterial;
+import game.material.PositionedStone;
 import game.material.Stone;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-/**
- * A Go board. Created by erik.huizinga on 23-1-17.
- */
-public class Board {
-
-  /**
-   * The single-side dimension of the playable square grid.
-   */
-  private final int dim;
+/** A Go board. Created by erik.huizinga on 23-1-17. */
+public class Board extends Grid {
 
   /**
-   * The grid in which the board's material is stored.
-   */
-  private Grid grid;
-
-  /**
-   * Construct a Go board with the specified single-side dimension of the playable grid.
+   * Instantiate a new Go {@code Board} with the specified single-side dimension of the playable
+   * {@code Grid}.
    *
    * @param dim the dimension.
    */
   public Board(int dim) {
-    this.dim = dim;
-    setGrid(new Grid(dim));
+    super(dim);
   }
 
   /**
    * Instantiate a new {@code Board} as a copy of another.
    *
-   * @param board the board to copy.
+   * @param board the {@code Board} to copy.
    */
   public Board(Board board) {
-    dim = board.getDim();
-    setGrid(new Grid(board.getGrid()));
+    super(board);
+  }
+
+  /** Put the specified {@code PositionedMaterial} on the {@code Board}. */
+  public void put(PositionedMaterial positionedMaterial) {
+    getGrid()
+        .put(
+            playable2Ind(
+                Arrays.asList(
+                    positionedMaterial.getPlayableX(), positionedMaterial.getPlayableY())),
+            positionedMaterial.getMaterial());
   }
 
   /**
-   * @return the grid
-   */
-  private Grid getGrid() {
-    return grid;
-  }
-
-  /**
-   * @param grid the grid
-   */
-  private void setGrid(Grid grid) {
-    this.grid = grid;
-  }
-
-  /**
-   * @return the single-side dimension of the playable square grid.
-   */
-  public int getDim() {
-    return dim;
-  }
-
-  /**
-   * Put the specified {@code Stone} on the {@code Board} at the specified playable grid indices.
+   * Get the {@code Material} on the {@code Board} at the specified playable indices.
    *
-   * @param x the horizontal index of the playable grid.
-   * @param y the vertical index of the playable grid.
-   * @param stone the {@code Stone}.
+   * @param playableX the horizontal playable index.
+   * @param playableY the vertical playable index.
+   * @return the {@code Material}.
    */
-  public void put(int x, int y, Stone stone) {
-    getGrid().put(getGrid().playable2Ind(Arrays.asList(x, y)), stone);
+  public Material get(int playableX, int playableY) {
+    return get(playable2Ind(Arrays.asList(playableX, playableY)));
   }
 
   /**
-   * Get the {@code GameMaterial} on the {@code Board} at the specified playable indices.
+   * Get neighbouring {@code PositionedMaterial} of the specified {@code PositionedMaterial}.
    *
-   * @param x the horizontal playable index.
-   * @param y the vertical playable index.
-   * @return the {@code GameMaterial}.
+   * @param posM the {@code PositionedMaterial}.
+   * @return the {@code List<PositionedMaterial>} of neighbours.
    */
-  public GameMaterial get(int x, int y) {
-    return getGrid().get(getGrid().playable2Ind(Arrays.asList(x, y)));
-  }
+  public List<PositionedMaterial> getNeighbors(PositionedMaterial posM) {
+    List<PositionedMaterial> neighbors = new ArrayList<>();
+    int index = playable2Ind(Arrays.asList(posM.getPlayableX(), posM.getPlayableY()));
+    List<Integer> neighborIndices = getNeighborsMap().get(index);
+    List<Integer> neighborPlayableIndex;
+    PositionedMaterial neighbor = null;
+    Material neighborMaterial;
+    for (int neighborIndex : neighborIndices) {
+      neighborPlayableIndex = ind2Playable(neighborIndex);
 
-  /**
-   * @return the {@code Board} as a {@code String}.
-   */
-  @Override
-  public String toString() {
-    return getGrid().toString();
+      neighborMaterial = get(neighborIndex);
+      if (neighborMaterial instanceof Stone) {
+        neighbor =
+            new PositionedStone(
+                neighborPlayableIndex.get(0),
+                neighborPlayableIndex.get(1),
+                (Stone) neighborMaterial);
+
+      } else if (neighborMaterial instanceof Feature) {
+        neighbor =
+            new PositionedFeature(
+                neighborPlayableIndex.get(0),
+                neighborPlayableIndex.get(1),
+                (Feature) neighborMaterial);
+      }
+      neighbors.add(neighbor);
+    }
+    return neighbors;
   }
 }

@@ -3,7 +3,7 @@ package game.material;
 /**
  * Created by erik.huizinga on 23-1-17.
  */
-public enum Stone implements GameMaterial {
+public enum Stone implements Material {
 
   /**
    * The black stone.

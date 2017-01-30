@@ -56,14 +56,10 @@ public abstract class Player {
     return util.ListTools.random(names);
   }
 
-  /**
-   * Get the next {@code Move}.
-   *
-   * @return
-   */
+  /** @return the next {@code Move}. */
   public abstract Move nextMove();
 
-  /** Get the {@code Stone} the {@code Player} plays with. */
+  /** @return the stone the {@code Stone} the {@code Player} plays with. */
   Stone getStone() {
     return stone;
   }
