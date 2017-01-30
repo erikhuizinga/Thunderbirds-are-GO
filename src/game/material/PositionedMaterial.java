@@ -1,5 +1,8 @@
 package game.material;
 
+import java.util.Arrays;
+import java.util.List;
+
 /** Created by erik.huizinga on 29-1-17. */
 public abstract class PositionedMaterial implements Material {
 
@@ -41,18 +44,34 @@ public abstract class PositionedMaterial implements Material {
     return playableY;
   }
 
+  /** @return the playable position as a {@code List<Integer>}. */
+  public List<Integer> getPlayablePosition() {
+    return Arrays.asList(getPlayableX(), getPlayableY());
+  }
+
   /** @return the {@code Material}. */
   public Material getMaterial() {
     return material;
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (obj instanceof PositionedMaterial) {
-      return getMaterial().equals(((PositionedMaterial) obj).getMaterial());
-    } else if (obj instanceof Material) {
-      return getMaterial().equals(obj);
-    }
-    return false;
+  /**
+   * Determine if this {@code PositionedMaterial} contains the {@code Material} contained by the
+   * specified {@code PositionedMaterial}.
+   *
+   * @param positionedMaterial the {@code PositionedMaterial}.
+   * @return {@code true} if the {@code PositionedMaterial} is contained; {@code false} otherwise.
+   */
+  public boolean containsMaterial(PositionedMaterial positionedMaterial) {
+    return containsMaterial(positionedMaterial.getMaterial());
+  }
+
+  /**
+   * Determine if this {@code PositionedMaterial} contains the specified {@code Material}.
+   *
+   * @param material the {@code Material}.
+   * @return {@code true} if the {@code Material} is contained; {@code false} otherwise.
+   */
+  public boolean containsMaterial(Material material) {
+    return getMaterial().equals(material);
   }
 }
