@@ -1,8 +1,8 @@
 package game;
 
-import game.Rules.DynamicalValidator;
+import static game.Rules.handleDynamicalValidity;
+
 import game.action.Move;
-import game.material.PositionedMaterial;
 import game.material.board.Board;
 import java.util.Collection;
 import java.util.HashSet;
@@ -47,54 +47,41 @@ public class Go extends Observable implements Runnable {
     setChanged();
     notifyObservers(getBoard());
 
-    // Play
+    // Play a turn
     Move move;
-    Board board;
+    Board currentBoard;
+    Board nextBoard;
     do {
+      currentBoard = getBoard();
       do {
         do {
+
           // Get next move from current player
           move = getPlayers()[getCurrentPlayerIndex()].nextMove();
 
           // Ensure technical validity of the move
-        } while (!Rules.isTechnicallyValid(getBoard(), move));
+        } while (!Rules.isTechnicallyValid(currentBoard, move));
 
         // Play move
-        board = move.apply(getBoard());
+        nextBoard = move.apply(currentBoard);
 
-        // Handle changes in dynamical validity
-        handleDynamicalValidity(board, move);
+        // Ensure dynamical validity by handling changes
+        handleDynamicalValidity(nextBoard, move);
 
         // Ensure historical validity
-      } while (!Rules.isHistoricallyValid(this, move));
+      } while (!Rules.isHistoricallyValid(this, nextBoard));
 
       // Add the current board to the history and set the new board as the current
-      getBoardHistory().add(getBoard().hashCode());
-      setBoard(board);
+      getBoardHistory().add(currentBoard.hashCode());
+      setBoard(nextBoard);
 
       // Notify observers of the new board
       setChanged();
-      notifyObservers(getBoard());
+      notifyObservers(nextBoard);
 
       // Set next player's turn
       nextPlayer();
     } while (!Rules.isFinished(this));
-  }
-
-  /**
-   * TODO
-   *
-   * @param board
-   * @param posM
-   */
-  private void handleDynamicalValidity(Board board, PositionedMaterial posM) {
-    // Set validator
-    DynamicalValidator validator = new DynamicalValidator(board);
-
-    // Validate
-    validator = validator.validate(posM);
-
-    // Find invalid indices
   }
 
   /** @return the {@code Board}. */

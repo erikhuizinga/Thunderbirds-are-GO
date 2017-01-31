@@ -254,7 +254,7 @@ public class Grid {
    * @param ind the linear index.
    * @return the playable subscript indices as a {@code List<Integer>}.
    */
-  List<Integer> ind2Playable(int ind) {
+  public List<Integer> ind2Playable(int ind) {
     List<Integer> playable = ind2Sub(ind);
     List<Integer> playableCopy = new ArrayList<>(playable);
     UnaryOperator<Integer> decrement = a -> a - 1;
