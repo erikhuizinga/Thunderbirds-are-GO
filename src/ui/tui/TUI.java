@@ -480,6 +480,7 @@ public class TUI implements Observer {
   public void update(Observable go, Object board) {
     if (go instanceof Go && board instanceof Board) {
       setGo((Go) go);
+      System.out.println();
       System.out.println(board);
       System.out.println();
       if (false) { //TODO to become:(isFinished(Go)) {

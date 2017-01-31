@@ -7,6 +7,7 @@ import game.material.Stone;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -131,8 +132,8 @@ public class Grid {
     for (int ind = 0; ind < getFullDim() * getFullDim(); ind++) {
       // Store all the indices!
       List<Integer> sub = ind2RowCol(ind);
-      ind2SubMap.put(ind, sub);
-      sub2IndMap.put(sub, ind);
+      getInd2SubMap().put(ind, sub);
+      getSub2IndMap().put(sub, ind);
 
       // Check location of current index and put material on the full grid
       if (isBoundary(sub)) {
@@ -177,12 +178,13 @@ public class Grid {
   private List<Integer> findNeighbors(List<Integer> sub) {
     int row = sub2Row(sub);
     int col = sub2Col(sub);
-    return Arrays.asList(
-        sub2Ind(Arrays.asList(row - 1, col)), // North
-        sub2Ind(Arrays.asList(row, col + 1)), // East
-        sub2Ind(Arrays.asList(row + 1, col)), // South
-        sub2Ind(Arrays.asList(row, col - 1)) // West
-        );
+    return new LinkedList<>(
+        Arrays.asList(
+            sub2Ind(Arrays.asList(row - 1, col)), // North
+            sub2Ind(Arrays.asList(row, col + 1)), // East
+            sub2Ind(Arrays.asList(row + 1, col)), // South
+            sub2Ind(Arrays.asList(row, col - 1)) // West
+            ));
   }
 
   /**
@@ -254,7 +256,7 @@ public class Grid {
    * @param ind the linear index.
    * @return the playable subscript indices as a {@code List<Integer>}.
    */
-  List<Integer> ind2Playable(int ind) {
+  public List<Integer> ind2Playable(int ind) {
     List<Integer> playable = ind2Sub(ind);
     List<Integer> playableCopy = new ArrayList<>(playable);
     UnaryOperator<Integer> decrement = a -> a - 1;
