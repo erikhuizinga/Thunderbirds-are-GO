@@ -7,6 +7,7 @@ import game.material.Stone;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -177,12 +178,13 @@ public class Grid {
   private List<Integer> findNeighbors(List<Integer> sub) {
     int row = sub2Row(sub);
     int col = sub2Col(sub);
-    return Arrays.asList(
-        sub2Ind(Arrays.asList(row - 1, col)), // North
-        sub2Ind(Arrays.asList(row, col + 1)), // East
-        sub2Ind(Arrays.asList(row + 1, col)), // South
-        sub2Ind(Arrays.asList(row, col - 1)) // West
-        );
+    return new LinkedList<>(
+        Arrays.asList(
+            sub2Ind(Arrays.asList(row - 1, col)), // North
+            sub2Ind(Arrays.asList(row, col + 1)), // East
+            sub2Ind(Arrays.asList(row + 1, col)), // South
+            sub2Ind(Arrays.asList(row, col - 1)) // West
+            ));
   }
 
   /**
