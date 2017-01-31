@@ -1,7 +1,5 @@
 package game;
 
-import static game.Rules.handleDynamicalValidity;
-
 import game.action.Move;
 import game.material.board.Board;
 import java.util.Collection;
@@ -36,6 +34,7 @@ public class Go extends Observable implements Runnable {
    */
   public Go(int dim, Player blackPlayer, Player whitePlayer) {
     board = new Board(dim);
+    addHistoryRecord(board);
     players = new Player[] {blackPlayer, whitePlayer};
     setChanged();
     notifyObservers(board);
@@ -62,17 +61,14 @@ public class Go extends Observable implements Runnable {
           // Ensure technical validity of the move
         } while (!Rules.isTechnicallyValid(currentBoard, move));
 
-        // Play move
-        nextBoard = move.apply(currentBoard);
-
-        // Ensure dynamical validity by handling changes
-        handleDynamicalValidity(nextBoard, move);
+        // Play move while considering dynamical validation
+        nextBoard = Rules.playWithDynamicalValidation(currentBoard, move);
 
         // Ensure historical validity
       } while (!Rules.isHistoricallyValid(this, nextBoard));
 
       // Add the current board to the history and set the new board as the current
-      getBoardHistory().add(currentBoard.hashCode());
+      addHistoryRecord(currentBoard);
       setBoard(nextBoard);
 
       // Notify observers of the new board
@@ -82,6 +78,10 @@ public class Go extends Observable implements Runnable {
       // Set next player's turn
       nextPlayer();
     } while (!Rules.isFinished(this));
+  }
+
+  void addHistoryRecord(Board currentBoard) {
+    getBoardHistory().add(currentBoard.hashCode());
   }
 
   /** @return the {@code Board}. */

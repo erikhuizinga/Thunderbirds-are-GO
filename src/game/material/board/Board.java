@@ -54,12 +54,14 @@ public class Board extends Grid {
   /**
    * Get neighbouring {@code PositionedMaterial} of the specified {@code PositionedMaterial}.
    *
-   * @param posM the {@code PositionedMaterial}.
+   * @param positionedMaterial the {@code PositionedMaterial}.
    * @return the {@code List<PositionedMaterial>} of neighbours.
    */
-  public List<PositionedMaterial> getNeighbors(PositionedMaterial posM) {
+  public List<PositionedMaterial> getNeighbors(PositionedMaterial positionedMaterial) {
     List<PositionedMaterial> neighbors = new ArrayList<>();
-    int index = playable2Ind(Arrays.asList(posM.getPlayableX(), posM.getPlayableY()));
+    int index =
+        playable2Ind(
+            Arrays.asList(positionedMaterial.getPlayableX(), positionedMaterial.getPlayableY()));
     List<Integer> neighborIndices = getNeighborsMap().get(index);
     List<Integer> neighborPlayableIndex;
     PositionedMaterial neighbor = null;

@@ -132,8 +132,8 @@ public class Grid {
     for (int ind = 0; ind < getFullDim() * getFullDim(); ind++) {
       // Store all the indices!
       List<Integer> sub = ind2RowCol(ind);
-      ind2SubMap.put(ind, sub);
-      sub2IndMap.put(sub, ind);
+      getInd2SubMap().put(ind, sub);
+      getSub2IndMap().put(sub, ind);
 
       // Check location of current index and put material on the full grid
       if (isBoundary(sub)) {
