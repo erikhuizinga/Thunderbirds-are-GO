@@ -198,11 +198,6 @@ class RulesTest {
   }
 
   @Test
-  void testPlayWithDynamicalValidation() {
-    fail("test not yet implemented");
-  }
-
-  @Test
   void testIsHistoricallyValid() {
     // Test that the initial board is in the history
     assertFalse(Rules.isHistoricallyValid(go, go.getBoard()));
@@ -215,8 +210,7 @@ class RulesTest {
     // Ko
     go = new Go(dim, null, null);
     for (Move blackKoMove : blackKoMoves) {
-      board = blackKoMove.apply(board);
-      Rules.handleDynamicalValidity(board, blackKoMove);
+      board = Rules.playWithDynamicalValidation(board, blackKoMove);
       assertTrue(Rules.isHistoricallyValid(go, board));
       go.addHistoryRecord(board);
       System.out.println("After playing a black move towards Ko and ensuring validity:");
@@ -224,16 +218,14 @@ class RulesTest {
     }
 
     // Play an illegal move and assert that it is historically invalid
-    Board illegalBoard = whiteIllegalKoMove.apply(board);
-    Rules.handleDynamicalValidity(illegalBoard, whiteIllegalKoMove);
+    Board illegalBoard = Rules.playWithDynamicalValidation(board, whiteIllegalKoMove);
     assertFalse(Rules.isHistoricallyValid(go, illegalBoard));
     System.out.println("Illegal Ko move applied:");
     System.out.println(illegalBoard);
 
     // Play legal different moves and assert that this is historically valid
     for (Move legalMoveAfterKo : legalMovesAfterKo) {
-      board = legalMoveAfterKo.apply(board);
-      Rules.handleDynamicalValidity(board, legalMoveAfterKo);
+      board = Rules.playWithDynamicalValidation(board, legalMoveAfterKo);
       assertTrue(Rules.isHistoricallyValid(go, board));
       go.addHistoryRecord(board);
       System.out.println("After playing moves after Ko and ensuring validity:");
