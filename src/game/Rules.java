@@ -69,6 +69,8 @@ public abstract class Rules {
       isValid = board.get(move.getPlayableX(), move.getPlayableY()).isPlayable();
     } catch (AssertionError e) { // Thrown if the position is out of bounds
       isValid = false;
+    }
+    if (!isValid) {
       System.out.println("It is not allowed to play there.");
     }
     return isValid;

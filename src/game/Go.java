@@ -72,6 +72,8 @@ public class Go extends Observable implements Runnable {
     do {
       playTurn();
     } while (!Rules.isFinished(this));
+    setChanged();
+    notifyObservers(getBoard());
   }
 
   void playTurn() {
