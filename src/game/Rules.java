@@ -1,8 +1,10 @@
 package game;
 
 import game.action.Move;
+import game.action.Move.MoveType;
 import game.material.Material;
 import game.material.PositionedMaterial;
+import game.material.Stone;
 import game.material.board.Board;
 import game.material.board.Feature;
 import java.util.HashMap;
@@ -67,6 +69,7 @@ public abstract class Rules {
       isValid = board.get(move.getPlayableX(), move.getPlayableY()).isPlayable();
     } catch (AssertionError e) { // Thrown if the position is out of bounds
       isValid = false;
+      System.out.println("It is not allowed to play there.");
     }
     return isValid;
   }
@@ -109,7 +112,12 @@ public abstract class Rules {
    * @return {@code true} if the {@code Move} is historically valid; {@code false} otherwise.
    */
   public static boolean isHistoricallyValid(Go go, Board board) {
-    return !go.getBoardHistory().contains(board.hashCode());
+    if (!go.getBoardHistory().contains(board.hashCode())) {
+      return true;
+    } else {
+      System.out.println("This move would violate the super ko rule.");
+      return false;
+    }
   }
 
   /**
@@ -119,7 +127,10 @@ public abstract class Rules {
    * @return {@code true} if the game is finished; {@code false} otherwise.
    */
   public static boolean isFinished(Go go) {
-    return false;
+    return go.getCurrentPlayer().getMoveType() == MoveType.TABLEFLIP
+        || go.getCurrentPlayer().getStone() == Stone.WHITE
+            && go.getWhitePlayer().getMoveType() == MoveType.PASS
+            && go.getBlackPlayer().getMoveType() == MoveType.PASS;
   }
 
   /** The dynamical validator class to dynamically validate boards with. */

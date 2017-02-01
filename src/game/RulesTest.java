@@ -3,7 +3,6 @@ package game;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import game.action.Move;
 import game.material.Stone;
@@ -15,11 +14,17 @@ import java.util.List;
 import java.util.Scanner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import players.ComputerPlayer;
+import players.HumanPlayer;
+import players.Player;
+import players.strategy.PassStrategy;
 
 /** Created by erik.huizinga on 31-1-17. */
 class RulesTest {
 
   private final int dim = 6;
+  Player blackDummyPlayer = new HumanPlayer(Stone.BLACK);
+  Player whiteDummyPlayer = new HumanPlayer(Stone.WHITE);
   private Board board;
   private Move move;
   private Go go;
@@ -73,7 +78,7 @@ class RulesTest {
     }
 
     // Set up a Go game with an empty board
-    go = new Go(dim, null, null);
+    go = new Go(dim, blackDummyPlayer, whiteDummyPlayer);
   }
 
   @Test
@@ -208,7 +213,7 @@ class RulesTest {
     assertFalse(Rules.isHistoricallyValid(go, board));
 
     // Ko
-    go = new Go(dim, null, null);
+    go = new Go(dim, blackDummyPlayer, whiteDummyPlayer);
     for (Move blackKoMove : blackKoMoves) {
       board = Rules.playWithDynamicalValidation(board, blackKoMove);
       assertTrue(Rules.isHistoricallyValid(go, board));
@@ -235,6 +240,20 @@ class RulesTest {
 
   @Test
   void testIsFinished() {
-    fail("test not yet implemented");
+    // Instantiate computer players
+    Player cpu1 = new ComputerPlayer(Stone.BLACK, new PassStrategy());
+    Player cpu2;
+    do {
+      cpu2 = new ComputerPlayer(Stone.WHITE, new PassStrategy());
+    } while (cpu1.getName().equals(cpu2.getName()));
+
+    // Instantiate a game of Go
+    go = new Go(dim, cpu1, cpu2);
+    assertFalse(Rules.isFinished(go));
+
+    // Play two turns and assert that the game has finished
+    go.playTurn();
+    go.playTurn();
+    assertTrue(Rules.isFinished(go));
   }
 }
