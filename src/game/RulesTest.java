@@ -57,6 +57,14 @@ class RulesTest {
           Arrays.asList(3, 3),
           Arrays.asList(3, 5),
           Arrays.asList(1, 4));
+  private List<List<Integer>> indices3 =
+      Arrays.asList(
+          Arrays.asList(1, 1), // black
+          Arrays.asList(2, 1), // white
+          Arrays.asList(2, 0), // etc.
+          Arrays.asList(3, 0),
+          Arrays.asList(1, 0));
+
   private List<Move> blackKoMoves =
       Arrays.asList(
           new Move(5, 0, Stone.BLACK), // Suicide of one stone: normally not
@@ -130,7 +138,7 @@ class RulesTest {
         e.printStackTrace();
         System.exit(2);
       }
-            */
+      */
 
       // Read reference board
       String boardString = "";
@@ -183,7 +191,7 @@ class RulesTest {
         e.printStackTrace();
         System.exit(2);
       }
-       */
+      */
 
       // Read reference board
       String boardString = "";
@@ -199,6 +207,63 @@ class RulesTest {
 
       // Validate with reference
       assertEquals(boardString, board.toString());
+    }
+  }
+
+  @Test
+  void testHandleDynamicalValidity3() {
+    board = new Board(5);
+
+    System.out.println("Before:");
+    System.out.println(board);
+    System.out.println();
+
+    // Play stones so that all current stones are removed
+    List<Integer> index;
+    String boardPath;
+    Stone stone = Stone.BLACK;
+    for (int i = 0; i < indices3.size(); i++) {
+      index = indices3.get(i);
+      move = new Move(index.get(0), index.get(1), stone);
+      board = move.apply(board);
+      System.out.println("After applying move:");
+      System.out.println(board);
+      Rules.handleDynamicalValidity(board, move);
+      System.out.println("After enforcing dynamical validity:");
+      System.out.println(board);
+
+      boardPath = "src/game/RulesTestOutput/board3_" + i + ".txt";
+      /*
+      // Write some boards to text files
+      try {
+        Writer writer = new PrintWriter(new FileOutputStream(boardPath));
+        writer.write(board.toString());
+        writer.flush();
+
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+        System.exit(1);
+      } catch (IOException e) {
+        e.printStackTrace();
+        System.exit(2);
+      }
+      */
+
+      // Read reference board
+      String boardString = "";
+      try (Scanner scanner = new Scanner(new FileReader(boardPath))) {
+        while (scanner.hasNextLine()) {
+          boardString += scanner.nextLine() + "\n";
+        }
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+        System.exit(1);
+      }
+      boardString = boardString.substring(0, boardString.length() - 1);
+
+      // Validate with reference
+      assertEquals(boardString, board.toString());
+      stone = stone.other();
     }
   }
 

@@ -178,6 +178,8 @@ public abstract class Rules {
     /** The {@code Board} being dynamically validated. */
     private final Board board;
 
+    private int firstIndex;
+
     /**
      * Instantiate a new {@code DynamicalValidator} of the specified {@code Board}.
      *
@@ -240,9 +242,10 @@ public abstract class Rules {
                 validate(neighborIndex2PositionedMaterialMap.get(neighborIndex));
               }
             }
-
-            // Set the first stone's status to be validated
-            status.put(index, doing);
+            if (status.get(index) < done) {
+              // Set the first stone's status to be validated
+              status.put(index, doing);
+            }
             break;
 
           case doing:
@@ -275,14 +278,16 @@ public abstract class Rules {
           case depends:
             // Determine if all neighbours have been checked already
             for (int neighborIndex : neighborIndices) {
-              if (status.get(neighborIndex) <= doing && status.get(neighborIndex) != first) {
+              if (status.get(neighborIndex) <= doing // Not yet done and...
+                  && neighborIndex != firstIndex) /* ...not the first stone */ {
                 if (status.get(neighborIndex) == todo) {
-                  // Ensure first is not reused in the next recursive call to this method
+                  // Ensure first status is not reused in a recursive call to this method
                   status.put(neighborIndex, doing);
                 }
                 validate(neighborIndex2PositionedMaterialMap.get(neighborIndex));
                 break switchLabel;
               }
+
               // Keep this stone as valid if a neighbouring stone is ...
               if (valid.get(neighborIndex) // ... valid and...
                   && status.get(neighborIndex) == done // ... done and ...
@@ -291,6 +296,20 @@ public abstract class Rules {
                 status.put(index, done);
                 break switchLabel;
               }
+            }
+            /*
+            At this point all neighbours have been done, except maybe the first, so check this
+            and validate the first stone before this one if it's of the same colour
+            */
+            if (neighborIndex2PositionedMaterialMap.get(firstIndex).getMaterial()
+                == positionedMaterial.getMaterial()) {
+              // Validate the first before this one
+              status.put(firstIndex, doing);
+              validate(neighborIndex2PositionedMaterialMap.get(firstIndex));
+              if (valid.get(firstIndex)) {
+                status.put(index, done);
+              }
+              break;
             }
             status.put(index, done);
             valid.put(index, false);
@@ -303,6 +322,7 @@ public abstract class Rules {
           default: // Initially, status.get(.) returns 0, which is the default
             // Set this stone's status to be the first
             status.put(index, first);
+            firstIndex = index;
             // Set neighbour status to doing
             for (int neighborIndex : neighborIndices) {
               if (status.get(neighborIndex) == todo) {
