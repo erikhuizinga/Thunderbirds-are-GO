@@ -20,6 +20,9 @@ public class TUI implements Observer {
   public static final String DEFAULT_MENU_PROMPT =
       "Choose an option (enter the number of choice): ";
 
+  /** The input scanner. */
+  private final Scanner scanner = new Scanner(System.in);
+
   /** The Go game. */
   private Go go;
 
@@ -46,9 +49,6 @@ public class TUI implements Observer {
 
   /** {@code true} if identical player names are to be kept; {@code false} otherwise. */
   private boolean keepIdenticalNames = false;
-
-  /** The input scanner. */
-  private final Scanner scanner = new Scanner(System.in);
 
   /** The single-side board dimension. */
   private int dim;
@@ -116,11 +116,15 @@ public class TUI implements Observer {
     mainMenu();
   }
 
-  /** An adapter to allow pointers to functions. */
-  private interface MenuAction {
-
-    void go();
+  /**
+   * Start a TUI to play a game of Go.
+   *
+   * @param args the input arguments; none are supported.
+   */
+  public static void main(String[] args) {
+    TUI tui = new TUI();
   }
+
   /** Print and handle the main menu. */
   private void mainMenu() {
     System.out.println();
@@ -280,13 +284,21 @@ public class TUI implements Observer {
               changePlayerNameMenu(
                   p1Name,
                   this::setP1Name,
-                  () -> setP1Name(HumanPlayer.randomName()),
+                  () -> {
+                    do {
+                      setP1Name(HumanPlayer.randomName());
+                    } while (p1Name.equals(p2Name));
+                  },
                   this::twoPlayerMenu),
           () ->
               changePlayerNameMenu(
                   p2Name,
                   this::setP2Name,
-                  () -> setP2Name(HumanPlayer.randomName()),
+                  () -> {
+                    do {
+                      setP2Name(HumanPlayer.randomName());
+                    } while (p2Name.equals(p1Name));
+                  },
                   this::twoPlayerMenu),
           () -> swapPlayerColors(this::twoPlayerMenu),
           () ->
@@ -300,8 +312,18 @@ public class TUI implements Observer {
     handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
   }
 
+  /**
+   * Print and handle the change player name menu.
+   *
+   * @param currentName the current name.
+   * @param setPName the {@code MenuAction} pointing to the method to set the correct player's name
+   *     field.
+   * @param randomName the {@code MenuAction} pointing to the method to generate a random name for
+   *     this type of {@code Player}.
+   * @param previousMenu the previous menu.
+   */
   private void changePlayerNameMenu(
-      String currentName, MenuAction setPName, MenuAction randomName, MenuAction playerConfigMenu) {
+      String currentName, MenuAction setPName, MenuAction randomName, MenuAction previousMenu) {
     System.out.println();
     System.out.println("Changing name of " + currentName + "...");
 
@@ -314,7 +336,7 @@ public class TUI implements Observer {
     handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
 
     // Go back to previous menu
-    playerConfigMenu.go();
+    previousMenu.go();
   }
 
   /**
@@ -331,7 +353,12 @@ public class TUI implements Observer {
     boardMenu(previousMenu);
   }
 
-  private void boardMenu(MenuAction playerConfigMenu) {
+  /**
+   * Print and handle the board configuration menu.
+   *
+   * @param previousMenu the previous menu.
+   */
+  private void boardMenu(MenuAction previousMenu) {
     System.out.println();
     System.out.println("What board size do you want to play on?");
 
@@ -351,17 +378,22 @@ public class TUI implements Observer {
           () -> setDim(9),
           () -> setDim(13),
           () -> setDim(19),
-          () -> playerConfigMenu.go(),
+          () -> previousMenu.go(),
           this::exitMenu
         };
 
     handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
 
     // Go to review menu
-    reviewMenu(playerConfigMenu);
+    reviewMenu(previousMenu);
   }
 
-  private void reviewMenu(MenuAction playerConfigMenu) {
+  /**
+   * Print and handle the game review menu.
+   *
+   * @param previousMenu the previous menu.
+   */
+  private void reviewMenu(MenuAction previousMenu) {
     System.out.println();
     System.out.println("G---------------------------o");
     System.out.println("| REVIEW GAME CONFIGURATION |");
@@ -384,13 +416,16 @@ public class TUI implements Observer {
         };
     MenuAction[] menuActions =
         new MenuAction[] {
-          () -> playerConfigMenu.go(), () -> boardMenu(playerConfigMenu), this::play, this::mainMenu
+          () -> previousMenu.go(),
+          () -> boardMenu(() -> reviewMenu(previousMenu)),
+          this::play,
+          this::mainMenu
         };
     handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
   }
 
+  /** Print and handle the continue menu. */
   private void continueMenu() {
-    System.out.println();
     System.out.println("Do you want to play another game?");
     List<String> choiceNumbers = Arrays.asList("1", "2");
     String[] choiceStrings = new String[] {"Yes, go back to main menu", "No, exit"};
@@ -398,6 +433,7 @@ public class TUI implements Observer {
     handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
   }
 
+  /** Print the current player configuration. */
   private void printPlayerConfig() {
     System.out.println(
         "Current players (note that "
@@ -412,6 +448,14 @@ public class TUI implements Observer {
     System.out.println();
   }
 
+  /**
+   * Handle the specified menu choices.
+   *
+   * @param prompt the prompt to display to the user.
+   * @param choiceNumbers the numbers of the choices.
+   * @param choiceStrings the strings of the choices.
+   * @param menuActions the actions of the choices.
+   */
   private void handleChoices(
       String prompt, List<String> choiceNumbers, String[] choiceStrings, MenuAction[] menuActions) {
     Map<String, MenuAction> actionMap = new HashMap<>();
@@ -423,6 +467,11 @@ public class TUI implements Observer {
     actionMap.get(readPromptWithLimitedChoices(prompt, choiceNumbers)).go();
   }
 
+  /**
+   * Read a name from the input.
+   *
+   * @return the name.
+   */
   private String readName() {
     System.out.print("Enter a new name (or leave empty to cancel): ");
     String name;
@@ -432,6 +481,11 @@ public class TUI implements Observer {
     return name;
   }
 
+  /**
+   * Swap the player colours by swapping the players.
+   *
+   * @param previousMenu the previous menu.
+   */
   private void swapPlayerColors(MenuAction previousMenu) {
     String oldP1Name = p1Name;
     setP1Name(p2Name);
@@ -455,6 +509,12 @@ public class TUI implements Observer {
     return input;
   }
 
+  /**
+   * Read input by prompting the user.
+   *
+   * @param prompt the prompt.
+   * @return the input.
+   */
   private String readPrompt(String prompt) {
     String input;
     do {
@@ -464,6 +524,7 @@ public class TUI implements Observer {
     return input;
   }
 
+  /** Play the game. */
   private void play() {
     setGo(new Go(dim, p1, p2));
     go.addObserver(this);
@@ -472,18 +533,23 @@ public class TUI implements Observer {
     System.out.println("G---------------o");
     System.out.println("| LET'S PLAY GO |");
     System.out.println("o---------------G");
-    System.out.println();
     goThread.start();
   }
 
   @Override
-  public void update(Observable go, Object board) {
-    if (go instanceof Go && board instanceof Board) {
-      setGo((Go) go);
-      System.out.println();
-      System.out.println(board);
-      System.out.println();
-      if (false) { //TODO to become:(isFinished(Go)) {
+  public void update(Observable observable, Object arg) {
+    if (observable instanceof Go) {
+      if (arg instanceof Board) {
+        setGo((Go) observable);
+        System.out.println();
+        System.out.println(arg);
+        System.out.println();
+
+      } else if (arg instanceof String) {
+        System.out.println(arg);
+        System.out.println();
+
+      } else if (arg == null) {
         continueMenu();
       }
     }
@@ -541,8 +607,8 @@ public class TUI implements Observer {
         dim =
             Integer.parseInt(
                 readPrompt(
-                    "Enter a custom dimension by entering just one number, i.e., \n"
-                        + "this single-side board length (must be greater than or equal to 5 and\n"
+                    "\nEnter a custom dimension by entering just one number, i.e., \n"
+                        + "the single-side board length (must be greater than or equal to 5 and\n"
                         + "less than or equal to 1001): "));
       } catch (NumberFormatException e) {
         dim = -1;
@@ -551,12 +617,12 @@ public class TUI implements Observer {
     setDim(dim);
   }
 
-  /**
-   * Start a TUI to play a game of Go.
-   *
-   * @param args the input arguments; none are supported.
-   */
-  public static void main(String[] args) {
-    TUI tui = new TUI();
+  /** An adapter to allow pointers to functions. */
+  private interface MenuAction {
+    void go();
+  }
+
+  private interface MenuGetter extends MenuAction {
+    Object get();
   }
 }

@@ -16,9 +16,7 @@ import java.util.Scanner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Created by erik.huizinga on 24-1-17.
- */
+/** Created by erik.huizinga on 24-1-17. */
 public class GridTest {
 
   private final int ind0 = 0;
@@ -40,7 +38,6 @@ public class GridTest {
   private List<Integer> sub00;
   private List<Integer> sub11;
   private List<Integer> sub22;
-
 
   private int failInd = -1;
   private List<Integer> failSub = Arrays.asList(-1, -1);

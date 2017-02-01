@@ -1,8 +1,10 @@
 package game;
 
 import game.action.Move;
+import game.action.Move.MoveType;
 import game.material.Material;
 import game.material.PositionedMaterial;
+import game.material.Stone;
 import game.material.board.Board;
 import game.material.board.Feature;
 import java.util.HashMap;
@@ -68,6 +70,9 @@ public abstract class Rules {
     } catch (AssertionError e) { // Thrown if the position is out of bounds
       isValid = false;
     }
+    if (!isValid) {
+      System.out.println("It is not allowed to play there.");
+    }
     return isValid;
   }
 
@@ -109,7 +114,12 @@ public abstract class Rules {
    * @return {@code true} if the {@code Move} is historically valid; {@code false} otherwise.
    */
   public static boolean isHistoricallyValid(Go go, Board board) {
-    return !go.getBoardHistory().contains(board.hashCode());
+    if (!go.getBoardHistory().contains(board.hashCode())) {
+      return true;
+    } else {
+      System.out.println("This move would violate the super ko rule.");
+      return false;
+    }
   }
 
   /**
@@ -119,7 +129,36 @@ public abstract class Rules {
    * @return {@code true} if the game is finished; {@code false} otherwise.
    */
   public static boolean isFinished(Go go) {
+    if (isFinishedAfterPasses(go)) {
+      return true;
+    }
+    if (isFinishedAfterTableflip(go)) {
+      return true;
+    }
     return false;
+  }
+
+  /**
+   * Determine if the specified {@code Go} game is finished due to a pass by the white player after
+   * a pass by the black player.
+   *
+   * @param go the {@code Go} game.
+   * @return {@code true} if the game is finished; {@code false} otherwise.
+   */
+  public static boolean isFinishedAfterPasses(Go go) {
+    return go.getCurrentPlayer().getStone() == Stone.WHITE
+        && go.getWhitePlayer().getMoveType() == MoveType.PASS
+        && go.getBlackPlayer().getMoveType() == MoveType.PASS;
+  }
+
+  /**
+   * Determine if the specified {@code Go} game is finished due to a tableflip.
+   *
+   * @param go the {@code Go} game.
+   * @return {@code true} if the game is finished; {@code false} otherwise.
+   */
+  public static boolean isFinishedAfterTableflip(Go go) {
+    return go.getCurrentPlayer().getMoveType() == MoveType.TABLEFLIP;
   }
 
   /** The dynamical validator class to dynamically validate boards with. */
@@ -132,37 +171,54 @@ public abstract class Rules {
      * <dl>
      * <dt>0: to do
      * <dd>not yet validated,
-     * <dt>1: doing
+     * <dt>1: first
+     * <dd>the first stone starting validation,
+     * <dt>2: doing
      * <dd>being validated,
-     * <dt>2: depends
+     * <dt>3: depends
      * <dd>validity depends on neighbours,
-     * <dt>3: done
+     * <dt>4: done
      * <dd>done.
      * </dl>
      */
     private final Map<Integer, Integer> status = new HashMap<>();
+
+    /**
+     * The {@code Map} of boolean flags, indicating dynamical validity of every position on the
+     * board's full grid, indexed by linear indices.
+     */
+    private final Map<Integer, Boolean> valid = new HashMap<>();
 
     private final int todo = 0;
     private final int first = 1;
     private final int doing = 2;
     private final int depends = 3;
     private final int done = 4;
-    private final Map<Integer, Boolean> valid = new HashMap<>();
+
+    /**
+     * A dynamically growing {@code Map} of neighbouring {@code PositionedMaterial} indexed by full
+     * grid linear indices. This map is used to quickly find neighbours and their positions during
+     * the validation algorithm.
+     */
     private final Map<Integer, PositionedMaterial> neighborIndex2PositionedMaterialMap =
         new HashMap<>();
+
+    /** The {@code Board} being dynamically validated. */
     private final Board board;
+
+    private int firstIndex;
 
     /**
      * Instantiate a new {@code DynamicalValidator} of the specified {@code Board}.
      *
      * @param board the {@code Board}.
      */
-    public DynamicalValidator(Board board) {
+    DynamicalValidator(Board board) {
       this.board = board;
       for (int i = 0; i < (board.getDim() + 2) * (board.getDim() + 2); i++) {
         valid.put(i, true);
-        if (board.get(i) == Feature.SIDE || board.get(i) == Feature.EMPTY) {
-          // Set either the sides, or empty fields to done; they are always valid
+        if (board.get(i) instanceof Feature) {
+          // Set either the board features to done; they are always valid
           status.put(i, done);
         } else { // The board has a stone at this index
           status.put(i, todo);
@@ -214,9 +270,10 @@ public abstract class Rules {
                 validate(neighborIndex2PositionedMaterialMap.get(neighborIndex));
               }
             }
-
-            // Set the first stone's status to be validated
-            status.put(index, doing);
+            if (status.get(index) < done) {
+              // Set the first stone's status to be validated
+              status.put(index, doing);
+            }
             break;
 
           case doing:
@@ -249,14 +306,16 @@ public abstract class Rules {
           case depends:
             // Determine if all neighbours have been checked already
             for (int neighborIndex : neighborIndices) {
-              if (status.get(neighborIndex) <= doing && status.get(neighborIndex) != first) {
+              if (status.get(neighborIndex) <= doing // Not yet done and...
+                  && neighborIndex != firstIndex) /* ...not the first stone */ {
                 if (status.get(neighborIndex) == todo) {
-                  // Ensure first is not reused in the next recursive call to this method
+                  // Ensure first status is not reused in a recursive call to this method
                   status.put(neighborIndex, doing);
                 }
                 validate(neighborIndex2PositionedMaterialMap.get(neighborIndex));
                 break switchLabel;
               }
+
               // Keep this stone as valid if a neighbouring stone is ...
               if (valid.get(neighborIndex) // ... valid and...
                   && status.get(neighborIndex) == done // ... done and ...
@@ -265,6 +324,20 @@ public abstract class Rules {
                 status.put(index, done);
                 break switchLabel;
               }
+            }
+            /*
+            At this point all neighbours have been done, except maybe the first, so check this
+            and validate the first stone before this one if it's of the same colour
+            */
+            if (neighborIndex2PositionedMaterialMap.get(firstIndex).getMaterial()
+                == positionedMaterial.getMaterial()) {
+              // Validate the first before this one
+              status.put(firstIndex, doing);
+              validate(neighborIndex2PositionedMaterialMap.get(firstIndex));
+              if (valid.get(firstIndex)) {
+                status.put(index, done);
+              }
+              break;
             }
             status.put(index, done);
             valid.put(index, false);
@@ -277,6 +350,7 @@ public abstract class Rules {
           default: // Initially, status.get(.) returns 0, which is the default
             // Set this stone's status to be the first
             status.put(index, first);
+            firstIndex = index;
             // Set neighbour status to doing
             for (int neighborIndex : neighborIndices) {
               if (status.get(neighborIndex) == todo) {
@@ -287,6 +361,10 @@ public abstract class Rules {
       } while (status.get(index) < done);
     }
 
+    /**
+     * Enforce dynamical validity on the {@code Board} by removing every dynamically invalid {@code
+     * Stone}.
+     */
     void enforce() {
       if (valid.containsValue(false)) {
         for (Entry<Integer, Boolean> entry : valid.entrySet()) {

@@ -1,8 +1,6 @@
 package util;
 
-/**
- * Created by erik.huizinga on 26-1-17.
- */
+/** Created by erik.huizinga on 26-1-17. */
 public class StringTools {
 
   /**

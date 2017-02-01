@@ -1,14 +1,22 @@
 package players.strategy;
 
-/** Created by erik.huizinga on 24-1-17. */
+import game.action.Move;
+import game.material.Stone;
+import game.material.board.Board;
+
+/** The interface for the {@code Strategy} of the {@code ComputerPlayer}. */
 public interface Strategy {
 
-  public static final String name = "strategy";
+  /** @return the name of the {@code Strategy}. */
+  String getName();
 
   /**
-   * @return the name of the {@code Strategy}.
+   * Get the next {@code Move} with the specified {@code Stone} to play on the specified {@code
+   * Board} as determined by this {@code Strategy}.
+   *
+   * @param board the {@code Board}.
+   * @param stone the {@code Stone}.
+   * @return the next {@code Move}.
    */
-  default String getName() {
-    return name;
-  }
+  Move nextMove(Board board, Stone stone);
 }

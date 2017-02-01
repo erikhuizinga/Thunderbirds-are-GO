@@ -44,4 +44,16 @@ public class Move extends PositionedMaterial {
     newBoard.put(this);
     return newBoard;
   }
+
+  /** The enumeration of possible move types by a {@code Player}. */
+  public enum MoveType {
+    /** A move. */
+    MOVE,
+
+    /** A pass. */
+    PASS,
+
+    /** A tableflip. */
+    TABLEFLIP,
+  }
 }
