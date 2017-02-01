@@ -132,24 +132,39 @@ public abstract class Rules {
      * <dl>
      * <dt>0: to do
      * <dd>not yet validated,
-     * <dt>1: doing
+     * <dt>1: first
+     * <dd>the first stone starting validation,
+     * <dt>2: doing
      * <dd>being validated,
-     * <dt>2: depends
+     * <dt>3: depends
      * <dd>validity depends on neighbours,
-     * <dt>3: done
+     * <dt>4: done
      * <dd>done.
      * </dl>
      */
     private final Map<Integer, Integer> status = new HashMap<>();
+
+    /**
+     * The {@code Map} of boolean flags, indicating dynamical validity of every position on the
+     * board's full grid, indexed by linear indices.
+     */
+    private final Map<Integer, Boolean> valid = new HashMap<>();
 
     private final int todo = 0;
     private final int first = 1;
     private final int doing = 2;
     private final int depends = 3;
     private final int done = 4;
-    private final Map<Integer, Boolean> valid = new HashMap<>();
+
+    /**
+     * A dynamically growing {@code Map} of neighbouring {@code PositionedMaterial} indexed by full
+     * grid linear indices. This map is used to quickly find neighbours and their positions during
+     * the validation algorithm.
+     */
     private final Map<Integer, PositionedMaterial> neighborIndex2PositionedMaterialMap =
         new HashMap<>();
+
+    /** The {@code Board} being dynamically validated. */
     private final Board board;
 
     /**
@@ -157,12 +172,12 @@ public abstract class Rules {
      *
      * @param board the {@code Board}.
      */
-    public DynamicalValidator(Board board) {
+    DynamicalValidator(Board board) {
       this.board = board;
       for (int i = 0; i < (board.getDim() + 2) * (board.getDim() + 2); i++) {
         valid.put(i, true);
-        if (board.get(i) == Feature.SIDE || board.get(i) == Feature.EMPTY) {
-          // Set either the sides, or empty fields to done; they are always valid
+        if (board.get(i) instanceof Feature) {
+          // Set either the board features to done; they are always valid
           status.put(i, done);
         } else { // The board has a stone at this index
           status.put(i, todo);
@@ -287,6 +302,10 @@ public abstract class Rules {
       } while (status.get(index) < done);
     }
 
+    /**
+     * Enforce dynamical validity on the {@code Board} by removing every dynamically invalid {@code
+     * Stone}.
+     */
     void enforce() {
       if (valid.containsValue(false)) {
         for (Entry<Integer, Boolean> entry : valid.entrySet()) {
