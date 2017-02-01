@@ -1,7 +1,6 @@
 package ui.tui;
 
 import game.Go;
-import game.Rules;
 import game.material.Stone;
 import game.material.board.Board;
 import java.util.Arrays;
@@ -20,26 +19,37 @@ public class TUI implements Observer {
   /** The default menu prompt. */
   public static final String DEFAULT_MENU_PROMPT =
       "Choose an option (enter the number of choice): ";
+
   /** The input scanner. */
   private final Scanner scanner = new Scanner(System.in);
+
   /** The Go game. */
   private Go go;
+
   /** The first player (black). */
   private Player p1;
+
   /** The first player's name. */
   private String p1Name;
+
   /** The second player (white). */
   private Player p2;
+
   /** The second player's name. */
   private String p2Name;
+
   /** {@code true} if the player names have been set; {@code false} otherwise. */
   private boolean areNamesSet = false;
+
   /** The display text for player 1. */
   private String p1Display;
+
   /** The display text for player 2. */
   private String p2Display;
+
   /** {@code true} if identical player names are to be kept; {@code false} otherwise. */
   private boolean keepIdenticalNames = false;
+
   /** The single-side board dimension. */
   private int dim;
 
@@ -274,13 +284,21 @@ public class TUI implements Observer {
               changePlayerNameMenu(
                   p1Name,
                   this::setP1Name,
-                  () -> setP1Name(HumanPlayer.randomName()),
+                  () -> {
+                    do {
+                      setP1Name(HumanPlayer.randomName());
+                    } while (p1Name.equals(p2Name));
+                  },
                   this::twoPlayerMenu),
           () ->
               changePlayerNameMenu(
                   p2Name,
                   this::setP2Name,
-                  () -> setP2Name(HumanPlayer.randomName()),
+                  () -> {
+                    do {
+                      setP2Name(HumanPlayer.randomName());
+                    } while (p2Name.equals(p1Name));
+                  },
                   this::twoPlayerMenu),
           () -> swapPlayerColors(this::twoPlayerMenu),
           () ->
@@ -506,9 +524,7 @@ public class TUI implements Observer {
     return input;
   }
 
-  /**
-   * Play the game.
-   */
+  /** Play the game. */
   private void play() {
     setGo(new Go(dim, p1, p2));
     go.addObserver(this);
@@ -522,12 +538,18 @@ public class TUI implements Observer {
 
   @Override
   public void update(Observable observable, Object arg) {
-    if (observable instanceof Go && arg instanceof Board) {
-      setGo((Go) observable);
-      System.out.println();
-      System.out.println(arg);
-      System.out.println();
-      if (Rules.isFinished((Go) observable)) {
+    if (observable instanceof Go) {
+      if (arg instanceof Board) {
+        setGo((Go) observable);
+        System.out.println();
+        System.out.println(arg);
+        System.out.println();
+
+      } else if (arg instanceof String) {
+        System.out.println(arg);
+        System.out.println();
+
+      } else if (arg == null) {
         continueMenu();
       }
     }
@@ -598,5 +620,9 @@ public class TUI implements Observer {
   /** An adapter to allow pointers to functions. */
   private interface MenuAction {
     void go();
+  }
+
+  private interface MenuGetter extends MenuAction {
+    Object get();
   }
 }

@@ -129,10 +129,36 @@ public abstract class Rules {
    * @return {@code true} if the game is finished; {@code false} otherwise.
    */
   public static boolean isFinished(Go go) {
-    return go.getCurrentPlayer().getMoveType() == MoveType.TABLEFLIP
-        || go.getCurrentPlayer().getStone() == Stone.WHITE
-            && go.getWhitePlayer().getMoveType() == MoveType.PASS
-            && go.getBlackPlayer().getMoveType() == MoveType.PASS;
+    if (isFinishedAfterPasses(go)) {
+      return true;
+    }
+    if (isFinishedAfterTableflip(go)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Determine if the specified {@code Go} game is finished due to a pass by the white player after
+   * a pass by the black player.
+   *
+   * @param go the {@code Go} game.
+   * @return {@code true} if the game is finished; {@code false} otherwise.
+   */
+  public static boolean isFinishedAfterPasses(Go go) {
+    return go.getCurrentPlayer().getStone() == Stone.WHITE
+        && go.getWhitePlayer().getMoveType() == MoveType.PASS
+        && go.getBlackPlayer().getMoveType() == MoveType.PASS;
+  }
+
+  /**
+   * Determine if the specified {@code Go} game is finished due to a tableflip.
+   *
+   * @param go the {@code Go} game.
+   * @return {@code true} if the game is finished; {@code false} otherwise.
+   */
+  public static boolean isFinishedAfterTableflip(Go go) {
+    return go.getCurrentPlayer().getMoveType() == MoveType.TABLEFLIP;
   }
 
   /** The dynamical validator class to dynamically validate boards with. */

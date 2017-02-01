@@ -30,7 +30,11 @@ public class Board extends Grid {
     super(board);
   }
 
-  /** Put the specified {@code PositionedMaterial} on the {@code Board}. */
+  /**
+   * Put the specified {@code PositionedMaterial} on the {@code Board}.
+   *
+   * @param positionedMaterial the {@code PositionedMaterial}.
+   */
   public void put(PositionedMaterial positionedMaterial) {
     getGrid()
         .put(

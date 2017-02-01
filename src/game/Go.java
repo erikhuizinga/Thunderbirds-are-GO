@@ -1,6 +1,7 @@
 package game;
 
 import game.action.Move;
+import game.action.Move.MoveType;
 import game.material.Stone;
 import game.material.board.Board;
 import java.util.Collection;
@@ -69,11 +70,22 @@ public class Go extends Observable implements Runnable {
 
   @Override
   public void run() {
+    setChanged();
     do {
       playTurn();
     } while (!Rules.isFinished(this));
     setChanged();
-    notifyObservers(getBoard());
+    // Determine reason for finish
+    if (Rules.isFinishedAfterPasses(this)) {
+      Stone stone = getCurrentPlayer().getStone();
+      notifyObservers(stone + " passed after " + stone.other() + "; the game is over.");
+      setChanged();
+      notifyObservers();
+    } else if (Rules.isFinishedAfterTableflip(this)) {
+      notifyObservers(getCurrentPlayer() + " flips the table; the game is over.");
+      setChanged();
+      notifyObservers();
+    }
   }
 
   void playTurn() {
@@ -83,20 +95,29 @@ public class Go extends Observable implements Runnable {
     Board currentBoard = getBoard();
 
     // Update observers
-    setChanged();
-    notifyObservers(currentBoard);
+    if (hasChanged()) {
+      notifyObservers(currentBoard);
+    }
 
     turnLoopLabel:
     do {
       do {
+        clearChanged();
+
         // Get next move from current player
         move = currentPlayer.nextMove(currentBoard);
 
         // Determine if the next move is a move
         if (move == null) {
           nextBoard = currentBoard;
+
+          if (getCurrentPlayer().getMoveType() == MoveType.PASS) {
+            setChanged();
+            notifyObservers(getCurrentPlayer() + " passes.");
+          }
           break turnLoopLabel;
         }
+        setChanged();
 
         // Ensure technical validity of the move
       } while (!Rules.isTechnicallyValid(currentBoard, move));
@@ -155,7 +176,7 @@ public class Go extends Observable implements Runnable {
     this.currentPlayerIndex = currentPlayerIndex;
   }
 
-  /** Get the next {@code Player}. */
+  /** @return the next {@code Player}. */
   private Player nextPlayer() {
     setCurrentPlayerIndex(getCurrentPlayerIndex() ^ 1);
     return getCurrentPlayer();

@@ -95,8 +95,10 @@ public abstract class Player {
   }
 
   /**
-   * @return the next {@code Move}.
-   * @param board
+   * Get the next {@code Move} to play on the {@code Board}.
+   *
+   * @param board the {@code Board}.
+   * @return the {@code Move}.
    */
   public abstract Move nextMove(Board board);
 
