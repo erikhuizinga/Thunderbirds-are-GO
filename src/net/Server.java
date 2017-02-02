@@ -5,6 +5,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -19,7 +21,7 @@ public class Server {
   /** The {@code ServerSocket}. */
   private final ServerSocket serverSocket;
 
-  /** The list of peers to the clients */
+  /** The list of client peers. */
   private final ClientList clients = new ClientList();
 
   /** The handler of peers to the clients. */

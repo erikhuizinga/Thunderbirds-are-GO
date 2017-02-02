@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import net.Protocol.ClientCommands;
+import net.Protocol.ClientCommand;
 import net.Protocol.MalformedCommandException;
-import net.Protocol.ServerCommands;
+import net.Protocol.ServerCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,10 +19,10 @@ class ProtocolTest {
   @Test
   void testCommand() {
     try {
-      assertEquals("PLAYER NAME", Protocol.validateAndFormatCommand(ClientCommands.PLAYER, "name"));
+      assertEquals("PLAYER NAME", Protocol.validateAndFormatCommand(ClientCommand.PLAYER, "name"));
       assertEquals(
           "READY BLACK BARRYBADPAK 9",
-          Protocol.validateAndFormatCommand(ServerCommands.READY, "black", "BarryBadpak", "9"));
+          Protocol.validateAndFormatCommand(ServerCommand.READY, "black", "BarryBadpak", "9"));
     } catch (MalformedCommandException e) {
       e.printStackTrace();
       fail("an Exception was thrown where it shouldn't");
@@ -31,13 +31,10 @@ class ProtocolTest {
         MalformedCommandException.class,
         () ->
             Protocol.validateAndFormatCommand(
-                ClientCommands.PLAYER,
+                ClientCommand.PLAYER,
                 "this name contains illegal characters (spaces) and is too long"));
     assertThrows(
         MalformedCommandException.class,
-        () ->
-            Protocol.validateAndFormatCommand(
-                ServerCommands.READY,
-                "gray", "somename", "19"));
+        () -> Protocol.validateAndFormatCommand(ServerCommand.READY, "gray", "somename", "19"));
   }
 }

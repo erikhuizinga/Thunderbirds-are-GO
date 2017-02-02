@@ -1,5 +1,8 @@
 package net;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /** Created by erik.huizinga on 2-2-17. */
 public class Protocol {
 
@@ -7,37 +10,50 @@ public class Protocol {
   public static final String BLACK = "BLACK";
   public static final String WHITE = "WHITE";
 
-  public static String validateAndFormatCommand(Command command, String... keys)
+  public static String validateAndFormatCommand(ProtocolCommand protocolCommand, String... args)
       throws MalformedCommandException {
-    String result = command.toString();
-    for (int i = 0; i < keys.length; i++) {
-      keys[i] = keys[i].toUpperCase();
-      result += SPACE + keys[i];
+    String result = protocolCommand.toString();
+    String arg;
+    List<String> argList = new LinkedList<>();
+    for (int i = 0; i < args.length; i++) {
+      arg = args[i].toUpperCase();
+      argList.add(arg);
+      result += SPACE + arg;
     }
-    if (!command.isValidKey(keys)) {
+    if (!protocolCommand.isValidArgList(argList)) {
       throw new MalformedCommandException("command malformed by protocol: " + result);
     }
     return result;
   }
 
+  public static boolean isValidDimension(int dimension) {
+    return dimension >= 5 && dimension <= 131 && dimension % 2 != 0;
+  }
+
   /** The {@code Client} protocol commands. */
-  public enum ClientCommands implements Command {
+  public enum ClientCommand implements ProtocolCommand {
     PLAYER,
     GO;
 
     @Override
-    public boolean isValidKey(String... keys) {
+    public boolean isValidArgList(List<String> argList) {
       boolean isValid;
       switch (this) {
         case PLAYER:
-          isValid = keys[0] != null && keys[0].matches("^\\w{1,20}$");
+          isValid =
+              argList.size() > 0 && argList.get(0) != null && argList.get(0).matches("^\\w{1,20}$");
           break;
 
         case GO:
-          try {
-            int dim = Integer.parseInt(keys[0]);
-            isValid = keys[0] != null && dim >= 5 && dim <= 131 && dim % 2 != 0;
-          } catch (NumberFormatException e) {
+          if (argList.size() > 0) {
+            try {
+              int dim = Integer.parseInt(argList.get(0));
+              isValid = argList.get(0) != null && isValidDimension(dim);
+
+            } catch (NumberFormatException e) {
+              isValid = false;
+            }
+          } else {
             isValid = false;
           }
           break;
@@ -50,16 +66,17 @@ public class Protocol {
   }
 
   /** The {@code Server} protocol commands. */
-  public enum ServerCommands implements Command {
+  public enum ServerCommand implements ProtocolCommand {
     READY;
 
     @Override
-    public boolean isValidKey(String... keys) {
+    public boolean isValidArgList(List<String> argList) {
       switch (this) {
         case READY:
-          return keys.length == 3
-              && (keys[0].equals(BLACK) || keys[0].equals(WHITE))
-              && ClientCommands.PLAYER.isValidKey(keys[1]); // TODO && board size valid?
+          return argList.size() == 3
+              && (argList.get(0).equals(BLACK) || argList.get(0).equals(WHITE))
+              && ClientCommand.PLAYER.isValidArgList(
+                  argList.subList(1, 2)); // TODO && board size valid?
         default:
           return false;
       }
@@ -67,17 +84,17 @@ public class Protocol {
   }
 
   /** The general protocol commands for {@code Client}-{@code Server} communication. */
-  public enum Commands implements Command {
+  public enum Command implements ProtocolCommand {
     CHAT;
 
     @Override
-    public boolean isValidKey(String... keys) {
+    public boolean isValidArgList(List<String> argList) {
       return false;
     }
   }
 
-  private interface Command {
-    boolean isValidKey(String... keys);
+  public interface ProtocolCommand {
+    boolean isValidArgList(List<String> argList);
   }
 
   public static class MalformedCommandException extends Exception {

@@ -3,7 +3,7 @@ package util;
 import java.util.List;
 
 /** Created by erik.huizinga on 27-1-17. */
-public class ListTools {
+public class Lists {
 
   /**
    * Get a random element from the specified {@code List<E>}.
