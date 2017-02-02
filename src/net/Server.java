@@ -3,12 +3,15 @@ package net;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
-import java.util.Observer;
+import java.util.Scanner;
+import net.Protocol.ClientCommand;
 
 /** Created by erik.huizinga on 2-2-17. */
 public class Server {
@@ -22,10 +25,10 @@ public class Server {
   private final ServerSocket serverSocket;
 
   /** The list of client peers. */
-  private final ClientList clients = new ClientList();
+  private final Collection<Peer> clients = new LinkedList<>();
 
-  /** The handler of peers to the clients. */
-  private final PeerHandler peerHandler = new PeerHandler();
+  /** The map of peers and their desired board dimensions. */
+  private final Map<Peer, Integer> waitingPeerDimensionMap = new HashMap<>();
 
   /**
    * The switch indicating whether or not the {@code Server} is open to accept new connections from
@@ -42,7 +45,6 @@ public class Server {
       e.printStackTrace();
     }
     this.serverSocket = serverSocket;
-    clients.addObserver(peerHandler);
   }
 
   public static void main(String[] args) {
@@ -79,6 +81,8 @@ public class Server {
         socket = serverSocket.accept();
         peer = new Peer(socket);
         clients.add(peer);
+        new ClientHandler(peer).start();
+
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -99,31 +103,19 @@ public class Server {
     }
   }
 
-  private class ClientList extends Observable {
-    private final Collection<Peer> clients = new HashSet<>();
-
-    public Peer add(Peer peer) {
-      clients.add(peer);
-      setChanged();
-      notifyObservers(peer);
-      return peer;
-    }
+  private synchronized void add2WaitingMap(Peer peer, int dimension) {
+    waitingPeerDimensionMap.put(peer, dimension);
+    checkWaitingMap();
   }
 
-  private class PeerHandler implements Observer {
-
-    @Override
-    public void update(Observable observable, Object arg) {
-      if (observable instanceof ClientList && arg instanceof Peer) {
-        Peer peer = (Peer) arg;
-        new ClientHandler(peer).startClientHandler();
-      }
-    }
+  private synchronized void checkWaitingMap() {
+    if (waitingPeerDimensionMap.size() > 2) {}
   }
 
   private class ClientHandler extends Observable implements Runnable {
 
     private final Peer peer;
+    private Scanner in;
 
     public ClientHandler(Peer peer) {
       this.peer = peer;
@@ -132,10 +124,28 @@ public class Server {
 
     @Override
     public void run() {
-      peer.startPeer();
+      in = peer.getIn();
+
+      // PLAYER name
+      List<String> argList = expect(ClientCommand.PLAYER);
+      String name = argList.get(0);
+
+      // GO dimension
+      List<String> args = expect(ClientCommand.GO);
+      int dimension = Integer.parseInt(args.get(0));
+
+      add2WaitingMap(peer, dimension);
     }
 
-    public void startClientHandler() {
+    private List<String> expect(ClientCommand clientCommand) {
+      List<String> argList = null;
+      if (in.hasNext() && in.next().equals(clientCommand.toString())) {
+        argList = Arrays.asList(in.nextLine().trim().split(Protocol.SPACE));
+      }
+      return (clientCommand.isValidArgList(argList)) ? argList : expect(clientCommand);
+    }
+
+    public void start() {
       new Thread(this).start();
     }
   }

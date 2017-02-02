@@ -3,6 +3,9 @@ package net;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Observable;
+import net.Protocol.ClientCommand;
+import net.Protocol.MalformedCommandException;
+import net.Protocol.ProtocolCommand;
 import util.Strings;
 
 /** Created by erik.huizinga on 2-2-17. */
@@ -63,12 +66,43 @@ public class Client extends Observable {
   private void startClient() {
     addObserver(peer);
     peer.startPeer();
+    play();
+  }
+
+  private void play() {
     announcePlayer();
+
+    int dimension = 0;
+    do {
+      try {
+        dimension =
+            Integer.parseInt(
+                Strings.readString(
+                    "On what board dimension do you want to play? "
+                        + "Please enter an odd number between 5 and 131: "));
+      } catch (NumberFormatException e) {
+        System.out.println("Unable to parse number from input, please try again.");
+      }
+    } while (!Protocol.isValidDimension(dimension));
+    announceBoardDimension(dimension);
   }
 
   private void announcePlayer() {
+    sendCommand(ClientCommand.PLAYER, name);
+  }
+
+  private void announceBoardDimension(int dimension) {
+    sendCommand(ClientCommand.GO, Integer.toString(dimension));
+  }
+
+  private void sendCommand(ProtocolCommand protocolCommand, String... keys) {
     setChanged();
-    notifyObservers("Hello, World!\nI am " + "." + name);
+    try {
+      notifyObservers(Protocol.validateAndFormatCommand(protocolCommand, keys));
+    } catch (MalformedCommandException e) {
+      e.printStackTrace();
+      stopClient();
+    }
   }
 
   private void stopClient() {
