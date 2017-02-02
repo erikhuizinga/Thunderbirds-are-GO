@@ -39,5 +39,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="gogui-1.1" level="project" />
   </component>
 </module>
