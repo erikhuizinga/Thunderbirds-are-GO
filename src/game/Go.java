@@ -54,7 +54,7 @@ public class Go extends Observable implements Runnable {
     }
     this.whitePlayer = whitePlayer;
     players = new Player[] {blackPlayer, whitePlayer};
-    board = new Board(dim);
+    setBoard(new Board(dim));
     addHistoryRecord(board);
   }
 
@@ -117,20 +117,36 @@ public class Go extends Observable implements Runnable {
           }
           break turnLoopLabel;
         }
-        setChanged();
 
         // Ensure technical validity of the move
       } while (!Rules.isTechnicallyValid(currentBoard, move));
 
       // Play move while considering dynamical validation
       nextBoard = Rules.playWithDynamicalValidation(currentBoard, move);
+      setChanged();
 
       // Ensure historical validity
     } while (!Rules.isHistoricallyValid(this, nextBoard));
 
+    if (hasChanged() && move != null) {
+      notifyObservers(move);
+      setChanged();
+    }
+
     // Add the current board to the history and set the new board as the current
     addHistoryRecord(currentBoard);
     setBoard(nextBoard);
+  }
+
+  /**
+   * Notify all {@code Observer} instances of this {@code Go} game about the specified {@code
+   * Object}.
+   *
+   * @param arg the {@code Object} to notify.
+   */
+  public void setChangedAndNotifyObservers(Object arg) {
+    setChanged();
+    notifyObservers(arg);
   }
 
   /**
@@ -150,6 +166,7 @@ public class Go extends Observable implements Runnable {
   /** @param board the {@code Board} to set. */
   public void setBoard(Board board) {
     this.board = board;
+    board.setGo(this);
   }
 
   /** @return the board history */

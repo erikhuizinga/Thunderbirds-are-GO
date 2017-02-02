@@ -67,11 +67,7 @@ class RulesTest {
 
   private List<Move> blackKoMoves =
       Arrays.asList(
-          new Move(5, 0, Stone.BLACK), // Suicide of one stone: normally not
-          // allowed due to historical validity
-          new Move(5, 2, Stone.BLACK),
-          new Move(4, 1, Stone.BLACK),
-          new Move(5, 0, Stone.BLACK));
+          new Move(5, 2, Stone.BLACK), new Move(4, 1, Stone.BLACK), new Move(5, 0, Stone.BLACK));
   private Move whiteIllegalKoMove = new Move(5, 1, Stone.WHITE);
   private List<Move> legalMovesAfterKo =
       Arrays.asList(
@@ -91,6 +87,10 @@ class RulesTest {
 
   @Test
   void testIsTechnicallyValid() {
+    /*
+    NOTE: Rules.isTechnicallyValid() prints to System.out for an invalid Move
+     */
+
     // Play a stone on top of another
     move = new Move(0, 0, Stone.BLACK);
     assertFalse(Rules.isTechnicallyValid(board, move));
@@ -279,9 +279,12 @@ class RulesTest {
 
     // Ko
     go = new Go(dim, blackDummyPlayer, whiteDummyPlayer);
+    go.setBoard(board);
+    go.addHistoryRecord(board);
     for (Move blackKoMove : blackKoMoves) {
       board = Rules.playWithDynamicalValidation(board, blackKoMove);
       assertTrue(Rules.isHistoricallyValid(go, board));
+      go.setBoard(board);
       go.addHistoryRecord(board);
       System.out.println("After playing a black move towards Ko and ensuring validity:");
       System.out.println(board);
@@ -297,6 +300,7 @@ class RulesTest {
     for (Move legalMoveAfterKo : legalMovesAfterKo) {
       board = Rules.playWithDynamicalValidation(board, legalMoveAfterKo);
       assertTrue(Rules.isHistoricallyValid(go, board));
+      go.setBoard(board);
       go.addHistoryRecord(board);
       System.out.println("After playing moves after Ko and ensuring validity:");
       System.out.println(board);

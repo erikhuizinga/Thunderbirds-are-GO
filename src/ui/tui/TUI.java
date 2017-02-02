@@ -12,6 +12,7 @@ import java.util.Observer;
 import java.util.Scanner;
 import players.HumanPlayer;
 import players.Player;
+import ui.gui.GUI;
 
 /** Created by erik.huizinga on 27-1-17. */
 public class TUI implements Observer {
@@ -52,6 +53,8 @@ public class TUI implements Observer {
 
   /** The single-side board dimension. */
   private int dim;
+
+  private UIType uiType = UIType.TUI;
 
   /** Instantiate a {@code TUI} to play Go. */
   public TUI() {
@@ -401,16 +404,18 @@ public class TUI implements Observer {
     System.out.println();
 
     printPlayerConfig();
-    System.out.println("Current board size is " + dim + "×" + dim + ".");
+    printBoardConfig();
+    printUIConfig();
 
     System.out.println();
     System.out.println("Do you want to:");
 
-    List<String> choiceNumbers = Arrays.asList("1", "2", "3", "99");
+    List<String> choiceNumbers = Arrays.asList("1", "2", "3", "4", "99");
     String[] choiceStrings =
         new String[] {
           "Review player configuration",
           "Review board configuration",
+          "Change UI to " + uiType.other(),
           "Start game!",
           "Go back to main menu"
         };
@@ -418,6 +423,7 @@ public class TUI implements Observer {
         new MenuAction[] {
           () -> previousMenu.go(),
           () -> boardMenu(() -> reviewMenu(previousMenu)),
+          () -> swapUIConfiguration(() -> reviewMenu(previousMenu)),
           this::play,
           this::mainMenu
         };
@@ -446,6 +452,14 @@ public class TUI implements Observer {
     p2Display = HumanPlayer.displayFormat(p2Name, Stone.WHITE);
     System.out.println(" " + p2Display);
     System.out.println();
+  }
+
+  private void printBoardConfig() {
+    System.out.println("Current board size is " + dim + "×" + dim + ".");
+  }
+
+  private void printUIConfig() {
+    System.out.println("The game will be displayed on a " + uiType.toString() + ".");
   }
 
   /**
@@ -494,6 +508,16 @@ public class TUI implements Observer {
   }
 
   /**
+   * Swap the UI configuration.
+   *
+   * @param previousMenu the previous menu.
+   */
+  private void swapUIConfiguration(MenuAction previousMenu) {
+    uiType = uiType.other();
+    previousMenu.go();
+  }
+
+  /**
    * Prompt a user for input with a limited set of legal input choices. If illegal input is given,
    * the user is prompted again until legal input is given.
    *
@@ -527,6 +551,9 @@ public class TUI implements Observer {
   /** Play the game. */
   private void play() {
     setGo(new Go(dim, p1, p2));
+    if (uiType == UIType.GUI) {
+      go.addObserver(new GUI(dim));
+    }
     go.addObserver(this);
     Thread goThread = new Thread(go);
     System.out.println();
@@ -539,7 +566,7 @@ public class TUI implements Observer {
   @Override
   public void update(Observable observable, Object arg) {
     if (observable instanceof Go) {
-      if (arg instanceof Board) {
+      if (arg instanceof Board && uiType == UIType.TUI) {
         setGo((Go) observable);
         System.out.println();
         System.out.println(arg);
@@ -615,6 +642,23 @@ public class TUI implements Observer {
       }
     } while (dim < 5 || 1001 < dim);
     setDim(dim);
+  }
+
+  /** The type of UI used. */
+  private enum UIType {
+    TUI,
+    GUI;
+
+    UIType other() {
+      switch (this) {
+        case GUI:
+          return TUI;
+        case TUI:
+          return GUI;
+        default:
+          return null;
+      }
+    }
   }
 
   /** An adapter to allow pointers to functions. */

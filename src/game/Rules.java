@@ -2,6 +2,7 @@ package game;
 
 import game.action.Move;
 import game.action.Move.MoveType;
+import game.action.Remove;
 import game.material.Material;
 import game.material.PositionedMaterial;
 import game.material.Stone;
@@ -57,7 +58,10 @@ import java.util.Map.Entry;
 public abstract class Rules {
 
   /**
-   * Determine technical validity of the specified {@code Move} on the specified {@code Board}.
+   * Determine technical validity of the specified {@code Move} on the specified {@code Board}. If
+   * invalid, any {@code Observer} instances of the {@code Go} game associated with the {@code
+   * Board} are notified about this through the {@code setChangedAndNotifyObservers} method of
+   * {@code Go}.
    *
    * @param board the {@code Board}.
    * @param move the {@code Move}.
@@ -70,8 +74,8 @@ public abstract class Rules {
     } catch (AssertionError e) { // Thrown if the position is out of bounds
       isValid = false;
     }
-    if (!isValid) {
-      System.out.println("It is not allowed to play there.");
+    if (!isValid && board.getGo() != null) {
+      board.getGo().setChangedAndNotifyObservers("It is not allowed to play there.");
     }
     return isValid;
   }
@@ -81,13 +85,14 @@ public abstract class Rules {
    * the {@code Board}. The specified {@code Board} is left untouched and a new {@code Board} is
    * returned.
    *
-   * @param board the {@code Board} to play on.
+   * @param board the {@code Board}.
    * @param move the {@code Move} to play.
    * @return the dynamically valid {@code Board} with the {@code Move} played on it.
    */
   static Board playWithDynamicalValidation(Board board, Move move) {
     Board nextBoard = move.apply(board);
-    handleDynamicalValidity(nextBoard, move);
+    List<Remove> removes = handleDynamicalValidity(nextBoard, move);
+    board.getGo().setChangedAndNotifyObservers(removes);
     return nextBoard;
   }
 
@@ -99,10 +104,10 @@ public abstract class Rules {
    * @param positionedMaterial the {@code PositionedMaterial} that may have dynamically invalidated
    *     the {@code Board}.
    */
-  static void handleDynamicalValidity(Board board, PositionedMaterial positionedMaterial) {
+  static List<Remove> handleDynamicalValidity(Board board, PositionedMaterial positionedMaterial) {
     DynamicalValidator validator = new DynamicalValidator(board);
     validator.validate(positionedMaterial);
-    validator.enforce();
+    return validator.enforce();
   }
 
   /**
@@ -365,14 +370,21 @@ public abstract class Rules {
      * Enforce dynamical validity on the {@code Board} by removing every dynamically invalid {@code
      * Stone}.
      */
-    void enforce() {
+    List<Remove> enforce() {
+      List<Remove> removeList = new LinkedList<>();
       if (valid.containsValue(false)) {
         for (Entry<Integer, Boolean> entry : valid.entrySet()) {
           if (!entry.getValue()) {
+            List<Integer> playableIndices = board.ind2Playable(entry.getKey());
+            Remove remove =
+                new Remove(
+                    playableIndices.get(0), playableIndices.get(1), board.get(entry.getKey()));
+            removeList.add(remove);
             board.put(entry.getKey(), Feature.EMPTY);
           }
         }
       }
+      return removeList;
     }
   }
 }

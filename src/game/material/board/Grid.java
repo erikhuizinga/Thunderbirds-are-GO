@@ -67,7 +67,8 @@ public class Grid {
   }
 
   /**
-   * Instantiate a new {@code Grid} as a copy of another.
+   * Instantiate a new {@code Grid} as a copy of another. The copy is shallow, except for the {@code
+   * grid} field, which is a new {@code HashMap} instance.
    *
    * @param grid the {@code Grid} to copy.
    */

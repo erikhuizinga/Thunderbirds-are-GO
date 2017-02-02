@@ -1,5 +1,6 @@
 package game.material.board;
 
+import game.Go;
 import game.material.Material;
 import game.material.PositionedMaterial;
 import game.material.PositionedStone;
@@ -10,6 +11,8 @@ import java.util.List;
 
 /** A Go board. Created by erik.huizinga on 23-1-17. */
 public class Board extends Grid {
+
+  private Go go;
 
   /**
    * Instantiate a new Go {@code Board} with the specified single-side dimension of the playable
@@ -22,12 +25,14 @@ public class Board extends Grid {
   }
 
   /**
-   * Instantiate a new {@code Board} as a copy of another.
+   * Instantiate a new {@code Board} as a copy of another. The copy is shallow, except for the
+   * {@code grid} field, which is a new {@code HashMap} instance.
    *
    * @param board the {@code Board} to copy.
    */
   public Board(Board board) {
     super(board);
+    setGo(board.getGo());
   }
 
   /**
@@ -91,5 +96,23 @@ public class Board extends Grid {
       neighbors.add(neighbor);
     }
     return neighbors;
+  }
+
+  /**
+   * Get the {@code Go} game associated with this {@code Board}.
+   *
+   * @return the {@code Go} game, {@code null} if it has never been set with {@code setGo}.
+   */
+  public Go getGo() {
+    return go;
+  }
+
+  /**
+   * Set the {@code Go} game being played on this {@code Board}.
+   *
+   * @param go the {@code Go} game.
+   */
+  public void setGo(Go go) {
+    this.go = go;
   }
 }
