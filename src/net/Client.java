@@ -2,9 +2,10 @@ package net;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Observable;
 
 /** Created by erik.huizinga on 2-2-17. */
-public class Client {
+public class Client extends Observable {
 
   public static final String USAGE =
       "usage: java " + Client.class.getName() + " <name> <address> <port>";
@@ -22,7 +23,7 @@ public class Client {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    peer = new Peer(name, socket);
+    peer = new Peer(socket);
   }
 
   public static void main(String[] args) {
@@ -55,14 +56,21 @@ public class Client {
 
     Client client = new Client(name, address, port);
     client.startClient();
-    client.stopPeer();
+    client.stopClient();
   }
 
   private void startClient() {
+    addObserver(peer);
     peer.startPeer();
+    announcePlayer();
   }
 
-  private void stopPeer() {
+  private void announcePlayer() {
+    setChanged();
+    notifyObservers("Hello, World!\nI am " + "." + name);
+  }
+
+  private void stopClient() {
     peer.shutDown();
   }
 }

@@ -3,20 +3,20 @@ package net;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Scanner;
 
 /** Created by erik.huizinga on 2-2-17. */
-public class Peer implements Runnable {
+public class Peer implements Runnable, Observer {
 
   // private final Socket socket;
-  private final String name;
   private final Socket socket;
   private final Scanner in;
   private final PrintStream out;
 
-  public Peer(String name, Socket socket) {
+  public Peer(Socket socket) {
     // this.socket = socket;
-    this.name = name;
     this.socket = socket;
 
     // Set I/O
@@ -32,8 +32,17 @@ public class Peer implements Runnable {
     out = printStream;
   }
 
+  public Socket getSocket() {
+    return socket;
+  }
+
   @Override
-  public void run() {}
+  public void run() {
+    String line;
+    while (in.hasNextLine() && (line = in.nextLine()) != null) {
+      println(line);
+    }
+  }
 
   public void shutDown() {
     in.close();
@@ -45,7 +54,18 @@ public class Peer implements Runnable {
     }
   }
 
+  public void println(String string) {
+    System.out.println(string);
+  }
+
   public void startPeer() {
     new Thread(this).start();
+  }
+
+  @Override
+  public void update(Observable o, Object arg) {
+    if (o instanceof Client && arg instanceof String) {
+      out.println((String) arg);
+    }
   }
 }

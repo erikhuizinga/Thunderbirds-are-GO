@@ -3,32 +3,44 @@ package net;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Observable;
+import java.util.Observer;
 
 /** Created by erik.huizinga on 2-2-17. */
 public class Server {
 
   public static final String USAGE = "usage: java " + Server.class.getName() + " <name> <port>";
 
+  /** The name. */
   private final String name;
+
+  /** The {@code ServerSocket}. */
   private final ServerSocket serverSocket;
 
-  // TODO Map<Socket, Peer>
-  private final Socket socket;
-  private final Peer peer;
+  /** The list of peers to the clients */
+  private final ClientList clients = new ClientList();
+
+  /** The handler of peers to the clients. */
+  private final PeerHandler peerHandler = new PeerHandler();
+
+  /**
+   * The switch indicating whether or not the {@code Server} is open to accept new connections from
+   * clients.
+   */
+  private boolean isOpen;
 
   public Server(String name, int port) {
     this.name = name;
     ServerSocket serverSocket = null;
-    Socket socket = null;
     try {
       serverSocket = new ServerSocket(port);
-      socket = serverSocket.accept();
     } catch (IOException e) {
       e.printStackTrace();
     }
     this.serverSocket = serverSocket;
-    this.socket = socket;
-    peer = new Peer(name, socket);
+    clients.addObserver(peerHandler);
   }
 
   public static void main(String[] args) {
@@ -54,19 +66,75 @@ public class Server {
 
     Server server = new Server(name, port);
     server.startServer();
-    server.shutDown();
+    server.stopServer();
+  }
+
+  private void acceptClients() {
+    Socket socket;
+    Peer peer;
+    while (isOpen) {
+      try {
+        socket = serverSocket.accept();
+        peer = new Peer(socket);
+        clients.add(peer);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   private void startServer() {
-    peer.startPeer();
+    isOpen = true;
+    acceptClients();
   }
 
-  private void shutDown() {
+  private void stopServer() {
+    isOpen = false;
     try {
-      socket.close();
       serverSocket.close();
     } catch (IOException e) {
       e.printStackTrace();
+    }
+  }
+
+  private class ClientList extends Observable {
+    private final Collection<Peer> clients = new HashSet<>();
+
+    public Peer add(Peer peer) {
+      clients.add(peer);
+      setChanged();
+      notifyObservers(peer);
+      return peer;
+    }
+  }
+
+  private class PeerHandler implements Observer {
+
+    @Override
+    public void update(Observable observable, Object arg) {
+      if (observable instanceof ClientList && arg instanceof Peer) {
+        Peer peer = (Peer) arg;
+        new ClientHandler(peer).startClientHandler();
+      }
+    }
+  }
+
+  private class ClientHandler extends Observable implements Runnable {
+
+    private final Peer peer;
+
+    public ClientHandler(Peer peer) {
+      this.peer = peer;
+      addObserver(peer);
+    }
+
+    @Override
+    public void run() {
+      peer.startPeer();
+    }
+
+    public void startClientHandler() {
+      new Thread(this).start();
     }
   }
 }
