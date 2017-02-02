@@ -10,6 +10,16 @@ public class Protocol {
   public static final String BLACK = "BLACK";
   public static final String WHITE = "WHITE";
 
+  /**
+   * Validate and format the specified {@code ProtocolCommand} with the specified arguments.
+   *
+   * @param protocolCommand the {@code ProtocolCommand}.
+   * @param args the arguments, a comma-separated list of {@code String} arguments.
+   * @return the command as a {@code String}, ready to send over a {@code Peer} to {@code Peer}
+   *     connection.
+   * @throws MalformedCommandException thrown if the specified arguments are not conform the
+   *     protocol.
+   */
   public static String validateAndFormatCommand(ProtocolCommand protocolCommand, String... args)
       throws MalformedCommandException {
     String result = protocolCommand.toString();
@@ -26,6 +36,12 @@ public class Protocol {
     return result;
   }
 
+  /**
+   * Check if the specified dimension is valid conform protocol.
+   *
+   * @param dimension the dimension.
+   * @return {@code true} if valid; {@code false} otherwise.
+   */
   public static boolean isValidDimension(int dimension) {
     return dimension >= 5 && dimension <= 131 && dimension % 2 != 0;
   }
@@ -93,10 +109,20 @@ public class Protocol {
     }
   }
 
+  /** The interface for every type of {@code ProtocolCommand}. */
   public interface ProtocolCommand {
+
+    /**
+     * Check if the specified {@code List<String>} of arguments is valid for the {@code
+     * ProtocolCommand}.
+     *
+     * @param argList the {@code List<String>} of arguments.
+     * @return {@code true} if valid; {@code false} otherwise.
+     */
     boolean isValidArgList(List<String> argList);
   }
 
+  /** The {@code Exception} for a command that is malformed for the protocol. */
   public static class MalformedCommandException extends Exception {
     public MalformedCommandException(String message) {
       super(message);
