@@ -83,11 +83,14 @@ public class Protocol {
 
   /** The {@code Server} protocol commands. */
   public enum ServerCommand implements ProtocolCommand {
+    WAITING,
     READY;
 
     @Override
     public boolean isValidArgList(List<String> argList) {
       switch (this) {
+        case WAITING:
+          return true; // No arguments, ignore any
         case READY:
           return argList.size() == 3
               && (argList.get(0).equals(BLACK) || argList.get(0).equals(WHITE))

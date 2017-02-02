@@ -13,6 +13,9 @@ import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Scanner;
 import net.Protocol.ClientCommand;
+import net.Protocol.MalformedCommandException;
+import net.Protocol.ProtocolCommand;
+import net.Protocol.ServerCommand;
 
 /** Created by erik.huizinga on 2-2-17. */
 public class Server {
@@ -147,25 +150,47 @@ public class Server {
 
     private final Peer peer;
     private Scanner in;
+    private Thread thread;
+    private boolean keepRunning = true;
 
     public ClientHandler(Peer peer) {
       this.peer = peer;
+      in = peer.getIn();
       addObserver(peer);
+    }
+
+    private void sendCommand(ProtocolCommand protocolCommand, String... keys) {
+      setChanged();
+      try {
+        notifyObservers(Protocol.validateAndFormatCommand(protocolCommand, keys));
+      } catch (MalformedCommandException e) {
+        e.printStackTrace();
+        stopClientHandler();
+      }
+    }
+
+    private void stopClientHandler() {
+      peer.shutDown();
+      keepRunning = false;
     }
 
     @Override
     public void run() {
-      in = peer.getIn();
+      do {
+        // Client: PLAYER name
+        List<String> argList = expect(ClientCommand.PLAYER);
+        String name = argList.get(0);
 
-      // PLAYER name
-      List<String> argList = expect(ClientCommand.PLAYER);
-      String name = argList.get(0);
+        // Client: GO dimension
+        List<String> args = expect(ClientCommand.GO);
+        int dimension = Integer.parseInt(args.get(0));
 
-      // GO dimension
-      List<String> args = expect(ClientCommand.GO);
-      int dimension = Integer.parseInt(args.get(0));
+        // Server: WAITING
+        sendCommand(ServerCommand.WAITING);
+        add2WaitingMap(peer, dimension);
 
-      add2WaitingMap(peer, dimension);
+
+      } while (keepRunning);
     }
 
     private List<String> expect(ClientCommand clientCommand) {
@@ -177,7 +202,8 @@ public class Server {
     }
 
     public void start() {
-      new Thread(this).start();
+      thread = new Thread(this);
+      thread.start();
     }
   }
 
@@ -190,9 +216,7 @@ public class Server {
     }
 
     @Override
-    public void run() {
-
-    }
+    public void run() {}
 
     public void start() {
       new Thread(this).start();
