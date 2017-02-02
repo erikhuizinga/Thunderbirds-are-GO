@@ -6,6 +6,7 @@ import game.material.Stone;
 import game.material.board.Board;
 import java.util.Arrays;
 import java.util.List;
+import util.Lists;
 
 /** Created by erik.huizinga on 24-1-17. */
 public abstract class Player {
@@ -49,7 +50,7 @@ public abstract class Player {
    * @return a randomly picked name.
    */
   public static String randomName(List<String> names) {
-    return util.ListTools.random(names);
+    return Lists.random(names);
   }
 
   /**

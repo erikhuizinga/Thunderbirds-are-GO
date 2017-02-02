@@ -1,6 +1,6 @@
 package game.material.board;
 
-import static util.StringTools.repeat;
+import static util.Strings.repeat;
 
 import game.material.Material;
 import game.material.Stone;

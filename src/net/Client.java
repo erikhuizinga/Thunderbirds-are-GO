@@ -3,6 +3,7 @@ package net;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Observable;
+import util.Strings;
 
 /** Created by erik.huizinga on 2-2-17. */
 public class Client extends Observable {
