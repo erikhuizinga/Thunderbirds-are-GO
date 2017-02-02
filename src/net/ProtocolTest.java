@@ -17,7 +17,7 @@ class ProtocolTest {
   void setUp() {}
 
   @Test
-  void testCommand() {
+  void testValidateAndFormatCommand() {
     try {
       assertEquals("PLAYER NAME", Protocol.validateAndFormatCommand(ClientCommand.PLAYER, "name"));
       assertEquals(

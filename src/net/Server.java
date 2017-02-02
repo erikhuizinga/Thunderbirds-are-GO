@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Scanner;
 import net.Protocol.ClientCommand;
@@ -29,6 +30,9 @@ public class Server {
 
   /** The map of peers and their desired board dimensions. */
   private final Map<Peer, Integer> waitingPeerDimensionMap = new HashMap<>();
+
+  /** The list of matched peers playing games. */
+  private final List<List<Peer>> gameList = new LinkedList<>();
 
   /**
    * The switch indicating whether or not the {@code Server} is open to accept new connections from
@@ -105,11 +109,38 @@ public class Server {
 
   private synchronized void add2WaitingMap(Peer peer, int dimension) {
     waitingPeerDimensionMap.put(peer, dimension);
-    checkWaitingMap();
+    checkWaitingPeerDimensionMap4DimensionMatch();
   }
 
-  private synchronized void checkWaitingMap() {
-    if (waitingPeerDimensionMap.size() > 2) {}
+  private synchronized void checkWaitingPeerDimensionMap4DimensionMatch() {
+    if (waitingPeerDimensionMap.size() >= 2) {
+      Map<Integer, Peer> waitingDimensionPeerMap = new HashMap<>();
+      Map<Peer, Integer> waitingPeerDimensionMapCopy = new HashMap<>(waitingPeerDimensionMap);
+
+      for (Entry<Peer, Integer> entry : waitingPeerDimensionMapCopy.entrySet()) {
+        if (waitingDimensionPeerMap.containsKey(
+            entry.getValue())) { // There is a match, match up the peers and handle their game
+          Peer peer1 = waitingDimensionPeerMap.get(entry.getValue());
+          Peer peer2 = entry.getKey();
+          List<Peer> peerList = Arrays.asList(peer1, peer2);
+          gameList.add(peerList);
+
+          // Remove the peers from the waiting lists
+          waitingPeerDimensionMap.remove(entry.getKey());
+          waitingPeerDimensionMap.remove(waitingDimensionPeerMap.get(entry.getValue()));
+          waitingDimensionPeerMap.remove(entry.getValue());
+
+          // Start a new game
+          new GameHandler(peerList).start();
+
+          // Break the loop; we know there cannot be any more matches until a new client connects
+          break;
+
+        } else { // Store the unmatched dimension as a key to the unmatched peer
+          waitingDimensionPeerMap.put(entry.getValue(), entry.getKey());
+        }
+      }
+    }
   }
 
   private class ClientHandler extends Observable implements Runnable {
@@ -143,6 +174,24 @@ public class Server {
         argList = Arrays.asList(in.nextLine().trim().split(Protocol.SPACE));
       }
       return (clientCommand.isValidArgList(argList)) ? argList : expect(clientCommand);
+    }
+
+    public void start() {
+      new Thread(this).start();
+    }
+  }
+
+  private class GameHandler implements Runnable {
+
+    private final List<Peer> peers;
+
+    public GameHandler(List<Peer> peers) {
+      this.peers = peers;
+    }
+
+    @Override
+    public void run() {
+
     }
 
     public void start() {
