@@ -1,5 +1,7 @@
 package net;
 
+import static net.Protocol.expect;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -177,12 +179,13 @@ public class Server {
     @Override
     public void run() {
       do {
+        List<String> args;
         // Client: PLAYER name
-        List<String> argList = expect(ClientCommand.PLAYER);
-        String name = argList.get(0);
+        args = expect(ClientCommand.PLAYER, in);
+        String name = args.get(0);
 
         // Client: GO dimension
-        List<String> args = expect(ClientCommand.GO);
+        args = expect(ClientCommand.GO, in);
         int dimension = Integer.parseInt(args.get(0));
 
         // Server: WAITING
@@ -190,14 +193,6 @@ public class Server {
         add2WaitingMap(peer, dimension);
 
       } while (keepRunning);
-    }
-
-    private List<String> expect(ClientCommand clientCommand) {
-      List<String> argList = null;
-      if (in.hasNext() && in.next().equals(clientCommand.toString())) {
-        argList = Arrays.asList(in.nextLine().trim().split(Protocol.SPACE));
-      }
-      return (clientCommand.isValidArgList(argList)) ? argList : expect(clientCommand);
     }
 
     public void start() {

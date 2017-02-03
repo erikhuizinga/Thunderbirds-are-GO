@@ -1,10 +1,12 @@
 package net;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 
 /** Created by erik.huizinga on 2-2-17. */
-public class Protocol {
+public abstract class Protocol {
 
   public static final String SPACE = " ";
   public static final String BLACK = "BLACK";
@@ -44,6 +46,22 @@ public class Protocol {
    */
   public static boolean isValidDimension(int dimension) {
     return dimension >= 5 && dimension <= 131 && dimension % 2 != 0;
+  }
+
+  /**
+   * Get the {@code List<String>} of arguments from the expected specified {@code ProtocolCommand}
+   * on the specified {@code Scanner}.
+   *
+   * @param protocolCommand the {@code ProtocolCommand}.
+   * @param scanner the {@code Scanner}.
+   * @return the {@code List<String>} of arguments.
+   */
+  public static List<String> expect(ProtocolCommand protocolCommand, Scanner scanner) {
+    List<String> argList = null;
+    if (scanner.hasNext() && scanner.next().equals(protocolCommand.toString())) {
+      argList = Arrays.asList(scanner.nextLine().trim().split(Protocol.SPACE));
+    }
+    return (protocolCommand.isValidArgList(argList)) ? argList : expect(protocolCommand, scanner);
   }
 
   /** The {@code Client} protocol commands. */
