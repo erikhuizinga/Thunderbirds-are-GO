@@ -14,6 +14,7 @@ public class Peer implements Runnable, Observer {
   private final Socket socket;
   private final Scanner in;
   private final PrintStream out;
+
   public Peer(Socket socket) {
     // this.socket = socket;
     this.socket = socket;

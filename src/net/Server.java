@@ -189,7 +189,6 @@ public class Server {
         sendCommand(ServerCommand.WAITING);
         add2WaitingMap(peer, dimension);
 
-
       } while (keepRunning);
     }
 
