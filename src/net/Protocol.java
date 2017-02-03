@@ -11,6 +11,11 @@ public abstract class Protocol {
   public static final String SPACE = " ";
   public static final String BLACK = "BLACK";
   public static final String WHITE = "WHITE";
+  /**
+   * The maximum number of retries before a {@code TooManyUnexpectedCommandsException} is thrown
+   * upon unexpected commands.
+   */
+  public static final int MAX_UNEXPECTED_COUNT = 10;
 
   /**
    * Validate and format the specified {@code ProtocolCommand} with the specified arguments.
@@ -50,18 +55,32 @@ public abstract class Protocol {
 
   /**
    * Get the {@code List<String>} of arguments from the expected specified {@code ProtocolCommand}
-   * on the specified {@code Scanner}.
+   * on the specified {@code Scanner}. Unexpected command will be ignored up to {@code
+   * MAX_UNEXPECTED_COUNT} times, after which an exception will be thrown.
    *
    * @param protocolCommand the {@code ProtocolCommand}.
    * @param scanner the {@code Scanner}.
    * @return the {@code List<String>} of arguments.
+   * @throws TooManyUnexpectedCommandsException thrown when the number of unexpected commands
+   *     exceeds {@code MAX_UNEXPECTED_COUNT}.
    */
-  public static List<String> expect(ProtocolCommand protocolCommand, Scanner scanner) {
+  public static List<String> expect(ProtocolCommand protocolCommand, Scanner scanner)
+      throws TooManyUnexpectedCommandsException {
+    return expect(protocolCommand, scanner, 0);
+  }
+
+  private static List<String> expect(ProtocolCommand protocolCommand, Scanner scanner, int count)
+      throws TooManyUnexpectedCommandsException {
     List<String> argList = null;
     if (scanner.hasNext() && scanner.next().equals(protocolCommand.toString())) {
       argList = Arrays.asList(scanner.nextLine().trim().split(Protocol.SPACE));
     }
-    return (protocolCommand.isValidArgList(argList)) ? argList : expect(protocolCommand, scanner);
+    if (count++ >= MAX_UNEXPECTED_COUNT) {
+      throw new TooManyUnexpectedCommandsException("in expect(" + protocolCommand + ", ...)");
+    }
+    return (protocolCommand.isValidArgList(argList))
+        ? argList
+        : expect(protocolCommand, scanner, count);
   }
 
   /** The {@code Client} protocol commands. */
@@ -146,6 +165,12 @@ public abstract class Protocol {
   /** The {@code Exception} for a command that is malformed for the protocol. */
   public static class MalformedCommandException extends Exception {
     public MalformedCommandException(String message) {
+      super(message);
+    }
+  }
+
+  static class TooManyUnexpectedCommandsException extends Exception {
+    public TooManyUnexpectedCommandsException(String message) {
       super(message);
     }
   }

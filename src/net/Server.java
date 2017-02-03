@@ -18,6 +18,7 @@ import net.Protocol.ClientCommand;
 import net.Protocol.MalformedCommandException;
 import net.Protocol.ProtocolCommand;
 import net.Protocol.ServerCommand;
+import net.Protocol.TooManyUnexpectedCommandsException;
 
 /** Created by erik.huizinga on 2-2-17. */
 public class Server {
@@ -181,12 +182,21 @@ public class Server {
       do {
         List<String> args;
         // Client: PLAYER name
-        args = expect(ClientCommand.PLAYER, in);
-        String name = args.get(0);
+        try {
+          args = expect(ClientCommand.PLAYER, in);
+          String name = args.get(0);
+        } catch (TooManyUnexpectedCommandsException e) {
+          //TODO send a warning / shutdown peer
+        }
 
         // Client: GO dimension
-        args = expect(ClientCommand.GO, in);
-        int dimension = Integer.parseInt(args.get(0));
+        int dimension = 0;
+        try {
+          args = expect(ClientCommand.GO, in);
+          dimension = Integer.parseInt(args.get(0));
+        } catch (TooManyUnexpectedCommandsException e) {
+          //TODO send a warning / shutdown peer
+        }
 
         // Server: WAITING
         sendCommand(ServerCommand.WAITING);
