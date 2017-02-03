@@ -2,8 +2,9 @@ game
 game.action
 game.material
 game.material.board
+net
 players
 players.strategy
-test
+ui.gui
 ui.tui
 util

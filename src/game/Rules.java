@@ -98,11 +98,12 @@ public abstract class Rules {
 
   /**
    * Handle dynamical validity of the specified {@code Board} after playing {@code
-   * PositionedMaterial}.
+   * PositionedMaterial}. Any removed stones are returned as a {@code List<Remove>}.
    *
    * @param board the {@code Board} to validate.
    * @param positionedMaterial the {@code PositionedMaterial} that may have dynamically invalidated
    *     the {@code Board}.
+   * @return the {@code List<Remove>}.
    */
   static List<Remove> handleDynamicalValidity(Board board, PositionedMaterial positionedMaterial) {
     DynamicalValidator validator = new DynamicalValidator(board);
@@ -368,7 +369,9 @@ public abstract class Rules {
 
     /**
      * Enforce dynamical validity on the {@code Board} by removing every dynamically invalid {@code
-     * Stone}.
+     * Stone}. Any removed stones are returned as a {@code List<Remove>}.
+     *
+     * @return the {@code List<Remove>}.
      */
     List<Remove> enforce() {
       List<Remove> removeList = new LinkedList<>();
