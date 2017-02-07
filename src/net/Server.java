@@ -15,10 +15,11 @@ import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Scanner;
 import net.Protocol.ClientCommand;
+import net.Protocol.GeneralCommand;
 import net.Protocol.MalformedCommandException;
 import net.Protocol.ProtocolCommand;
 import net.Protocol.ServerCommand;
-import net.Protocol.TooManyUnexpectedCommandsException;
+import net.Protocol.UnexpectedCommandException;
 
 /** Created by erik.huizinga on 2-2-17. */
 public class Server {
@@ -183,18 +184,18 @@ public class Server {
         List<String> args;
         // Client: PLAYER name
         try {
-          args = expect(ClientCommand.PLAYER, in);
+          args = expect(in, ClientCommand.PLAYER, GeneralCommand.CHAT);
           String name = args.get(0);
-        } catch (TooManyUnexpectedCommandsException e) {
+        } catch (UnexpectedCommandException e) {
           //TODO send a warning / shutdown peer
         }
 
         // Client: GO dimension
         int dimension = 0;
         try {
-          args = expect(ClientCommand.GO, in);
+          args = expect(in, ClientCommand.GO);
           dimension = Integer.parseInt(args.get(0));
-        } catch (TooManyUnexpectedCommandsException e) {
+        } catch (UnexpectedCommandException e) {
           //TODO send a warning / shutdown peer
         }
 
