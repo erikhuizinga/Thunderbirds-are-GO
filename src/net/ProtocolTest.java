@@ -202,6 +202,21 @@ class ProtocolTest {
   }
 
   @Test
+  void testREADY() {
+    final ProtocolCommand command = ServerCommand.READY;
+
+    // Test correct arguments
+    assertTrue(command.isValidArgList(Arrays.asList(stone, name, dimensionString)));
+
+    // Test malformed argument
+    assertFalse(command.isValidArgList(Arrays.asList(stone, badName, dimensionString)));
+
+    // Test missing arguments
+    assertFalse(command.isValidArgList(Collections.emptyList()));
+    assertFalse(command.isValidArgList(Collections.singletonList(stone)));
+  }
+
+  @Test
   void testIsValidDimension() {
     assertTrue(isValidDimension(5));
     assertTrue(isValidDimension(131));
