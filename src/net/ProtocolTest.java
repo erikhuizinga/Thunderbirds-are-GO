@@ -158,6 +158,23 @@ class ProtocolTest {
 
     // Test malformed argument
     assertFalse(command.isValidArgList(Collections.singletonList(badName)));
+
+    // Test missing argument
+    assertFalse(command.isValidArgList(Collections.emptyList()));
+  }
+
+  @Test
+  void testGO() {
+    final ProtocolCommand command = ClientCommand.GO;
+
+    // Test correct arguments
+    assertTrue(command.isValidArgList(Collections.singletonList(dimensionString)));
+
+    // Test malformed argument
+    assertFalse(command.isValidArgList(Collections.singletonList(Integer.toString(3))));
+
+    // Test missing argument
+    assertFalse(command.isValidArgList(Collections.emptyList()));
   }
 
   @Test
