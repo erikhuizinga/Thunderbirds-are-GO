@@ -26,7 +26,7 @@ public interface Protocol {
   /**
    * Validate the specified {@code String} arguments for the specified {@code ProtocolCommand} and
    * format them according to protocol. If more arguments are provided than the allowed maximum,
-   * then any superfluous arguments are not returned in the argument list.
+   * then any superfluous arguments are ignored and not returned in the argument list.
    *
    * @param protocolCommand the {@code ProtocolCommand}.
    * @param args the {@code String} arguments.
@@ -76,7 +76,7 @@ public interface Protocol {
    */
   static String validateAndFormatCommandString(ProtocolCommand protocolCommand)
       throws MalformedArgumentsException {
-    String result = null;
+    String result;
     result = validateAndFormatCommandString(protocolCommand, "");
     return result;
   }

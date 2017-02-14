@@ -93,7 +93,7 @@ class ProtocolTest {
       assertTrue(playerCommand.isValidArgList(argList));
 
       final ProtocolCommand waitingCommand = ServerCommand.WAITING;
-      commandString = Protocol.validateAndFormatCommandString(waitingCommand);
+      commandString = validateAndFormatCommandString(waitingCommand);
       scanner = new Scanner(commandString);
       assertEquals(new ArrayList<String>(), expect(scanner, waitingCommand));
 
@@ -112,7 +112,12 @@ class ProtocolTest {
     String string = command.toString();
 
     // Test formatting of outgoing communication
-    String theCommand = validateAndFormatCommand(command);
+    String theCommand = null;
+    try {
+      theCommand = validateAndFormatCommandString(command);
+    } catch (MalformedArgumentsException e) {
+      fail("fail all the things!");
+    }
     assertEquals(string, theCommand);
 
     // Test parsing of incoming communication
@@ -121,13 +126,16 @@ class ProtocolTest {
       // No arguments
       assertEquals(new ArrayList<String>(), expect(scanner, command));
 
-      // Any arguments should be left untouched
+      // Any arguments should not be returned
       scanner = new Scanner(string + SPACE + "argue @ll th3 things!");
-      assertEquals(Arrays.asList("argue", "@ll", "th3", "things!"), expect(scanner, command));
+      assertEquals(new ArrayList<String>(), expect(scanner, command));
 
     } catch (UnexpectedCommandException e) {
       e.printStackTrace();
     }
+  }
+
+  @Test
   void testIsValidDimension() {
     assertTrue(isValidDimension(5));
     assertTrue(isValidDimension(131));
