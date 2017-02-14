@@ -181,11 +181,11 @@ public class Server {
     @Override
     public void run() {
       do {
-        List<String> args;
+        List<String> argList;
         // Client: PLAYER name
         try {
-          args = expect(in, ClientCommand.PLAYER, GeneralCommand.CHAT);
-          String name = args.get(0);
+          argList = expect(in, ClientCommand.PLAYER, GeneralCommand.CHAT);
+          String name = argList.get(0);
         } catch (UnexpectedCommandException | MalformedArgumentsException e) {
           //TODO send a warning / shutdown peer
         }
@@ -193,8 +193,8 @@ public class Server {
         // Client: GO dimension
         int dimension = 0;
         try {
-          args = expect(in, ClientCommand.GO);
-          dimension = Integer.parseInt(args.get(0));
+          argList = expect(in, ClientCommand.GO);
+          dimension = Integer.parseInt(argList.get(0));
         } catch (UnexpectedCommandException | MalformedArgumentsException e) {
           //TODO send a warning / shutdown peer
         }

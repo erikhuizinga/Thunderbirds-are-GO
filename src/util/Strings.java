@@ -33,6 +33,7 @@ public class Strings {
     if (in.hasNextLine()) {
       line = in.nextLine();
     }
+    in.close();
     return line;
   }
 }

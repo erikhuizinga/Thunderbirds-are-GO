@@ -1,11 +1,17 @@
 package net;
 
+import static net.Protocol.expect;
+
 import java.io.IOException;
 import java.net.Socket;
+import java.util.List;
 import java.util.Observable;
+import java.util.Scanner;
 import net.Protocol.ClientCommand;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.ProtocolCommand;
+import net.Protocol.ServerCommand;
+import net.Protocol.UnexpectedCommandException;
 import util.Strings;
 
 /** Created by erik.huizinga on 2-2-17. */
@@ -16,6 +22,7 @@ public class Client extends Observable {
 
   private final String name;
   private final Peer peer;
+  private final Scanner in;
 
   public Client(String name, String address, int port) {
     this.name = name;
@@ -28,6 +35,7 @@ public class Client extends Observable {
       e.printStackTrace();
     }
     peer = new Peer(socket);
+    in = peer.getIn();
   }
 
   public static void main(String[] args) {
@@ -83,8 +91,19 @@ public class Client extends Observable {
       } catch (NumberFormatException e) {
         System.out.println("Unable to parse number from input, please try again.");
       }
+      //TODO support cancelling -> ClientCommand.CANCEL
+      //TODO support specifying opponent name
     } while (!Protocol.isValidDimension(dimension));
     announceBoardDimension(dimension);
+
+    List<String> argList;
+    try {
+      expect(in, ServerCommand.WAITING);
+      argList = expect(in, ServerCommand.READY);
+
+    } catch (UnexpectedCommandException | MalformedArgumentsException e) {
+      e.printStackTrace();
+    }
   }
 
   private void announcePlayer() {
