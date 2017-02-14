@@ -89,6 +89,7 @@ class ProtocolTest {
       scanner = new Scanner(commandString);
       assertEquals(Collections.emptyList(), expect(scanner, waitingCommand));
 
+      // Test ignoring of redundant arguments
       commandString += SPACE + "we are arguments and we shouldn't be here :')";
       scanner = new Scanner(commandString);
       assertEquals(Collections.emptyList(), expect(scanner, waitingCommand));
@@ -110,8 +111,6 @@ class ProtocolTest {
       scanner = new Scanner(commandString);
       argList = expect(scanner, playerCommand, waitingCommand, readyCommand);
       assertTrue(readyCommand.isValidArgList(argList));
-
-      //TODO test ignoring of redundant arguments
 
     } catch (MalformedArgumentsException | UnexpectedCommandException e) {
       fail("fail all the things!");
