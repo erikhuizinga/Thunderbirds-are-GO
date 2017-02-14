@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import net.Protocol.ClientCommand;
+import net.Protocol.GeneralCommand;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.ProtocolCommand;
 import net.Protocol.ServerCommand;
@@ -214,6 +215,23 @@ class ProtocolTest {
     // Test missing arguments
     assertFalse(command.isValidArgList(Collections.emptyList()));
     assertFalse(command.isValidArgList(Collections.singletonList(stone)));
+  }
+
+  @Test
+  void testCHAT() {
+    final ProtocolCommand command = GeneralCommand.CHAT;
+
+    // Test one argument
+    assertTrue(command.isValidArgList(Collections.singletonList("hi!")));
+
+    // Test missing argument
+    assertFalse(command.isValidArgList(Collections.emptyList()));
+
+    // Test any number of arguments
+    assertTrue(command.isValidArgList(Arrays.asList("Hello,", "World!")));
+    assertTrue(
+        command.isValidArgList(
+            Collections.nCopies((int) (Math.random() * (Integer.MAX_VALUE - 1)) + 1, "chat?")));
   }
 
   @Test
