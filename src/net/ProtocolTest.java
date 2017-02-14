@@ -68,9 +68,9 @@ class ProtocolTest {
 
   @Test
   void testExpect() {
-    //TODO test with more than one argument
     //TODO test with more than one command
     final ProtocolCommand playerCommand = ClientCommand.PLAYER;
+    final ProtocolCommand readyCommand = ServerCommand.READY;
 
     String commandString;
     List<String> argList;
@@ -87,11 +87,7 @@ class ProtocolTest {
       assertThrows(UnexpectedCommandException.class, () -> expect(scanner, playerCommand));
       assertFalse(playerCommand.isValidArgList(Collections.singletonList(badName)));
 
-      commandString = validateAndFormatCommandString(playerCommand, name);
-      scanner = new Scanner(commandString);
-      argList = expect(scanner, playerCommand);
-      assertTrue(playerCommand.isValidArgList(argList));
-
+      // Test zero arguments
       final ProtocolCommand waitingCommand = ServerCommand.WAITING;
       commandString = validateAndFormatCommandString(waitingCommand);
       scanner = new Scanner(commandString);
@@ -101,8 +97,22 @@ class ProtocolTest {
       scanner = new Scanner(commandString);
       assertEquals(new ArrayList<String>(), expect(scanner, waitingCommand));
 
+      // Test one argument
+      commandString = validateAndFormatCommandString(playerCommand, name);
+      scanner = new Scanner(commandString);
+      argList = expect(scanner, playerCommand);
+      assertTrue(playerCommand.isValidArgList(argList));
+
+      // Test more than one argument
+      commandString =
+          validateAndFormatCommandString(readyCommand, stone, name, Integer.toString(dimension));
+      scanner = new Scanner(commandString);
+      argList = expect(scanner, readyCommand);
+      assertTrue(readyCommand.isValidArgList(argList));
+
     } catch (MalformedArgumentsException | UnexpectedCommandException e) {
       e.printStackTrace();
+      fail("fail all the things!");
     }
   }
 
