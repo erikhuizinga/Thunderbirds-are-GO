@@ -182,10 +182,8 @@ class ProtocolTest {
     // Test correct arguments
     assertTrue(ServerCommand.WAITING.isValidArgList(Collections.emptyList()));
 
-    /*
-    Incorrect arguments are not possible: any should be ignored and this is tested by
-    testValidateAndFormatArgList
-    */
+    // Test any arguments, which should be ignored
+    assertTrue(ServerCommand.WAITING.isValidArgList(Arrays.asList("a", "bc", "def")));
   }
 
   @Test
