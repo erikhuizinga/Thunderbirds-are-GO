@@ -3,6 +3,7 @@ package net;
 import static net.Protocol.SPACE;
 import static net.Protocol.expect;
 import static net.Protocol.isValidDimension;
+import static net.Protocol.validateAndFormatArgList;
 import static net.Protocol.validateAndFormatCommandString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -10,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
@@ -28,6 +28,7 @@ class ProtocolTest {
 
   private Scanner scanner;
   private String name = "barrybadpak";
+  private String badName = "thisNameIsABitTooLong";
   private int dimension = 19;
   private String stone = Protocol.BLACK;
 
@@ -42,7 +43,6 @@ class ProtocolTest {
           "READY black barrybadpak 9",
           validateAndFormatCommandString(ServerCommand.READY, "black", "BarryBadpak", "9"));
     } catch (MalformedArgumentsException e) {
-      e.printStackTrace();
       fail("fail all the things!");
     }
     assertThrows(
@@ -55,45 +55,43 @@ class ProtocolTest {
         MalformedArgumentsException.class,
         () -> validateAndFormatCommandString(ServerCommand.READY, "gray", "someName", "19"));
 
-    // Test the method without arguments
-    String theCommand = null;
+    // Test without arguments
     try {
-      theCommand = validateAndFormatCommandString(ServerCommand.WAITING);
+      String theCommand = validateAndFormatCommandString(ServerCommand.WAITING);
+      assertEquals(ServerCommand.WAITING.toString(), theCommand);
+
     } catch (MalformedArgumentsException e) {
-      e.printStackTrace();
       fail("fail all the things!");
     }
-    assertEquals(ServerCommand.WAITING.toString(), theCommand);
   }
 
   @Test
   void testExpect() {
     final ProtocolCommand playerCommand = ClientCommand.PLAYER;
     final ProtocolCommand readyCommand = ServerCommand.READY;
+    final ProtocolCommand waitingCommand = ServerCommand.WAITING;
 
     String commandString;
     List<String> argList;
     try {
-      // Test absent argument
+      // Test missing argument
       commandString = playerCommand.toString();
       scanner = new Scanner(commandString);
       assertThrows(MalformedArgumentsException.class, () -> expect(scanner, playerCommand));
 
       // Test malformed argument
-      String badName = "thisNameIsABitTooLong";
       commandString = playerCommand.toString() + SPACE + badName;
       scanner = new Scanner(commandString);
       assertThrows(MalformedArgumentsException.class, () -> expect(scanner, playerCommand));
 
       // Test zero arguments
-      final ProtocolCommand waitingCommand = ServerCommand.WAITING;
       commandString = validateAndFormatCommandString(waitingCommand);
       scanner = new Scanner(commandString);
-      assertEquals(new ArrayList<String>(), expect(scanner, waitingCommand));
+      assertEquals(Collections.emptyList(), expect(scanner, waitingCommand));
 
       commandString += SPACE + "we are arguments and we shouldn't be here :')";
       scanner = new Scanner(commandString);
-      assertEquals(new ArrayList<String>(), expect(scanner, waitingCommand));
+      assertEquals(Collections.emptyList(), expect(scanner, waitingCommand));
 
       // Test one argument
       commandString = validateAndFormatCommandString(playerCommand, name);
@@ -113,35 +111,37 @@ class ProtocolTest {
       argList = expect(scanner, playerCommand, waitingCommand, readyCommand);
       assertTrue(readyCommand.isValidArgList(argList));
 
+      //TODO test ignoring of redundant arguments
+
     } catch (MalformedArgumentsException | UnexpectedCommandException e) {
-      e.printStackTrace();
       fail("fail all the things!");
     }
+
+    // Test unexpected command
+    scanner = new Scanner(readyCommand.toString());
+    assertThrows(
+        UnexpectedCommandException.class, () -> expect(scanner, waitingCommand, playerCommand));
   }
 
   @Test
   void testWAITING() {
-    ProtocolCommand command = ServerCommand.WAITING;
+    final ProtocolCommand command = ServerCommand.WAITING;
     String string = command.toString();
 
-    // Test formatting of outgoing communication
-    String theCommand = null;
-    try {
-      theCommand = validateAndFormatCommandString(command);
-    } catch (MalformedArgumentsException e) {
-      fail("fail all the things!");
-    }
-    assertEquals(string, theCommand);
+    // Test correct arguments
+    assertTrue(command.isValidArgList(Collections.emptyList()));
+
+    /* Incorrect arguments are not possible: any should be ignored and this is tested by testValidateAndFormatArgList */
 
     // Test parsing of incoming communication
-    scanner = new Scanner(string);
     try {
       // No arguments
-      assertEquals(new ArrayList<String>(), expect(scanner, command));
+      scanner = new Scanner(string);
+      assertEquals(Collections.emptyList(), expect(scanner, command));
 
       // Any arguments should not be returned
       scanner = new Scanner(string + SPACE + "argue @ll th3 things!");
-      assertEquals(new ArrayList<String>(), expect(scanner, command));
+      assertEquals(Collections.emptyList(), expect(scanner, command));
 
     } catch (UnexpectedCommandException | MalformedArgumentsException e) {
       fail("fail all the things!");

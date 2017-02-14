@@ -15,13 +15,13 @@ public interface Protocol {
   String BLACK = "black";
   String WHITE = "white";
 
-  // List<String> ALL_PROTOCOL_COMMANDS =
-  //     Stream.concat(
-  //            Stream.concat(
-  //              Arrays.stream(GeneralCommand.values()).map(Enum::name),
-  //              Arrays.stream(ServerCommand.values()).map(Enum::name)),
-  //          Arrays.stream(ClientCommand.values()).map(Enum::name))
-  //      .collect(Collectors.toList());
+  //  List<String> COMMANDS =
+  //      Stream.concat(
+  //              Stream.concat(
+  //                  Arrays.stream(GeneralCommand.values()).map(Enum::name),
+  //                  Arrays.stream(ServerCommand.values()).map(Enum::name)),
+  //              Arrays.stream(ClientCommand.values()).map(Enum::name))
+  //          .collect(Collectors.toList());
 
   /**
    * Validate the specified {@code String} arguments for the specified {@code ProtocolCommand} and
@@ -97,7 +97,7 @@ public interface Protocol {
    * on the specified {@code Scanner}.
    *
    * @param scanner the {@code Scanner}.
-   * @param expectedCommands the {@code ProtocolCommand}.
+   * @param expectedCommands one {@code ProtocolCommand} or more.
    * @return the {@code List<String>} of arguments. The list is empty (size equals zero) if there
    *     are no arguments.
    * @throws UnexpectedCommandException if the the incoming command is not expected.
@@ -123,7 +123,6 @@ public interface Protocol {
         List<String> argList;
         try {
           String[] args = scanner.nextLine().trim().split(Protocol.SPACE);
-          // argList = Arrays.asList(scanner.nextLine().trim().split(Protocol.SPACE));
           argList = validateAndFormatArgList(theProtocolCommand, args);
         } catch (NoSuchElementException | MalformedArgumentsException ignored) {
           argList = new ArrayList<>();
