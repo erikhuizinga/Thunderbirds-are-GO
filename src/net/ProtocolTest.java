@@ -169,9 +169,11 @@ class ProtocolTest {
 
     // Test correct arguments
     assertTrue(command.isValidArgList(Collections.singletonList(dimensionString)));
+    assertTrue(command.isValidArgList(Arrays.asList(dimensionString, name)));
 
-    // Test malformed argument
+    // Test malformed arguments
     assertFalse(command.isValidArgList(Collections.singletonList(Integer.toString(3))));
+    assertFalse(command.isValidArgList(Arrays.asList(dimensionString, badName)));
 
     // Test missing argument
     assertFalse(command.isValidArgList(Collections.emptyList()));
