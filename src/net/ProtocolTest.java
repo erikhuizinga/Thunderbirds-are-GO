@@ -43,7 +43,7 @@ class ProtocolTest {
           "READY black barrybadpak 9",
           validateAndFormatCommandString(ServerCommand.READY, "black", "BarryBadpak", "9"));
     } catch (MalformedArgumentsException e) {
-      fail("fail all the things!");
+      failAllTheThings();
     }
     assertThrows(
         MalformedArgumentsException.class,
@@ -61,7 +61,7 @@ class ProtocolTest {
       assertEquals(ServerCommand.WAITING.toString(), theCommand);
 
     } catch (MalformedArgumentsException e) {
-      fail("fail all the things!");
+      failAllTheThings();
     }
   }
 
@@ -113,7 +113,7 @@ class ProtocolTest {
       assertTrue(readyCommand.isValidArgList(argList));
 
     } catch (MalformedArgumentsException | UnexpectedCommandException e) {
-      fail("fail all the things!");
+      failAllTheThings();
     }
 
     // Test unexpected command
@@ -160,7 +160,7 @@ class ProtocolTest {
       assertEquals(Collections.emptyList(), expect(scanner, command));
 
     } catch (UnexpectedCommandException | MalformedArgumentsException e) {
-      fail("fail all the things!");
+      failAllTheThings();
     }
   }
 
@@ -178,5 +178,9 @@ class ProtocolTest {
     if (scanner != null) {
       scanner.close();
     }
+  }
+
+  private void failAllTheThings() {
+    fail("fail all the things!");
   }
 }
