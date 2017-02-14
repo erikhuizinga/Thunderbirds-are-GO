@@ -179,11 +179,24 @@ class ProtocolTest {
 
   @Test
   void testWAITING() {
+    final ProtocolCommand command = ServerCommand.WAITING;
+
     // Test correct arguments
-    assertTrue(ServerCommand.WAITING.isValidArgList(Collections.emptyList()));
+    assertTrue(command.isValidArgList(Collections.emptyList()));
 
     // Test any arguments, which should be ignored
-    assertTrue(ServerCommand.WAITING.isValidArgList(Arrays.asList("a", "bc", "def")));
+    assertTrue(command.isValidArgList(Arrays.asList("a", "bc", "def")));
+  }
+
+  @Test
+  void testCANCEL() {
+    final ProtocolCommand command = ClientCommand.CANCEL;
+
+    // Test correct arguments
+    assertTrue(command.isValidArgList(Collections.emptyList()));
+
+    // Test any arguments, which should be ignored
+    assertTrue(command.isValidArgList(Arrays.asList("a", "bc", "def")));
   }
 
   @Test

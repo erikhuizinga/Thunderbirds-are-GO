@@ -141,7 +141,8 @@ public interface Protocol {
   /** The {@code Client} protocol commands. */
   enum ClientCommand implements ProtocolCommand {
     PLAYER,
-    GO;
+    GO,
+    CANCEL;
 
     @Override
     public boolean isValidArgList(List<String> argList) {
@@ -151,7 +152,7 @@ public interface Protocol {
           /*
           PLAYER name
           name: 1-20 word characters without spaces
-          */
+           */
           isValid =
               argList.size() == maxArgs()
                   && argList.get(0) != null
@@ -162,7 +163,7 @@ public interface Protocol {
           /*
           GO dimension
           dimension: String of int where 5 <= dimension <= 131 && dimension % 2 == 1
-          */
+           */
           if (argList.size() > 0) {
             try {
               int dim = Integer.parseInt(argList.get(0));
@@ -175,6 +176,13 @@ public interface Protocol {
             isValid = false;
           }
           break;
+
+        case CANCEL:
+          /*
+          CANCEL
+          No arguments, ignore any
+           */
+          return true;
 
         default:
           isValid = false;
@@ -207,7 +215,7 @@ public interface Protocol {
           /*
           WAITING
           No arguments, ignore any
-            */
+           */
           return true;
 
         case READY:
@@ -257,7 +265,7 @@ public interface Protocol {
           /*
           CHAT string...
           string...: any number of arguments, treated as a string
-            */
+           */
           return argList.size() > 0;
 
         default:
