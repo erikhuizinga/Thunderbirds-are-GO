@@ -124,6 +124,23 @@ class ProtocolTest {
   }
 
   @Test
+  void testPLAYER() {
+    final ProtocolCommand command = ClientCommand.PLAYER;
+    String commandString = command.toString();
+    String string = commandString + SPACE + name;
+
+    // Test correct arguments
+    assertTrue(command.isValidArgList(Collections.singletonList(name)));
+
+    // Test malformed argument
+    assertFalse(command.isValidArgList(Collections.singletonList(badName)));
+
+    //TODO replace this with a test of validateAndFormatArgList
+    assertThrows(
+        MalformedArgumentsException.class, () -> validateAndFormatArgList(command, badName));
+  }
+
+  @Test
   void testWAITING() {
     final ProtocolCommand command = ServerCommand.WAITING;
     String string = command.toString();
