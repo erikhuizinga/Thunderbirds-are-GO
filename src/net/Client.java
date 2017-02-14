@@ -96,10 +96,9 @@ public class Client extends Observable {
     } while (!Protocol.isValidDimension(dimension));
     announceBoardDimension(dimension);
 
-    List<String> argList;
+    List<String> commList;
     try {
-      expect(in, ServerCommand.WAITING);
-      argList = expect(in, ServerCommand.READY);
+      commList = expect(in, ServerCommand.WAITING, ServerCommand.READY);
 
     } catch (UnexpectedCommandException | MalformedArgumentsException e) {
       e.printStackTrace();

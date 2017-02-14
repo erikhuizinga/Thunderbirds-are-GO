@@ -101,7 +101,7 @@ class ProtocolTest {
     final ProtocolCommand waitingCommand = ServerCommand.WAITING;
 
     String commandString;
-    List<String> argList;
+    List<String> commList;
     try {
       // Test missing argument
       commandString = playerCommand.toString();
@@ -116,29 +116,33 @@ class ProtocolTest {
       // Test zero arguments
       commandString = validateAndFormatCommandString(waitingCommand);
       scanner = new Scanner(commandString);
-      assertEquals(Collections.emptyList(), expect(scanner, waitingCommand));
+      assertEquals(
+          Collections.singletonList(waitingCommand.toString()), expect(scanner, waitingCommand));
 
       // Test ignoring of redundant arguments
       commandString += SPACE + "we are arguments and we shouldn't be here :')";
       scanner = new Scanner(commandString);
-      assertEquals(Collections.emptyList(), expect(scanner, waitingCommand));
+      assertEquals(
+          Collections.singletonList(waitingCommand.toString()), expect(scanner, waitingCommand));
 
       // Test one argument
       commandString = validateAndFormatCommandString(playerCommand, name);
       scanner = new Scanner(commandString);
-      argList = expect(scanner, playerCommand);
-      assertTrue(playerCommand.isValidArgList(argList));
+      commList = expect(scanner, playerCommand);
+      assertEquals(Arrays.asList(playerCommand.toString(), name), commList);
+      assertTrue(playerCommand.isValidArgList(commList.subList(1, commList.size())));
 
       // Test more than one argument
       commandString = validateAndFormatCommandString(readyCommand, stone, name, dimensionString);
       scanner = new Scanner(commandString);
-      argList = expect(scanner, readyCommand);
-      assertTrue(readyCommand.isValidArgList(argList));
+      commList = expect(scanner, readyCommand);
+      assertEquals(Arrays.asList(readyCommand.toString(), stone, name, dimensionString), commList);
+      assertTrue(readyCommand.isValidArgList(commList.subList(1, commList.size())));
 
       // Test more than one command
       scanner = new Scanner(commandString);
-      argList = expect(scanner, playerCommand, waitingCommand, readyCommand);
-      assertTrue(readyCommand.isValidArgList(argList));
+      commList = expect(scanner, playerCommand, waitingCommand, readyCommand);
+      assertTrue(readyCommand.isValidArgList(commList.subList(1, commList.size())));
 
     } catch (MalformedArgumentsException | UnexpectedCommandException e) {
       failAllTheThings();

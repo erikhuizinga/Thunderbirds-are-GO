@@ -98,8 +98,8 @@ public interface Protocol {
    *
    * @param scanner the {@code Scanner}.
    * @param expectedCommands one {@code ProtocolCommand} or more.
-   * @return the {@code List<String>} of arguments. The list is empty (size equals zero) if there
-   *     are no arguments.
+   * @return the {@code List<String>} of the protocol command and arguments. The list contains only
+   *     the command (size equals one) if there are no arguments.
    * @throws UnexpectedCommandException if the the incoming command is not expected.
    */
   static List<String> expect(Scanner scanner, ProtocolCommand... expectedCommands)
@@ -129,6 +129,7 @@ public interface Protocol {
         }
 
         if (theProtocolCommand.isValidArgList(argList)) {
+          argList.add(0, theProtocolCommand.toString());
           return argList;
         } else {
           throw new MalformedArgumentsException();
