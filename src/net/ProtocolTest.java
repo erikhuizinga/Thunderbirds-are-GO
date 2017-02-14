@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
@@ -30,10 +31,37 @@ class ProtocolTest {
   private String name = "barrybadpak";
   private String badName = "thisNameIsABitTooLong";
   private int dimension = 19;
+  private String dimensionString = Integer.toString(dimension);
   private String stone = Protocol.BLACK;
 
   @BeforeEach
   void setUp() {}
+
+  @Test
+  void testValidateAndFormatArgList() {
+    ProtocolCommand playerCommand = ClientCommand.PLAYER;
+    ProtocolCommand readyCommand = ServerCommand.READY;
+
+    // Test bad argument
+    assertThrows(
+        MalformedArgumentsException.class, () -> validateAndFormatArgList(playerCommand, badName));
+
+    try {
+      // Test one correct argument
+      assertEquals(Collections.singletonList(name), validateAndFormatArgList(playerCommand, name));
+
+      // Test more than one correct argument
+      assertEquals(
+          Arrays.asList(stone, name, dimensionString),
+          validateAndFormatArgList(readyCommand, stone, name, dimensionString));
+
+      // Test ignoring of redundant arguments
+      assertEquals(Collections.emptyList(), validateAndFormatArgList(ServerCommand.WAITING));
+
+    } catch (MalformedArgumentsException e) {
+      failAllTheThings();
+    }
+  }
 
   @Test
   void testValidateAndFormatCommandString() {
@@ -101,8 +129,7 @@ class ProtocolTest {
       assertTrue(playerCommand.isValidArgList(argList));
 
       // Test more than one argument
-      commandString =
-          validateAndFormatCommandString(readyCommand, stone, name, Integer.toString(dimension));
+      commandString = validateAndFormatCommandString(readyCommand, stone, name, dimensionString);
       scanner = new Scanner(commandString);
       argList = expect(scanner, readyCommand);
       assertTrue(readyCommand.isValidArgList(argList));
