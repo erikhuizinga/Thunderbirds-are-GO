@@ -68,7 +68,6 @@ class ProtocolTest {
 
   @Test
   void testExpect() {
-    //TODO test with more than one command
     final ProtocolCommand playerCommand = ClientCommand.PLAYER;
     final ProtocolCommand readyCommand = ServerCommand.READY;
 
@@ -108,6 +107,11 @@ class ProtocolTest {
           validateAndFormatCommandString(readyCommand, stone, name, Integer.toString(dimension));
       scanner = new Scanner(commandString);
       argList = expect(scanner, readyCommand);
+      assertTrue(readyCommand.isValidArgList(argList));
+
+      // Test more than one command
+      scanner = new Scanner(commandString);
+      argList = expect(scanner, playerCommand, waitingCommand, readyCommand);
       assertTrue(readyCommand.isValidArgList(argList));
 
     } catch (MalformedArgumentsException | UnexpectedCommandException e) {
