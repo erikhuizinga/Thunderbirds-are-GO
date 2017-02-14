@@ -186,7 +186,7 @@ public class Server {
         try {
           args = expect(in, ClientCommand.PLAYER, GeneralCommand.CHAT);
           String name = args.get(0);
-        } catch (UnexpectedCommandException e) {
+        } catch (UnexpectedCommandException | MalformedArgumentsException e) {
           //TODO send a warning / shutdown peer
         }
 
@@ -195,7 +195,7 @@ public class Server {
         try {
           args = expect(in, ClientCommand.GO);
           dimension = Integer.parseInt(args.get(0));
-        } catch (UnexpectedCommandException e) {
+        } catch (UnexpectedCommandException | MalformedArgumentsException e) {
           //TODO send a warning / shutdown peer
         }
 

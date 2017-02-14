@@ -103,7 +103,7 @@ public interface Protocol {
    * @throws UnexpectedCommandException if the the incoming command is not expected.
    */
   static List<String> expect(Scanner scanner, ProtocolCommand... expectedCommands)
-      throws UnexpectedCommandException {
+      throws UnexpectedCommandException, MalformedArgumentsException {
     String commandString;
 
     if (scanner.hasNext() // There is next incoming communication to scan
@@ -131,6 +131,8 @@ public interface Protocol {
 
         if (theProtocolCommand.isValidArgList(argList)) {
           return argList;
+        } else {
+          throw new MalformedArgumentsException();
         }
       }
     }

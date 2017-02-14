@@ -77,14 +77,13 @@ class ProtocolTest {
       // Test absent argument
       commandString = playerCommand.toString();
       scanner = new Scanner(commandString);
-      assertThrows(UnexpectedCommandException.class, () -> expect(scanner, playerCommand));
+      assertThrows(MalformedArgumentsException.class, () -> expect(scanner, playerCommand));
 
       // Test malformed argument
       String badName = "thisNameIsABitTooLong";
       commandString = playerCommand.toString() + SPACE + badName;
       scanner = new Scanner(commandString);
-      assertThrows(UnexpectedCommandException.class, () -> expect(scanner, playerCommand));
-      assertFalse(playerCommand.isValidArgList(Collections.singletonList(badName)));
+      assertThrows(MalformedArgumentsException.class, () -> expect(scanner, playerCommand));
 
       // Test zero arguments
       final ProtocolCommand waitingCommand = ServerCommand.WAITING;
@@ -144,8 +143,8 @@ class ProtocolTest {
       scanner = new Scanner(string + SPACE + "argue @ll th3 things!");
       assertEquals(new ArrayList<String>(), expect(scanner, command));
 
-    } catch (UnexpectedCommandException e) {
-      e.printStackTrace();
+    } catch (UnexpectedCommandException | MalformedArgumentsException e) {
+      fail("fail all the things!");
     }
   }
 
