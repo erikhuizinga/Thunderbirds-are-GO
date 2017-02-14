@@ -152,43 +152,23 @@ class ProtocolTest {
   @Test
   void testPLAYER() {
     final ProtocolCommand command = ClientCommand.PLAYER;
-    String commandString = command.toString();
-    String string = commandString + SPACE + name;
 
     // Test correct arguments
     assertTrue(command.isValidArgList(Collections.singletonList(name)));
 
     // Test malformed argument
     assertFalse(command.isValidArgList(Collections.singletonList(badName)));
-
-    //TODO replace this with a test of validateAndFormatArgList
-    assertThrows(
-        MalformedArgumentsException.class, () -> validateAndFormatArgList(command, badName));
   }
 
   @Test
   void testWAITING() {
-    final ProtocolCommand command = ServerCommand.WAITING;
-    String string = command.toString();
-
     // Test correct arguments
-    assertTrue(command.isValidArgList(Collections.emptyList()));
+    assertTrue(ServerCommand.WAITING.isValidArgList(Collections.emptyList()));
 
-    /* Incorrect arguments are not possible: any should be ignored and this is tested by testValidateAndFormatArgList */
-
-    // Test parsing of incoming communication
-    try {
-      // No arguments
-      scanner = new Scanner(string);
-      assertEquals(Collections.emptyList(), expect(scanner, command));
-
-      // Any arguments should not be returned
-      scanner = new Scanner(string + SPACE + "argue @ll th3 things!");
-      assertEquals(Collections.emptyList(), expect(scanner, command));
-
-    } catch (UnexpectedCommandException | MalformedArgumentsException e) {
-      failAllTheThings();
-    }
+    /*
+    Incorrect arguments are not possible: any should be ignored and this is tested by
+    testValidateAndFormatArgList
+    */
   }
 
   @Test
