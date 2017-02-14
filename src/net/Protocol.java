@@ -146,36 +146,36 @@ public interface Protocol {
 
     @Override
     public boolean isValidArgList(List<String> argList) {
-      boolean isValid;
       switch (this) {
         case PLAYER:
           /*
           PLAYER name
           name: 1-20 word characters without spaces
            */
-          isValid =
-              argList.size() == maxArgs()
-                  && argList.get(0) != null
-                  && argList.get(0).matches("^\\w{1,20}$");
-          break;
+          return checkArgListSize(argList)
+              && argList.get(0) != null
+              && argList.get(0).matches("^\\w{1,20}$");
 
         case GO:
           /*
           GO dimension
           dimension: String of int where 5 <= dimension <= 131 && dimension % 2 == 1
            */
-          if (argList.size() > 0) {
+          if (checkArgListSize(argList)) {
+            if (argList.size() == maxArgs()
+                && !ClientCommand.PLAYER.isValidArgList(argList.subList(1, 2))) {
+              return false;
+            }
             try {
               int dim = Integer.parseInt(argList.get(0));
-              isValid = argList.get(0) != null && isValidDimension(dim);
+              return argList.get(0) != null && isValidDimension(dim);
 
             } catch (NumberFormatException e) {
-              isValid = false;
+              return false;
             }
           } else {
-            isValid = false;
+            return false;
           }
-          break;
 
         case CANCEL:
           /*
@@ -185,9 +185,18 @@ public interface Protocol {
           return true;
 
         default:
-          isValid = false;
+          return false;
       }
-      return isValid;
+    }
+
+    @Override
+    public int minArgs() {
+      switch (this) {
+        case GO:
+          return 1;
+        default:
+          return maxArgs();
+      }
     }
 
     @Override
@@ -225,16 +234,17 @@ public interface Protocol {
           opponentName: opponent player's name
           dimension: board dimension, see keyword GO
            */
-          int dimension;
-          try {
-            dimension = Integer.parseInt(argList.get(2));
-          } catch (NumberFormatException e) {
-            return false;
+          if (checkArgListSize(argList)) {
+            int dimension;
+            try {
+              dimension = Integer.parseInt(argList.get(2));
+            } catch (NumberFormatException e) {
+              return false;
+            }
+            return (argList.get(0).equals(BLACK) || argList.get(0).equals(WHITE))
+                && ClientCommand.PLAYER.isValidArgList(argList.subList(1, 2))
+                && isValidDimension(dimension);
           }
-          return argList.size() == 3
-              && (argList.get(0).equals(BLACK) || argList.get(0).equals(WHITE))
-              && ClientCommand.PLAYER.isValidArgList(argList.subList(1, 2))
-              && isValidDimension(dimension);
 
         default:
           return false;
@@ -242,10 +252,16 @@ public interface Protocol {
     }
 
     @Override
+    public int minArgs() {
+      switch (this) {
+        default:
+          return maxArgs();
+      }
+    }
+
+    @Override
     public int maxArgs() {
       switch (this) {
-        case WAITING:
-          return 0;
         case READY:
           return 3;
         default:
@@ -266,10 +282,20 @@ public interface Protocol {
           CHAT string...
           string...: any number of arguments, treated as a string
            */
-          return argList.size() > 0;
+          return checkArgListSize(argList);
 
         default:
           return false;
+      }
+    }
+
+    @Override
+    public int minArgs() {
+      switch (this) {
+        case CHAT:
+          return 1;
+        default:
+          return 0;
       }
     }
 
@@ -296,8 +322,15 @@ public interface Protocol {
      */
     boolean isValidArgList(List<String> argList);
 
+    /** @return the minimum number of arguments for this {@code ProtocolCommand}. */
+    int minArgs();
+
     /** @return the maximum number of arguments for this {@code ProtocolCommand}. */
     int maxArgs();
+
+    default boolean checkArgListSize(List argList) {
+      return argList.size() >= minArgs() && argList.size() <= maxArgs();
+    }
   }
 
   /**
