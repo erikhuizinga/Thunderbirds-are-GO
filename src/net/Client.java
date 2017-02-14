@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Observable;
 import net.Protocol.ClientCommand;
-import net.Protocol.MalformedCommandException;
+import net.Protocol.MalformedArgumentsException;
 import net.Protocol.ProtocolCommand;
 import util.Strings;
 
@@ -98,8 +98,8 @@ public class Client extends Observable {
   private void sendCommand(ProtocolCommand protocolCommand, String... keys) {
     setChanged();
     try {
-      notifyObservers(Protocol.validateAndFormatCommand(protocolCommand, keys));
-    } catch (MalformedCommandException e) {
+      notifyObservers(Protocol.validateAndFormatCommandString(protocolCommand, keys));
+    } catch (MalformedArgumentsException e) {
       e.printStackTrace();
       stopClient();
     }

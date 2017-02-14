@@ -16,7 +16,7 @@ import java.util.Observable;
 import java.util.Scanner;
 import net.Protocol.ClientCommand;
 import net.Protocol.GeneralCommand;
-import net.Protocol.MalformedCommandException;
+import net.Protocol.MalformedArgumentsException;
 import net.Protocol.ProtocolCommand;
 import net.Protocol.ServerCommand;
 import net.Protocol.UnexpectedCommandException;
@@ -166,8 +166,8 @@ public class Server {
     private void sendCommand(ProtocolCommand protocolCommand, String... keys) {
       setChanged();
       try {
-        notifyObservers(Protocol.validateAndFormatCommand(protocolCommand, keys));
-      } catch (MalformedCommandException e) {
+        notifyObservers(Protocol.validateAndFormatCommandString(protocolCommand, keys));
+      } catch (MalformedArgumentsException e) {
         e.printStackTrace();
         stopClientHandler();
       }

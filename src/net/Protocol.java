@@ -2,6 +2,7 @@ package net;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -11,8 +12,8 @@ import java.util.Scanner;
 public interface Protocol {
 
   String SPACE = " ";
-  String BLACK = "BLACK";
-  String WHITE = "WHITE";
+  String BLACK = "black";
+  String WHITE = "white";
 
   // List<String> ALL_PROTOCOL_COMMANDS =
   //     Stream.concat(
@@ -23,6 +24,28 @@ public interface Protocol {
   //      .collect(Collectors.toList());
 
   /**
+   * Validate the specified {@code String} arguments for the specified {@code ProtocolCommand} and
+   * format them according to protocol. If more arguments are provided than the allowed maximum,
+   * then any superfluous arguments are not returned in the argument list.
+   *
+   * @param protocolCommand the {@code ProtocolCommand}.
+   * @param args the {@code String} arguments.
+   * @return the {@code List} of {@code String} arguments.
+   * @throws MalformedArgumentsException if the specified arguments are not conform the protocol.
+   */
+  static List<String> validateAndFormatArgList(ProtocolCommand protocolCommand, String... args)
+      throws MalformedArgumentsException {
+    List<String> argList = new LinkedList<>();
+    Collections.addAll(
+        argList, Arrays.stream(args).map(String::toLowerCase).toArray(String[]::new));
+    argList = argList.subList(0, protocolCommand.maxArgs());
+    if (protocolCommand.isValidArgList(argList)) {
+      return argList;
+    }
+    throw new MalformedArgumentsException();
+  }
+
+  /**
    * Validate the specified {@code ProtocolCommand} with the specified arguments and format it as a
    * {@code String}.
    *
@@ -30,20 +53,15 @@ public interface Protocol {
    * @param args the arguments, a comma-separated {@code String} arguments.
    * @return the command as a {@code String}, ready to send over a {@code Peer} to {@code Peer}
    *     connection.
-   * @throws MalformedCommandException thrown if the specified arguments are not conform the
-   *     protocol.
+   * @throws MalformedArgumentsException if the specified arguments are not conform the protocol.
    */
-  static String validateAndFormatCommand(ProtocolCommand protocolCommand, String... args)
-      throws MalformedCommandException {
+  static String validateAndFormatCommandString(ProtocolCommand protocolCommand, String... args)
+      throws MalformedArgumentsException {
     String result = protocolCommand.toString();
-    List<String> argList = new LinkedList<>();
-    for (String arg : args) {
-      arg = arg.toUpperCase();
-      argList.add(arg);
+    List<String> argList = validateAndFormatArgList(protocolCommand, args);
+    for (String arg : argList) {
+      arg = arg.toLowerCase();
       result += SPACE + arg;
-    }
-    if (!protocolCommand.isValidArgList(argList)) {
-      throw new MalformedCommandException("command malformed by protocol: " + result);
     }
     return result.trim();
   }
@@ -55,16 +73,11 @@ public interface Protocol {
    * @param protocolCommand the {@code ProtocolCommand}.
    * @return the command as a {@code String}, ready to send over a {@code Peer} to {@code Peer}
    *     connection.
-   * @throws MalformedCommandException thrown if the specified arguments are not conform the
-   *     protocol.
    */
-  static String validateAndFormatCommand(ProtocolCommand protocolCommand) {
+  static String validateAndFormatCommandString(ProtocolCommand protocolCommand)
+      throws MalformedArgumentsException {
     String result = null;
-    try {
-      result = validateAndFormatCommand(protocolCommand, "");
-    } catch (MalformedCommandException ignored) {
-      // Ignore, because without arguments the command cannot be malformed
-    }
+    result = validateAndFormatCommandString(protocolCommand, "");
     return result;
   }
 
@@ -81,15 +94,13 @@ public interface Protocol {
 
   /**
    * Get the {@code List<String>} of arguments from the expected specified {@code ProtocolCommand}
-   * on the specified {@code Scanner}. Unexpected command will be ignored up to {@code
-   * MAX_UNEXPECTED_COUNT}** times, after which an exception will be thrown.
+   * on the specified {@code Scanner}.
    *
    * @param scanner the {@code Scanner}.
    * @param expectedCommands the {@code ProtocolCommand}.
    * @return the {@code List<String>} of arguments. The list is empty (size equals zero) if there
    *     are no arguments.
-   * @throws UnexpectedCommandException thrown when the number of unexpected commands exceeds {@code
-   *     MAX_UNEXPECTED_COUNT}.
+   * @throws UnexpectedCommandException if the the incoming command is not expected.
    */
   static List<String> expect(Scanner scanner, ProtocolCommand... expectedCommands)
       throws UnexpectedCommandException {
@@ -111,8 +122,10 @@ public interface Protocol {
         // Read the argument list
         List<String> argList;
         try {
-          argList = Arrays.asList(scanner.nextLine().trim().split(Protocol.SPACE));
-        } catch (NoSuchElementException ignored) {
+          String[] args = scanner.nextLine().trim().split(Protocol.SPACE);
+          // argList = Arrays.asList(scanner.nextLine().trim().split(Protocol.SPACE));
+          argList = validateAndFormatArgList(theProtocolCommand, args);
+        } catch (NoSuchElementException | MalformedArgumentsException ignored) {
           argList = new ArrayList<>();
         }
 
@@ -139,7 +152,9 @@ public interface Protocol {
           name: 1-20 word characters without spaces
           */
           isValid =
-              argList.size() > 0 && argList.get(0) != null && argList.get(0).matches("^\\w{1,20}$");
+              argList.size() == maxArgs()
+                  && argList.get(0) != null
+                  && argList.get(0).matches("^\\w{1,20}$");
           break;
 
         case GO:
@@ -164,6 +179,18 @@ public interface Protocol {
           isValid = false;
       }
       return isValid;
+    }
+
+    @Override
+    public int maxArgs() {
+      switch (this) {
+        case PLAYER:
+          return 1;
+        case GO:
+          return 2;
+        default:
+          return 0;
+      }
     }
   }
 
@@ -204,6 +231,18 @@ public interface Protocol {
           return false;
       }
     }
+
+    @Override
+    public int maxArgs() {
+      switch (this) {
+        case WAITING:
+          return 0;
+        case READY:
+          return 3;
+        default:
+          return 0;
+      }
+    }
   }
 
   /** The general protocol commands for {@code Client}-{@code Server} communication. */
@@ -224,6 +263,16 @@ public interface Protocol {
           return false;
       }
     }
+
+    @Override
+    public int maxArgs() {
+      switch (this) {
+        case CHAT:
+          return Integer.MAX_VALUE;
+        default:
+          return 0;
+      }
+    }
   }
 
   /** The interface for every type of {@code ProtocolCommand}. */
@@ -237,15 +286,16 @@ public interface Protocol {
      * @return {@code true} if valid; {@code false} otherwise.
      */
     boolean isValidArgList(List<String> argList);
+
+    /** @return the maximum number of arguments for this {@code ProtocolCommand}. */
+    int maxArgs();
   }
 
-  /** The {@code Exception} for a command that is malformed for the protocol. */
-  class MalformedCommandException extends Exception {
-    public MalformedCommandException(String message) {
-      super(message);
-    }
-  }
+  /**
+   * The {@code Exception} for arguments of a protocol command that is malformed for the protocol.
+   */
+  class MalformedArgumentsException extends Exception {}
 
-  /** The {@code Exception} for the {@code MAX_UNEXPECTED_COUNT}-th unexpected command. */
+  /** The {@code Exception} for an unexpected command. */
   class UnexpectedCommandException extends Exception {}
 }
