@@ -208,7 +208,7 @@ public interface Protocol {
         case GO:
           return 2;
         default:
-          return 0;
+          return ProtocolCommand.super.maxArgs();
       }
     }
   }
@@ -266,7 +266,7 @@ public interface Protocol {
         case READY:
           return 3;
         default:
-          return 0;
+          return ProtocolCommand.super.maxArgs();
       }
     }
   }
@@ -296,7 +296,7 @@ public interface Protocol {
         case CHAT:
           return 1;
         default:
-          return 0;
+          return ProtocolCommand.super.minArgs();
       }
     }
 
@@ -306,7 +306,7 @@ public interface Protocol {
         case CHAT:
           return Integer.MAX_VALUE;
         default:
-          return 0;
+          return ProtocolCommand.super.maxArgs();
       }
     }
   }
@@ -323,11 +323,15 @@ public interface Protocol {
      */
     boolean isValidArgList(List<String> argList);
 
-    /** @return the minimum number of arguments for this {@code ProtocolCommand}. */
-    int minArgs();
+    /** @return the minimum number of arguments for the {@code ProtocolCommand}. */
+    default int minArgs() {
+      return 0;
+    }
 
-    /** @return the maximum number of arguments for this {@code ProtocolCommand}. */
-    int maxArgs();
+    /** @return the maximum number of arguments for the {@code ProtocolCommand}. */
+    default int maxArgs() {
+      return 0;
+    }
 
     default boolean checkArgListSize(List argList) {
       return argList.size() >= minArgs() && argList.size() <= maxArgs();
