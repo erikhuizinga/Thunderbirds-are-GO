@@ -78,18 +78,17 @@ public class Client extends Observable {
   }
 
   private void play() {
+    String input = null;
     announcePlayer();
 
     int dimension = 0;
+    System.out.print("On what board dimension do you want to play? ");
     do {
       try {
-        dimension =
-            Integer.parseInt(
-                Strings.readString(
-                    "On what board dimension do you want to play? "
-                        + "Please enter an odd number between 5 and 131: "));
+        input = Strings.readLine("Please enter an odd number between 5 and 131: ");
+        dimension = Integer.parseInt(input);
       } catch (NumberFormatException e) {
-        System.out.println("Unable to parse number from input, please try again.");
+        System.err.println("Unable to parse number from input, please try again.");
       }
       //TODO support cancelling -> ClientCommand.CANCEL
       //TODO support specifying opponent name

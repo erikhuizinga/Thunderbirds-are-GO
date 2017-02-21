@@ -5,6 +5,8 @@ import java.util.Scanner;
 /** Created by erik.huizinga on 26-1-17. */
 public class Strings {
 
+  private static final Scanner in = new Scanner(System.in);
+
   /**
    * Repeat a {@code String} a number of times.
    *
@@ -26,14 +28,12 @@ public class Strings {
    * @param prompt the prompt.
    * @return the line as a {@code String}.
    */
-  public static String readString(String prompt) {
+  public static String readLine(String prompt) {
     System.out.print(prompt);
-    Scanner in = new Scanner(System.in);
     String line = null;
-    if (in.hasNextLine()) {
+    while (line == null && in.hasNextLine()) {
       line = in.nextLine();
     }
-    in.close();
     return line;
   }
 }
