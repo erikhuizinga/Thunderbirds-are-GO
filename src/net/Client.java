@@ -1,5 +1,10 @@
 package net;
 
+import static net.Protocol.ClientCommand.CANCEL;
+import static net.Protocol.ClientCommand.GO;
+import static net.Protocol.ClientCommand.PLAYER;
+import static net.Protocol.ServerCommand.READY;
+import static net.Protocol.ServerCommand.WAITING;
 import static net.Protocol.expect;
 
 import java.io.IOException;
@@ -7,10 +12,8 @@ import java.net.Socket;
 import java.util.List;
 import java.util.Observable;
 import java.util.Scanner;
-import net.Protocol.ClientCommand;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.ProtocolCommand;
-import net.Protocol.ServerCommand;
 import net.Protocol.UnexpectedCommandException;
 import util.Strings;
 
@@ -81,23 +84,30 @@ public class Client extends Observable {
     String input = null;
     announcePlayer();
 
+    System.out.println(
+        "While not in game, type CANCEL to cancel the previous request to play a game.");
+
     int dimension = 0;
     System.out.print("On what board dimension do you want to play? ");
     do {
       try {
         input = Strings.readLine("Please enter an odd number between 5 and 131: ");
+        if (input.toUpperCase().trim().equals("CANCEL")) {
+          cancel();
+          return;
+        }
+
         dimension = Integer.parseInt(input);
       } catch (NumberFormatException e) {
         System.err.println("Unable to parse number from input, please try again.");
       }
-      //TODO support cancelling -> ClientCommand.CANCEL
       //TODO support specifying opponent name
     } while (!Protocol.isValidDimension(dimension));
     announceBoardDimension(dimension);
 
-    List<String> commList;
+    List<String> command;
     try {
-      commList = expect(in, ServerCommand.WAITING, ServerCommand.READY);
+      command = expect(in, WAITING, READY);
 
     } catch (UnexpectedCommandException | MalformedArgumentsException e) {
       e.printStackTrace();
@@ -105,11 +115,16 @@ public class Client extends Observable {
   }
 
   private void announcePlayer() {
-    sendCommand(ClientCommand.PLAYER, name);
+    sendCommand(PLAYER, name);
+  }
+
+  private void cancel() {
+    sendCommand(CANCEL);
+    stopClient();
   }
 
   private void announceBoardDimension(int dimension) {
-    sendCommand(ClientCommand.GO, Integer.toString(dimension));
+    sendCommand(GO, Integer.toString(dimension));
   }
 
   private void sendCommand(ProtocolCommand protocolCommand, String... keys) {
