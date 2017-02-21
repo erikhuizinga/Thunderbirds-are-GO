@@ -15,55 +15,55 @@ public interface Protocol {
   String BLACK = "black";
   String WHITE = "white";
 
-  //  List<String> COMMANDS =
+  //  List<String> KEYWORDS =
   //      Stream.concat(
   //              Stream.concat(
-  //                  Arrays.stream(GeneralCommand.values()).map(Enum::name),
-  //                  Arrays.stream(ServerCommand.values()).map(Enum::name)),
-  //              Arrays.stream(ClientCommand.values()).map(Enum::name))
+  //                  Arrays.stream(GeneralKeywords.values()).map(Enum::name),
+  //                  Arrays.stream(ServerKeywords.values()).map(Enum::name)),
+  //              Arrays.stream(ClientKeywords.values()).map(Enum::name))
   //          .collect(Collectors.toList());
 
   /**
-   * Validate the specified {@code String} arguments for the specified {@code ProtocolCommand} and
-   * format them according to protocol. If more arguments are provided than the allowed maximum,
-   * then any superfluous arguments are ignored and not returned in the argument list.
+   * Validate the specified {@code String} arguments for the specified {@code Keyword} and format
+   * them according to protocol. If more arguments are provided than the allowed maximum, then any
+   * superfluous arguments are ignored and not returned in the argument list.
    *
-   * @param protocolCommand the {@code ProtocolCommand}.
+   * @param keyword the {@code Keyword}.
    * @param args the {@code String} arguments.
    * @return the {@code List} of {@code String} arguments.
    * @throws MalformedArgumentsException if the specified arguments are not conform the protocol.
    */
-  static List<String> validateAndFormatArgList(ProtocolCommand protocolCommand, String... args)
+  static List<String> validateAndFormatArgList(Keyword keyword, String... args)
       throws MalformedArgumentsException {
     List<String> argList = new LinkedList<>();
     Collections.addAll(
         argList, Arrays.stream(args).map(String::toLowerCase).toArray(String[]::new));
 
     // Get up to the maximum number of allowed arguments from the specified list of arguments
-    int toIndex = Math.min(protocolCommand.maxArgs(), argList.size());
+    int toIndex = Math.min(keyword.maxArgs(), argList.size());
     argList = argList.subList(0, toIndex);
 
     // Return if valid; throw an exception otherwise
-    if (protocolCommand.isValidArgList(argList)) {
+    if (keyword.isValidArgList(argList)) {
       return argList;
     }
     throw new MalformedArgumentsException();
   }
 
   /**
-   * Validate the specified {@code ProtocolCommand} with the specified arguments and format it as a
-   * {@code String}.
+   * Validate the specified {@code Keyword} with the specified arguments and format it as a {@code
+   * String}.
    *
-   * @param protocolCommand the {@code ProtocolCommand}.
+   * @param keyword the {@code Keyword}.
    * @param args the arguments, a comma-separated {@code String} arguments.
    * @return the command as a {@code String}, ready to send over a {@code Peer} to {@code Peer}
    *     connection.
    * @throws MalformedArgumentsException if the specified arguments are not conform the protocol.
    */
-  static String validateAndFormatCommandString(ProtocolCommand protocolCommand, String... args)
+  static String validateAndFormatCommandString(Keyword keyword, String... args)
       throws MalformedArgumentsException {
-    String result = protocolCommand.toString();
-    List<String> argList = validateAndFormatArgList(protocolCommand, args);
+    String result = keyword.toString();
+    List<String> argList = validateAndFormatArgList(keyword, args);
     for (String arg : argList) {
       arg = arg.toLowerCase();
       result += SPACE + arg;
@@ -72,17 +72,15 @@ public interface Protocol {
   }
 
   /**
-   * Validate the specified {@code ProtocolCommand} without arguments and format it as a {@code
-   * String}.
+   * Validate the specified {@code Keyword} without arguments and format it as a {@code String}.
    *
-   * @param protocolCommand the {@code ProtocolCommand}.
+   * @param keyword the {@code Keyword}.
    * @return the command as a {@code String}, ready to send over a {@code Peer} to {@code Peer}
    *     connection.
    */
-  static String validateAndFormatCommandString(ProtocolCommand protocolCommand)
-      throws MalformedArgumentsException {
+  static String validateAndFormatCommandString(Keyword keyword) throws MalformedArgumentsException {
     String result;
-    result = validateAndFormatCommandString(protocolCommand, "");
+    result = validateAndFormatCommandString(keyword, "");
     return result;
   }
 
@@ -98,56 +96,56 @@ public interface Protocol {
   }
 
   /**
-   * Get the {@code List<String>} of arguments from the expected specified {@code ProtocolCommand}
+   * Get the {@code List<String>} command of the expected specified {@code Keyword} with arguments
    * on the specified {@code Scanner}.
    *
    * @param scanner the {@code Scanner}.
-   * @param expectedCommands one {@code ProtocolCommand} or more.
-   * @return the {@code List<String>} of the protocol command and arguments. The list contains only
-   *     the command (size equals one) if there are no arguments.
-   * @throws UnexpectedCommandException if the the incoming command is not expected.
+   * @param expectedKeywords one {@code Keyword} or more.
+   * @return the {@code List<String>} of the protocol keyword and arguments. The list contains only
+   *     the keyword (size equals one) if there are no arguments.
+   * @throws UnexpectedKeywordException if the the incoming keyword is not expected.
    * @throws MalformedArgumentsException if the incoming arguments are invalid for the expected
-   *     command.
+   *     keyword.
    */
-  static List<String> expect(Scanner scanner, ProtocolCommand... expectedCommands)
-      throws UnexpectedCommandException, MalformedArgumentsException {
-    String commandString;
+  static List<String> expect(Scanner scanner, Keyword... expectedKeywords)
+      throws UnexpectedKeywordException, MalformedArgumentsException {
+    String keywordString;
 
     if (scanner.hasNext() // There is next incoming communication to scan
-        && (commandString = scanner.next()).toUpperCase().length()
-            > 0) // The next command contains one or more characters
+        && (keywordString = scanner.next()).toUpperCase().length()
+            > 0) // The next keyword contains one or more characters
     {
-      ProtocolCommand theProtocolCommand = null;
-      for (ProtocolCommand expectedCommand : expectedCommands) {
-        if (expectedCommand.toString().equals(commandString)) {
-          theProtocolCommand = expectedCommand;
+      Keyword theKeyword = null;
+      for (Keyword expectedKeyword : expectedKeywords) {
+        if (expectedKeyword.toString().equals(keywordString)) {
+          theKeyword = expectedKeyword;
           break;
         }
       }
 
-      if (theProtocolCommand != null) {
+      if (theKeyword != null) {
         // Read the argument list
         List<String> argList;
         try {
           String[] args = scanner.nextLine().trim().split(Protocol.SPACE);
-          argList = validateAndFormatArgList(theProtocolCommand, args);
+          argList = validateAndFormatArgList(theKeyword, args);
         } catch (NoSuchElementException | MalformedArgumentsException ignored) {
           argList = new ArrayList<>();
         }
 
-        if (theProtocolCommand.isValidArgList(argList)) {
-          argList.add(0, theProtocolCommand.toString());
+        if (theKeyword.isValidArgList(argList)) {
+          argList.add(0, theKeyword.toString());
           return argList;
         } else {
           throw new MalformedArgumentsException();
         }
       }
     }
-    throw new UnexpectedCommandException();
+    throw new UnexpectedKeywordException();
   }
 
-  /** The {@code Client} protocol commands. */
-  enum ClientCommand implements ProtocolCommand {
+  /** The {@code Client} protocol keywords. */
+  enum ClientKeywords implements Keyword {
     PLAYER,
     GO,
     CANCEL;
@@ -171,7 +169,7 @@ public interface Protocol {
            */
           if (checkArgListSize(argList)) {
             if (argList.size() == maxArgs()
-                && !ClientCommand.PLAYER.isValidArgList(argList.subList(1, 2))) {
+                && !ClientKeywords.PLAYER.isValidArgList(argList.subList(1, 2))) {
               return false;
             }
             try {
@@ -215,13 +213,13 @@ public interface Protocol {
         case GO:
           return 2;
         default:
-          return ProtocolCommand.super.maxArgs();
+          return Keyword.super.maxArgs();
       }
     }
   }
 
-  /** The {@code Server} protocol commands. */
-  enum ServerCommand implements ProtocolCommand {
+  /** The {@code Server} protocol keywords. */
+  enum ServerKeywords implements Keyword {
     WAITING,
     READY;
 
@@ -250,7 +248,7 @@ public interface Protocol {
               return false;
             }
             return (argList.get(0).equals(BLACK) || argList.get(0).equals(WHITE))
-                && ClientCommand.PLAYER.isValidArgList(argList.subList(1, 2))
+                && ClientKeywords.PLAYER.isValidArgList(argList.subList(1, 2))
                 && isValidDimension(dimension);
           }
 
@@ -273,13 +271,13 @@ public interface Protocol {
         case READY:
           return 3;
         default:
-          return ProtocolCommand.super.maxArgs();
+          return Keyword.super.maxArgs();
       }
     }
   }
 
-  /** The general protocol commands for {@code Client}-{@code Server} communication. */
-  enum GeneralCommand implements ProtocolCommand {
+  /** The general protocol keywords for {@code Client}-{@code Server} communication. */
+  enum GeneralKeywords implements Keyword {
     CHAT;
 
     @Override
@@ -303,7 +301,7 @@ public interface Protocol {
         case CHAT:
           return 1;
         default:
-          return ProtocolCommand.super.minArgs();
+          return Keyword.super.minArgs();
       }
     }
 
@@ -313,29 +311,28 @@ public interface Protocol {
         case CHAT:
           return Integer.MAX_VALUE;
         default:
-          return ProtocolCommand.super.maxArgs();
+          return Keyword.super.maxArgs();
       }
     }
   }
 
-  /** The interface for every type of {@code ProtocolCommand}. */
-  interface ProtocolCommand {
+  /** The interface for every type of {@code Keyword}. */
+  interface Keyword {
 
     /**
-     * Check if the specified {@code List<String>} of arguments is valid for the {@code
-     * ProtocolCommand}.
+     * Check if the specified {@code List<String>} of arguments is valid for the {@code Keyword}.
      *
      * @param argList the {@code List<String>} of arguments.
      * @return {@code true} if valid; {@code false} otherwise.
      */
     boolean isValidArgList(List<String> argList);
 
-    /** @return the minimum number of arguments for the {@code ProtocolCommand}. */
+    /** @return the minimum number of arguments for the {@code Keyword}. */
     default int minArgs() {
       return 0;
     }
 
-    /** @return the maximum number of arguments for the {@code ProtocolCommand}. */
+    /** @return the maximum number of arguments for the {@code Keyword}. */
     default int maxArgs() {
       return 0;
     }
@@ -346,10 +343,11 @@ public interface Protocol {
   }
 
   /**
-   * The {@code Exception} for arguments of a protocol command that is malformed for the protocol.
+   * The {@code Exception} for arguments of a protocol keyword that is malformed according to the
+   * protocol.
    */
   class MalformedArgumentsException extends Exception {}
 
-  /** The {@code Exception} for an unexpected command. */
-  class UnexpectedCommandException extends Exception {}
+  /** The {@code Exception} for an unexpected keyword. */
+  class UnexpectedKeywordException extends Exception {}
 }

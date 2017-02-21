@@ -14,12 +14,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Scanner;
-import net.Protocol.ClientCommand;
-import net.Protocol.GeneralCommand;
+import net.Protocol.ClientKeywords;
+import net.Protocol.GeneralKeywords;
+import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
-import net.Protocol.ProtocolCommand;
-import net.Protocol.ServerCommand;
-import net.Protocol.UnexpectedCommandException;
+import net.Protocol.ServerKeywords;
+import net.Protocol.UnexpectedKeywordException;
 
 /** Created by erik.huizinga on 2-2-17. */
 public class Server {
@@ -163,10 +163,10 @@ public class Server {
       addObserver(peer);
     }
 
-    private void sendCommand(ProtocolCommand protocolCommand, String... keys) {
+    private void sendCommand(Keyword keyword, String... keys) {
       setChanged();
       try {
-        notifyObservers(Protocol.validateAndFormatCommandString(protocolCommand, keys));
+        notifyObservers(Protocol.validateAndFormatCommandString(keyword, keys));
       } catch (MalformedArgumentsException e) {
         e.printStackTrace();
         stopClientHandler();
@@ -181,26 +181,28 @@ public class Server {
     @Override
     public void run() {
       do {
-        List<String> commList;
+        List<String> command;
         // Client: PLAYER name
         try {
-          commList = expect(in, ClientCommand.PLAYER, GeneralCommand.CHAT);
+          command = expect(in, ClientKeywords.PLAYER, GeneralKeywords.CHAT);
+          System.out.println(command);
 
-        } catch (UnexpectedCommandException | MalformedArgumentsException e) {
+        } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
           //TODO send a warning / shutdown peer
         }
 
         // Client: GO dimension
         int dimension = 0;
         try {
-          commList = expect(in, ClientCommand.GO);
+          command = expect(in, ClientKeywords.GO, ClientKeywords.CANCEL);
+          System.out.println(command);
 
-        } catch (UnexpectedCommandException | MalformedArgumentsException e) {
+        } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
           //TODO send a warning / shutdown peer
         }
 
         // Server: WAITING
-        sendCommand(ServerCommand.WAITING);
+        sendCommand(ServerKeywords.WAITING);
         add2WaitingMap(peer, dimension);
 
       } while (keepRunning);

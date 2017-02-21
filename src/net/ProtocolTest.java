@@ -15,12 +15,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
-import net.Protocol.ClientCommand;
-import net.Protocol.GeneralCommand;
+import net.Protocol.ClientKeywords;
+import net.Protocol.GeneralKeywords;
+import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
-import net.Protocol.ProtocolCommand;
-import net.Protocol.ServerCommand;
-import net.Protocol.UnexpectedCommandException;
+import net.Protocol.ServerKeywords;
+import net.Protocol.UnexpectedKeywordException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,24 +40,24 @@ class ProtocolTest {
 
   @Test
   void testValidateAndFormatArgList() {
-    ProtocolCommand playerCommand = ClientCommand.PLAYER;
-    ProtocolCommand readyCommand = ServerCommand.READY;
+    Keyword playerKeyword = ClientKeywords.PLAYER;
+    Keyword readyKeyword = ServerKeywords.READY;
 
     // Test bad argument
     assertThrows(
-        MalformedArgumentsException.class, () -> validateAndFormatArgList(playerCommand, badName));
+        MalformedArgumentsException.class, () -> validateAndFormatArgList(playerKeyword, badName));
 
     try {
       // Test one correct argument
-      assertEquals(Collections.singletonList(name), validateAndFormatArgList(playerCommand, name));
+      assertEquals(Collections.singletonList(name), validateAndFormatArgList(playerKeyword, name));
 
       // Test more than one correct argument
       assertEquals(
           Arrays.asList(stone, name, dimensionString),
-          validateAndFormatArgList(readyCommand, stone, name, dimensionString));
+          validateAndFormatArgList(readyKeyword, stone, name, dimensionString));
 
       // Test ignoring of redundant arguments
-      assertEquals(Collections.emptyList(), validateAndFormatArgList(ServerCommand.WAITING));
+      assertEquals(Collections.emptyList(), validateAndFormatArgList(ServerKeywords.WAITING));
 
     } catch (MalformedArgumentsException e) {
       failAllTheThings();
@@ -67,10 +67,10 @@ class ProtocolTest {
   @Test
   void testValidateAndFormatCommandString() {
     try {
-      assertEquals("PLAYER name", validateAndFormatCommandString(ClientCommand.PLAYER, "name"));
+      assertEquals("PLAYER name", validateAndFormatCommandString(ClientKeywords.PLAYER, "name"));
       assertEquals(
           "READY black barrybadpak 9",
-          validateAndFormatCommandString(ServerCommand.READY, "black", "BarryBadpak", "9"));
+          validateAndFormatCommandString(ServerKeywords.READY, "black", "BarryBadpak", "9"));
     } catch (MalformedArgumentsException e) {
       failAllTheThings();
     }
@@ -78,16 +78,16 @@ class ProtocolTest {
         MalformedArgumentsException.class,
         () ->
             validateAndFormatCommandString(
-                ClientCommand.PLAYER,
+                ClientKeywords.PLAYER,
                 "this name contains illegal characters (spaces) and is too long"));
     assertThrows(
         MalformedArgumentsException.class,
-        () -> validateAndFormatCommandString(ServerCommand.READY, "gray", "someName", "19"));
+        () -> validateAndFormatCommandString(ServerKeywords.READY, "gray", "someName", "19"));
 
     // Test without arguments
     try {
-      String theCommand = validateAndFormatCommandString(ServerCommand.WAITING);
-      assertEquals(ServerCommand.WAITING.toString(), theCommand);
+      String theCommand = validateAndFormatCommandString(ServerKeywords.WAITING);
+      assertEquals(ServerKeywords.WAITING.toString(), theCommand);
 
     } catch (MalformedArgumentsException e) {
       failAllTheThings();
@@ -96,147 +96,147 @@ class ProtocolTest {
 
   @Test
   void testExpect() {
-    final ProtocolCommand playerCommand = ClientCommand.PLAYER;
-    final ProtocolCommand readyCommand = ServerCommand.READY;
-    final ProtocolCommand waitingCommand = ServerCommand.WAITING;
+    final Keyword playerKeyword = ClientKeywords.PLAYER;
+    final Keyword readyKeyword = ServerKeywords.READY;
+    final Keyword waitingKeyword = ServerKeywords.WAITING;
 
-    String commandString;
-    List<String> commList;
+    String keywordString;
+    List<String> command;
     try {
       // Test missing argument
-      commandString = playerCommand.toString();
-      scanner = new Scanner(commandString);
-      assertThrows(MalformedArgumentsException.class, () -> expect(scanner, playerCommand));
+      keywordString = playerKeyword.toString();
+      scanner = new Scanner(keywordString);
+      assertThrows(MalformedArgumentsException.class, () -> expect(scanner, playerKeyword));
 
       // Test malformed argument
-      commandString = playerCommand.toString() + SPACE + badName;
-      scanner = new Scanner(commandString);
-      assertThrows(MalformedArgumentsException.class, () -> expect(scanner, playerCommand));
+      keywordString = playerKeyword.toString() + SPACE + badName;
+      scanner = new Scanner(keywordString);
+      assertThrows(MalformedArgumentsException.class, () -> expect(scanner, playerKeyword));
 
       // Test zero arguments
-      commandString = validateAndFormatCommandString(waitingCommand);
-      scanner = new Scanner(commandString);
+      keywordString = validateAndFormatCommandString(waitingKeyword);
+      scanner = new Scanner(keywordString);
       assertEquals(
-          Collections.singletonList(waitingCommand.toString()), expect(scanner, waitingCommand));
+          Collections.singletonList(waitingKeyword.toString()), expect(scanner, waitingKeyword));
 
       // Test ignoring of redundant arguments
-      commandString += SPACE + "we are arguments and we shouldn't be here :')";
-      scanner = new Scanner(commandString);
+      keywordString += SPACE + "we are arguments and we shouldn't be here :')";
+      scanner = new Scanner(keywordString);
       assertEquals(
-          Collections.singletonList(waitingCommand.toString()), expect(scanner, waitingCommand));
+          Collections.singletonList(waitingKeyword.toString()), expect(scanner, waitingKeyword));
 
       // Test one argument
-      commandString = validateAndFormatCommandString(playerCommand, name);
-      scanner = new Scanner(commandString);
-      commList = expect(scanner, playerCommand);
-      assertEquals(Arrays.asList(playerCommand.toString(), name), commList);
-      assertTrue(playerCommand.isValidArgList(commList.subList(1, commList.size())));
+      keywordString = validateAndFormatCommandString(playerKeyword, name);
+      scanner = new Scanner(keywordString);
+      command = expect(scanner, playerKeyword);
+      assertEquals(Arrays.asList(playerKeyword.toString(), name), command);
+      assertTrue(playerKeyword.isValidArgList(command.subList(1, command.size())));
 
       // Test more than one argument
-      commandString = validateAndFormatCommandString(readyCommand, stone, name, dimensionString);
-      scanner = new Scanner(commandString);
-      commList = expect(scanner, readyCommand);
-      assertEquals(Arrays.asList(readyCommand.toString(), stone, name, dimensionString), commList);
-      assertTrue(readyCommand.isValidArgList(commList.subList(1, commList.size())));
+      keywordString = validateAndFormatCommandString(readyKeyword, stone, name, dimensionString);
+      scanner = new Scanner(keywordString);
+      command = expect(scanner, readyKeyword);
+      assertEquals(Arrays.asList(readyKeyword.toString(), stone, name, dimensionString), command);
+      assertTrue(readyKeyword.isValidArgList(command.subList(1, command.size())));
 
       // Test more than one command
-      scanner = new Scanner(commandString);
-      commList = expect(scanner, playerCommand, waitingCommand, readyCommand);
-      assertTrue(readyCommand.isValidArgList(commList.subList(1, commList.size())));
+      scanner = new Scanner(keywordString);
+      command = expect(scanner, playerKeyword, waitingKeyword, readyKeyword);
+      assertTrue(readyKeyword.isValidArgList(command.subList(1, command.size())));
 
-    } catch (MalformedArgumentsException | UnexpectedCommandException e) {
+    } catch (MalformedArgumentsException | UnexpectedKeywordException e) {
       failAllTheThings();
     }
 
-    // Test unexpected command
-    scanner = new Scanner(readyCommand.toString());
+    // Test unexpected keyword
+    scanner = new Scanner(readyKeyword.toString());
     assertThrows(
-        UnexpectedCommandException.class, () -> expect(scanner, waitingCommand, playerCommand));
+        UnexpectedKeywordException.class, () -> expect(scanner, waitingKeyword, playerKeyword));
   }
 
   @Test
   void testPLAYER() {
-    final ProtocolCommand command = ClientCommand.PLAYER;
+    final Keyword keyword = ClientKeywords.PLAYER;
 
     // Test correct arguments
-    assertTrue(command.isValidArgList(Collections.singletonList(name)));
+    assertTrue(keyword.isValidArgList(Collections.singletonList(name)));
 
     // Test malformed argument
-    assertFalse(command.isValidArgList(Collections.singletonList(badName)));
+    assertFalse(keyword.isValidArgList(Collections.singletonList(badName)));
 
     // Test missing argument
-    assertFalse(command.isValidArgList(Collections.emptyList()));
+    assertFalse(keyword.isValidArgList(Collections.emptyList()));
   }
 
   @Test
   void testGO() {
-    final ProtocolCommand command = ClientCommand.GO;
+    final Keyword keyword = ClientKeywords.GO;
 
     // Test correct arguments
-    assertTrue(command.isValidArgList(Collections.singletonList(dimensionString)));
-    assertTrue(command.isValidArgList(Arrays.asList(dimensionString, name)));
+    assertTrue(keyword.isValidArgList(Collections.singletonList(dimensionString)));
+    assertTrue(keyword.isValidArgList(Arrays.asList(dimensionString, name)));
 
     // Test malformed arguments
-    assertFalse(command.isValidArgList(Collections.singletonList(Integer.toString(3))));
-    assertFalse(command.isValidArgList(Collections.singletonList("thisIsNotAnInteger")));
-    assertFalse(command.isValidArgList(Arrays.asList(dimensionString, badName)));
+    assertFalse(keyword.isValidArgList(Collections.singletonList(Integer.toString(3))));
+    assertFalse(keyword.isValidArgList(Collections.singletonList("thisIsNotAnInteger")));
+    assertFalse(keyword.isValidArgList(Arrays.asList(dimensionString, badName)));
 
     // Test missing argument
-    assertFalse(command.isValidArgList(Collections.emptyList()));
+    assertFalse(keyword.isValidArgList(Collections.emptyList()));
   }
 
   @Test
   void testWAITING() {
-    final ProtocolCommand command = ServerCommand.WAITING;
+    final Keyword keyword = ServerKeywords.WAITING;
 
     // Test correct arguments
-    assertTrue(command.isValidArgList(Collections.emptyList()));
+    assertTrue(keyword.isValidArgList(Collections.emptyList()));
 
     // Test any arguments, which should be ignored
-    assertTrue(command.isValidArgList(Arrays.asList("a", "bc", "def")));
+    assertTrue(keyword.isValidArgList(Arrays.asList("a", "bc", "def")));
   }
 
   @Test
   void testCANCEL() {
-    final ProtocolCommand command = ClientCommand.CANCEL;
+    final Keyword keyword = ClientKeywords.CANCEL;
 
     // Test correct arguments
-    assertTrue(command.isValidArgList(Collections.emptyList()));
+    assertTrue(keyword.isValidArgList(Collections.emptyList()));
 
     // Test any arguments, which should be ignored
-    assertTrue(command.isValidArgList(Arrays.asList("a", "bc", "def")));
+    assertTrue(keyword.isValidArgList(Arrays.asList("a", "bc", "def")));
   }
 
   @Test
   void testREADY() {
-    final ProtocolCommand command = ServerCommand.READY;
+    final Keyword keyword = ServerKeywords.READY;
 
     // Test correct arguments
-    assertTrue(command.isValidArgList(Arrays.asList(stone, name, dimensionString)));
+    assertTrue(keyword.isValidArgList(Arrays.asList(stone, name, dimensionString)));
 
     // Test malformed argument
-    assertFalse(command.isValidArgList(Arrays.asList(stone, badName, dimensionString)));
-    assertFalse(command.isValidArgList(Arrays.asList(stone, name, "notANumber")));
+    assertFalse(keyword.isValidArgList(Arrays.asList(stone, badName, dimensionString)));
+    assertFalse(keyword.isValidArgList(Arrays.asList(stone, name, "notANumber")));
 
     // Test missing arguments
-    assertFalse(command.isValidArgList(Collections.emptyList()));
-    assertFalse(command.isValidArgList(Collections.singletonList(stone)));
+    assertFalse(keyword.isValidArgList(Collections.emptyList()));
+    assertFalse(keyword.isValidArgList(Collections.singletonList(stone)));
   }
 
   @Test
   void testCHAT() {
-    final ProtocolCommand command = GeneralCommand.CHAT;
+    final Keyword keyword = GeneralKeywords.CHAT;
 
     // Test one argument
-    assertTrue(command.isValidArgList(Collections.singletonList("hi!")));
+    assertTrue(keyword.isValidArgList(Collections.singletonList("hi!")));
 
     // Test missing argument
-    assertFalse(command.isValidArgList(Collections.emptyList()));
+    assertFalse(keyword.isValidArgList(Collections.emptyList()));
 
     // Test any number of arguments
-    assertTrue(command.isValidArgList(Arrays.asList("Hello,", "World!")));
+    assertTrue(keyword.isValidArgList(Arrays.asList("Hello,", "World!")));
     assertTrue(
-        command.isValidArgList(
+        keyword.isValidArgList(
             Collections.nCopies((int) (Math.random() * (Integer.MAX_VALUE - 1)) + 1, "chat?")));
   }
 

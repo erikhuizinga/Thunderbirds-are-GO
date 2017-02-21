@@ -1,10 +1,10 @@
 package net;
 
-import static net.Protocol.ClientCommand.CANCEL;
-import static net.Protocol.ClientCommand.GO;
-import static net.Protocol.ClientCommand.PLAYER;
-import static net.Protocol.ServerCommand.READY;
-import static net.Protocol.ServerCommand.WAITING;
+import static net.Protocol.ClientKeywords.CANCEL;
+import static net.Protocol.ClientKeywords.GO;
+import static net.Protocol.ClientKeywords.PLAYER;
+import static net.Protocol.ServerKeywords.READY;
+import static net.Protocol.ServerKeywords.WAITING;
 import static net.Protocol.expect;
 
 import java.io.IOException;
@@ -12,9 +12,9 @@ import java.net.Socket;
 import java.util.List;
 import java.util.Observable;
 import java.util.Scanner;
+import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
-import net.Protocol.ProtocolCommand;
-import net.Protocol.UnexpectedCommandException;
+import net.Protocol.UnexpectedKeywordException;
 import util.Strings;
 
 /** Created by erik.huizinga on 2-2-17. */
@@ -109,7 +109,7 @@ public class Client extends Observable {
     try {
       command = expect(in, WAITING, READY);
 
-    } catch (UnexpectedCommandException | MalformedArgumentsException e) {
+    } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
       e.printStackTrace();
     }
   }
@@ -127,10 +127,10 @@ public class Client extends Observable {
     sendCommand(GO, Integer.toString(dimension));
   }
 
-  private void sendCommand(ProtocolCommand protocolCommand, String... keys) {
+  private void sendCommand(Keyword keyword, String... keys) {
     setChanged();
     try {
-      notifyObservers(Protocol.validateAndFormatCommandString(protocolCommand, keys));
+      notifyObservers(Protocol.validateAndFormatCommandString(keyword, keys));
     } catch (MalformedArgumentsException e) {
       e.printStackTrace();
       stopClient();
