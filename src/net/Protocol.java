@@ -38,7 +38,12 @@ public interface Protocol {
     List<String> argList = new LinkedList<>();
     Collections.addAll(
         argList, Arrays.stream(args).map(String::toLowerCase).toArray(String[]::new));
-    argList = argList.subList(0, protocolCommand.maxArgs());
+
+    // Get up to the maximum number of allowed arguments from the specified list of arguments
+    int toIndex = Math.min(protocolCommand.maxArgs(), argList.size());
+    argList = argList.subList(0, toIndex);
+
+    // Return if valid; throw an exception otherwise
     if (protocolCommand.isValidArgList(argList)) {
       return argList;
     }
@@ -101,6 +106,8 @@ public interface Protocol {
    * @return the {@code List<String>} of the protocol command and arguments. The list contains only
    *     the command (size equals one) if there are no arguments.
    * @throws UnexpectedCommandException if the the incoming command is not expected.
+   * @throws MalformedArgumentsException if the incoming arguments are invalid for the expected
+   *     command.
    */
   static List<String> expect(Scanner scanner, ProtocolCommand... expectedCommands)
       throws UnexpectedCommandException, MalformedArgumentsException {
