@@ -1,6 +1,8 @@
 package net;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.util.Observable;
@@ -23,7 +25,7 @@ public class Peer implements Runnable, Observer {
     Scanner scanner = null;
     PrintStream printStream = null;
     try {
-      scanner = new Scanner(socket.getInputStream());
+      scanner = new Scanner(new BufferedReader(new InputStreamReader(socket.getInputStream())));
       printStream = new PrintStream(socket.getOutputStream(), true);
     } catch (IOException e) {
       e.printStackTrace();
@@ -48,9 +50,7 @@ public class Peer implements Runnable, Observer {
     }
   }
 
-  public void shutDown() {
-    in.close();
-    out.close();
+  void shutDown() {
     try {
       socket.close();
     } catch (IOException e) {
@@ -62,7 +62,7 @@ public class Peer implements Runnable, Observer {
     System.out.println(string);
   }
 
-  public void startPeer() {
+  void startPeer() {
     new Thread(this).start();
   }
 
