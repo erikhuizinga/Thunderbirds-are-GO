@@ -662,11 +662,8 @@ public class TUI implements Observer {
   }
 
   /** An adapter to allow pointers to functions. */
+  @FunctionalInterface
   private interface MenuAction {
     void go();
-  }
-
-  private interface MenuGetter extends MenuAction {
-    Object get();
   }
 }
