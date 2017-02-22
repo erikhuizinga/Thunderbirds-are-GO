@@ -45,6 +45,10 @@ public class Peer implements Runnable {
     String line;
     while (keepRunning && scanner.hasNextLine() && (line = scanner.nextLine()) != null) {
       println(line);
+      try {
+        Thread.sleep(1);
+      } catch (InterruptedException ignored) {
+      }
     }
   }
 
