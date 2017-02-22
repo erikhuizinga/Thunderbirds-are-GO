@@ -156,7 +156,7 @@ public interface Protocol {
   }
 
   /** The {@code Protocol} keywords. */
-  enum Keyword {
+  enum Keyword implements Executable {
     // General
     CHAT,
 
@@ -168,6 +168,12 @@ public interface Protocol {
     PLAYER,
     GO,
     CANCEL;
+
+    private Executable action = () -> System.err.println("set me with setAction");
+
+    public void setAction(Executable action) {
+      this.action = action;
+    }
 
     /**
      * Check if the specified {@code List<String>} of arguments is valid for the {@code Keyword}.
@@ -284,11 +290,20 @@ public interface Protocol {
     boolean isValidateArgListSize(List argList) {
       return argList.size() >= minArgs() && argList.size() <= maxArgs();
     }
+
+    @Override
+    public void execute() {
+      action.execute();
+    }
   }
 
-  /**
-   * The {@code Exception} thrown for malformed arguments of a keyword.
-   */
+  @FunctionalInterface
+  interface Executable {
+    /** Execute this {@code Executable}. */
+    void execute();
+  }
+
+  /** The {@code Exception} thrown for malformed arguments of a keyword. */
   class MalformedArgumentsException extends Exception {}
 
   /** The {@code Exception} for an unexpected keyword. */
