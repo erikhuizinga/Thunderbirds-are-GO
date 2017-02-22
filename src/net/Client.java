@@ -10,7 +10,6 @@ import static net.Protocol.expect;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.List;
-import java.util.Observable;
 import java.util.Scanner;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
@@ -18,7 +17,7 @@ import net.Protocol.UnexpectedKeywordException;
 import util.Strings;
 
 /** Created by erik.huizinga on 2-2-17. */
-public class Client extends Observable {
+public class Client {
 
   public static final String USAGE =
       "usage: java " + Client.class.getName() + " <name> <address> <port>";
@@ -75,7 +74,6 @@ public class Client extends Observable {
   }
 
   private void startClient() {
-    addObserver(peer);
     peer.startPeer();
     play();
   }

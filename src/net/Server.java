@@ -17,7 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Observable;
 import java.util.Scanner;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
@@ -152,7 +151,7 @@ public class Server {
     }
   }
 
-  private class ClientHandler extends Observable implements Runnable {
+  private class ClientHandler implements Runnable {
 
     private final Peer peer;
     private Scanner in;

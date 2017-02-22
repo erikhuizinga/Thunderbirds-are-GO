@@ -5,12 +5,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.Scanner;
 
 /** Created by erik.huizinga on 2-2-17. */
-public class Peer implements Runnable, Observer {
+public class Peer implements Runnable {
 
   // private final Socket socket;
   private final Socket socket;
@@ -66,10 +64,7 @@ public class Peer implements Runnable, Observer {
     new Thread(this).start();
   }
 
-  @Override
-  public void update(Observable o, Object arg) {
-    if (o instanceof Client && arg instanceof String) {
-      out.println((String) arg);
-    }
+  void send(String command) {
+    out.println(command);
   }
 }
