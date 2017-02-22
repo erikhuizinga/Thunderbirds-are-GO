@@ -6,6 +6,7 @@ import static net.Protocol.Keyword.GO;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.READY;
 import static net.Protocol.Keyword.WAITING;
+import static net.Protocol.Keyword.WARNING;
 import static net.Protocol.SPACE;
 import static net.Protocol.expect;
 import static net.Protocol.isValidDimension;
@@ -229,6 +230,21 @@ class ProtocolTest {
     assertTrue(
         CHAT.isValidArgList(
             Collections.nCopies((int) (Math.random() * (Integer.MAX_VALUE - 1)) + 1, "chat?")));
+  }
+
+  @Test
+  void testWARNING() {
+    // Test one argument
+    assertTrue(WARNING.isValidArgList(Collections.singletonList("¡Hola!")));
+
+    // Test missing argument
+    assertFalse(WARNING.isValidArgList(Collections.emptyList()));
+
+    // Test any number of arguments
+    assertTrue(WARNING.isValidArgList(Arrays.asList("Hello,", "World!")));
+    assertTrue(
+        WARNING.isValidArgList(
+            Collections.nCopies((int) (Math.random() * (Integer.MAX_VALUE - 1)) + 1, "warn?")));
   }
 
   @Test
