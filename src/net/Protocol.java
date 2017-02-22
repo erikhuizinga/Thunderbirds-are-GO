@@ -169,10 +169,14 @@ public interface Protocol {
     GO,
     CANCEL;
 
-    private Executable action = () -> System.err.println("set me with setAction");
+    private Executable executable =
+        () -> {
+          System.err.println("set executable with setExecutable");
+          throw new ExecutableNotSetException();
+        };
 
-    public void setAction(Executable action) {
-      this.action = action;
+    public void setExecutable(Executable executable) {
+      this.executable = executable;
     }
 
     /**
@@ -292,15 +296,16 @@ public interface Protocol {
     }
 
     @Override
-    public void execute() {
-      action.execute();
+    public void execute() throws ExecutableNotSetException {
+      executable.execute();
     }
   }
 
   @FunctionalInterface
   interface Executable {
-    /** Execute this {@code Executable}. */
-    void execute();
+    void execute() throws ExecutableNotSetException;
+
+    class ExecutableNotSetException extends Exception {}
   }
 
   /** The {@code Exception} thrown for malformed arguments of a keyword. */

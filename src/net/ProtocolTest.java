@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import net.Protocol.Executable.ExecutableNotSetException;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
 import org.junit.jupiter.api.AfterEach;
@@ -226,6 +227,11 @@ class ProtocolTest {
     assertFalse(isValidDimension(6));
     assertFalse(isValidDimension(133));
     assertFalse(isValidDimension(3));
+  }
+
+  @Test
+  void testExecutableKeywords() {
+    assertThrows(ExecutableNotSetException.class, CHAT::execute);
   }
 
   @AfterEach
