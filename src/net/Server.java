@@ -1,5 +1,10 @@
 package net;
 
+import static net.Protocol.Keyword.CANCEL;
+import static net.Protocol.Keyword.CHAT;
+import static net.Protocol.Keyword.GO;
+import static net.Protocol.Keyword.PLAYER;
+import static net.Protocol.Keyword.WAITING;
 import static net.Protocol.expect;
 
 import java.io.IOException;
@@ -14,11 +19,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Scanner;
-import net.Protocol.ClientKeywords;
-import net.Protocol.GeneralKeywords;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
-import net.Protocol.ServerKeywords;
 import net.Protocol.UnexpectedKeywordException;
 
 /** Created by erik.huizinga on 2-2-17. */
@@ -184,7 +186,7 @@ public class Server {
         List<String> command;
         // Client: PLAYER name
         try {
-          command = expect(in, ClientKeywords.PLAYER, GeneralKeywords.CHAT);
+          command = expect(in, PLAYER, CHAT);
           System.out.println(command);
 
         } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
@@ -194,7 +196,7 @@ public class Server {
         // Client: GO dimension
         int dimension = 0;
         try {
-          command = expect(in, ClientKeywords.GO, ClientKeywords.CANCEL);
+          command = expect(in, GO, CANCEL);
           System.out.println(command);
 
         } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
@@ -202,7 +204,7 @@ public class Server {
         }
 
         // Server: WAITING
-        sendCommand(ServerKeywords.WAITING);
+        sendCommand(WAITING);
         add2WaitingMap(peer, dimension);
 
       } while (keepRunning);

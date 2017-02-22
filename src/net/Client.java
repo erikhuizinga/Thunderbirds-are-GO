@@ -1,10 +1,10 @@
 package net;
 
-import static net.Protocol.ClientKeywords.CANCEL;
-import static net.Protocol.ClientKeywords.GO;
-import static net.Protocol.ClientKeywords.PLAYER;
-import static net.Protocol.ServerKeywords.READY;
-import static net.Protocol.ServerKeywords.WAITING;
+import static net.Protocol.Keyword.CANCEL;
+import static net.Protocol.Keyword.GO;
+import static net.Protocol.Keyword.PLAYER;
+import static net.Protocol.Keyword.READY;
+import static net.Protocol.Keyword.WAITING;
 import static net.Protocol.expect;
 
 import java.io.IOException;

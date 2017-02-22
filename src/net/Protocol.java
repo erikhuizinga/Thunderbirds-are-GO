@@ -3,10 +3,12 @@ package net;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.Set;
 
 /** Created by erik.huizinga on 2-2-17. */
 public interface Protocol {
@@ -22,6 +24,15 @@ public interface Protocol {
   //                  Arrays.stream(ServerKeywords.values()).map(Enum::name)),
   //              Arrays.stream(ClientKeywords.values()).map(Enum::name))
   //          .collect(Collectors.toList());
+
+  /** The general protocol keywords for {@code Client}-{@code Server} communication. */
+  Set<Keyword> GENERAL_KEYWORDS = EnumSet.of(Keyword.CHAT);
+
+  /** The {@code Client} protocol keywords. */
+  Set<Keyword> CLIENT_KEYWORDS = EnumSet.of(Keyword.PLAYER, Keyword.GO, Keyword.CANCEL);
+
+  /** The {@code Server} protocol keywords. */
+  Set<Keyword> SERVER_KEYWORDS = EnumSet.of(Keyword.WAITING, Keyword.READY);
 
   /**
    * Validate the specified {@code String} arguments for the specified {@code Keyword} and format
@@ -96,8 +107,8 @@ public interface Protocol {
   }
 
   /**
-   * Get the {@code List<String>} command of the expected specified {@code Keyword} with arguments
-   * on the specified {@code Scanner}.
+   * Get the {@code List<String>} command of the expected specified {@code Keyword} on the specified
+   * {@code Scanner}.
    *
    * @param scanner the {@code Scanner}.
    * @param expectedKeywords one {@code Keyword} or more.
@@ -144,21 +155,67 @@ public interface Protocol {
     throw new UnexpectedKeywordException();
   }
 
-  /** The {@code Client} protocol keywords. */
-  enum ClientKeywords implements Keyword {
+  /** The {@code Protocol} keywords. */
+  enum Keyword {
+    // General
+    CHAT,
+
+    // Server
+    WAITING,
+    READY,
+
+    // Client
     PLAYER,
     GO,
     CANCEL;
 
-    @Override
-    public boolean isValidArgList(List<String> argList) {
+    /**
+     * Check if the specified {@code List<String>} of arguments is valid for the {@code Keyword}.
+     *
+     * @param argList the {@code List<String>} of arguments.
+     * @return {@code true} if valid; {@code false} otherwise.
+     */
+    boolean isValidArgList(List<String> argList) {
       switch (this) {
+        case CHAT:
+          /*
+          CHAT string...
+          string...: any number of arguments, treated as a string
+           */
+          return isValidateArgListSize(argList);
+
+        case WAITING:
+          /*
+          WAITING
+          No arguments, ignore any
+           */
+          return true;
+
+        case READY:
+          /*
+          READY thisColour opponentName dimension
+          thisColour: this player's colour
+          opponentName: opponent player's name
+          dimension: board dimension, see keyword GO
+           */
+          if (isValidateArgListSize(argList)) {
+            int dimension;
+            try {
+              dimension = Integer.parseInt(argList.get(2));
+            } catch (NumberFormatException e) {
+              return false;
+            }
+            return (argList.get(0).equals(BLACK) || argList.get(0).equals(WHITE))
+                && Keyword.PLAYER.isValidArgList(argList.subList(1, 2))
+                && isValidDimension(dimension);
+          }
+
         case PLAYER:
           /*
           PLAYER name
           name: 1-20 word characters without spaces
            */
-          return checkArgListSize(argList)
+          return isValidateArgListSize(argList)
               && argList.get(0) != null
               && argList.get(0).matches("^\\w{1,20}$");
 
@@ -167,9 +224,9 @@ public interface Protocol {
           GO dimension
           dimension: String of int where 5 <= dimension <= 131 && dimension % 2 == 1
            */
-          if (checkArgListSize(argList)) {
+          if (isValidateArgListSize(argList)) {
             if (argList.size() == maxArgs()
-                && !ClientKeywords.PLAYER.isValidArgList(argList.subList(1, 2))) {
+                && !Keyword.PLAYER.isValidArgList(argList.subList(1, 2))) {
               return false;
             }
             try {
@@ -195,9 +252,11 @@ public interface Protocol {
       }
     }
 
-    @Override
-    public int minArgs() {
+    /** @return the minimum number of arguments for the {@code Keyword}. */
+    int minArgs() {
       switch (this) {
+        case CHAT:
+          return 1;
         case GO:
           return 1;
         default:
@@ -205,146 +264,30 @@ public interface Protocol {
       }
     }
 
-    @Override
-    public int maxArgs() {
+    /** @return the maximum number of arguments for the {@code Keyword}. */
+    int maxArgs() {
       switch (this) {
+        case CHAT:
+          return Integer.MAX_VALUE; // Probably not a good idea, but you get the idea...
+        case READY:
+          return 3;
         case PLAYER:
           return 1;
         case GO:
           return 2;
         default:
-          return Keyword.super.maxArgs();
-      }
-    }
-  }
-
-  /** The {@code Server} protocol keywords. */
-  enum ServerKeywords implements Keyword {
-    WAITING,
-    READY;
-
-    @Override
-    public boolean isValidArgList(List<String> argList) {
-      switch (this) {
-        case WAITING:
-          /*
-          WAITING
-          No arguments, ignore any
-           */
-          return true;
-
-        case READY:
-          /*
-          READY thisColour opponentName dimension
-          thisColour: this player's colour
-          opponentName: opponent player's name
-          dimension: board dimension, see keyword GO
-           */
-          if (checkArgListSize(argList)) {
-            int dimension;
-            try {
-              dimension = Integer.parseInt(argList.get(2));
-            } catch (NumberFormatException e) {
-              return false;
-            }
-            return (argList.get(0).equals(BLACK) || argList.get(0).equals(WHITE))
-                && ClientKeywords.PLAYER.isValidArgList(argList.subList(1, 2))
-                && isValidDimension(dimension);
-          }
-
-        default:
-          return false;
+          return 0;
       }
     }
 
-    @Override
-    public int minArgs() {
-      switch (this) {
-        default:
-          return maxArgs();
-      }
-    }
-
-    @Override
-    public int maxArgs() {
-      switch (this) {
-        case READY:
-          return 3;
-        default:
-          return Keyword.super.maxArgs();
-      }
-    }
-  }
-
-  /** The general protocol keywords for {@code Client}-{@code Server} communication. */
-  enum GeneralKeywords implements Keyword {
-    CHAT;
-
-    @Override
-    public boolean isValidArgList(List<String> argList) {
-      switch (this) {
-        case CHAT:
-          /*
-          CHAT string...
-          string...: any number of arguments, treated as a string
-           */
-          return checkArgListSize(argList);
-
-        default:
-          return false;
-      }
-    }
-
-    @Override
-    public int minArgs() {
-      switch (this) {
-        case CHAT:
-          return 1;
-        default:
-          return Keyword.super.minArgs();
-      }
-    }
-
-    @Override
-    public int maxArgs() {
-      switch (this) {
-        case CHAT:
-          return Integer.MAX_VALUE;
-        default:
-          return Keyword.super.maxArgs();
-      }
-    }
-  }
-
-  /** The interface for every type of {@code Keyword}. */
-  interface Keyword {
-
-    /**
-     * Check if the specified {@code List<String>} of arguments is valid for the {@code Keyword}.
-     *
-     * @param argList the {@code List<String>} of arguments.
-     * @return {@code true} if valid; {@code false} otherwise.
-     */
-    boolean isValidArgList(List<String> argList);
-
-    /** @return the minimum number of arguments for the {@code Keyword}. */
-    default int minArgs() {
-      return 0;
-    }
-
-    /** @return the maximum number of arguments for the {@code Keyword}. */
-    default int maxArgs() {
-      return 0;
-    }
-
-    default boolean checkArgListSize(List argList) {
+    /** @return {@code true} if the specified list of arguments has a valid size. */
+    boolean isValidateArgListSize(List argList) {
       return argList.size() >= minArgs() && argList.size() <= maxArgs();
     }
   }
 
   /**
-   * The {@code Exception} for arguments of a protocol keyword that is malformed according to the
-   * protocol.
+   * The {@code Exception} thrown for malformed arguments of a keyword.
    */
   class MalformedArgumentsException extends Exception {}
 
