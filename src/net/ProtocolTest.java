@@ -230,12 +230,30 @@ class ProtocolTest {
   }
 
   @Test
+  void testKeywordSetArgList() {
+    try {
+      CHAT.setArgList(Collections.singletonList("OK"));
+      CHAT.setArgList(Arrays.asList("OK", "as", "well"));
+    } catch (MalformedArgumentsException e) {
+      failAllTheThings();
+    }
+    assertThrows(MalformedArgumentsException.class, () -> CHAT.setArgList(Collections.emptyList()));
+  }
+
+  @Test
   void testExecutableKeywords() {
     assertThrows(ExecutableNotSetException.class, CHAT::execute);
-    CHAT.setExecutable((list) -> {});
     try {
+      CHAT.setExecutable(list -> {});
       CHAT.execute();
-    } catch (ExecutableNotSetException e) {
+
+      CHAT.setExecutable(System.out::println);
+      CHAT.execute(Collections.singletonList("Hello!"));
+
+      CHAT.setArgList(Arrays.asList("¡Hola,", "Mundo!"));
+      CHAT.execute();
+
+    } catch (ExecutableNotSetException | MalformedArgumentsException e) {
       failAllTheThings();
     }
   }
