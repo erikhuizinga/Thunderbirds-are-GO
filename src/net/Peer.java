@@ -10,13 +10,13 @@ import java.util.Scanner;
 /** Created by erik.huizinga on 2-2-17. */
 public class Peer implements Runnable {
 
-  // private final Socket socket;
   private final Socket socket;
-  private final Scanner in;
+  private final Scanner scanner;
   private final PrintStream out;
+  private final Thread thread = new Thread(this);
+  private boolean keepRunning;
 
   public Peer(Socket socket) {
-    // this.socket = socket;
     this.socket = socket;
 
     // Set I/O
@@ -28,12 +28,12 @@ public class Peer implements Runnable {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    in = scanner;
+    this.scanner = scanner;
     out = printStream;
   }
 
-  public Scanner getIn() {
-    return in;
+  public Scanner getScanner() {
+    return scanner;
   }
 
   public Socket getSocket() {
@@ -43,13 +43,14 @@ public class Peer implements Runnable {
   @Override
   public void run() {
     String line;
-    while (in.hasNextLine() && (line = in.nextLine()) != null) {
+    while (keepRunning && scanner.hasNextLine() && (line = scanner.nextLine()) != null) {
       println(line);
     }
   }
 
   void shutDown() {
     try {
+      keepRunning = false;
       socket.close();
     } catch (IOException e) {
       e.printStackTrace();
@@ -61,7 +62,8 @@ public class Peer implements Runnable {
   }
 
   void startPeer() {
-    new Thread(this).start();
+    keepRunning = true;
+    thread.start();
   }
 
   void send(String command) {

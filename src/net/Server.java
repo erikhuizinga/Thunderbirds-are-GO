@@ -5,7 +5,6 @@ import static net.Protocol.Keyword.CHAT;
 import static net.Protocol.Keyword.GO;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.WAITING;
-import static net.Protocol.expect;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -160,18 +159,20 @@ public class Server {
 
     public ClientHandler(Peer peer) {
       this.peer = peer;
-      in = peer.getIn();
-      addObserver(peer);
+      in = peer.getScanner();
     }
 
-    private void sendCommand(Keyword keyword, String... keys) {
-      setChanged();
-      try {
-        notifyObservers(Protocol.validateAndFormatCommandString(keyword, keys));
-      } catch (MalformedArgumentsException e) {
-        e.printStackTrace();
-        stopClientHandler();
-      }
+    private List<String> expect(Keyword... keywords)
+        throws UnexpectedKeywordException, MalformedArgumentsException {
+      return Protocol.expect(in, keywords);
+    }
+
+    private void send(Keyword keyword, String... arguments) throws MalformedArgumentsException {
+      send(Protocol.validateAndFormatCommandString(keyword, arguments));
+    }
+
+    private void send(String command) {
+      peer.send(command);
     }
 
     private void stopClientHandler() {
@@ -185,7 +186,7 @@ public class Server {
         List<String> command;
         // Client: PLAYER name
         try {
-          command = expect(in, PLAYER, CHAT);
+          command = expect(PLAYER, CHAT);
           System.out.println(command);
 
         } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
@@ -195,7 +196,7 @@ public class Server {
         // Client: GO dimension
         int dimension = 0;
         try {
-          command = expect(in, GO, CANCEL);
+          command = expect(GO, CANCEL);
           System.out.println(command);
 
         } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
@@ -203,7 +204,13 @@ public class Server {
         }
 
         // Server: WAITING
-        sendCommand(WAITING);
+        try {
+          send(WAITING);
+        } catch (MalformedArgumentsException e) {
+          e.printStackTrace();
+          stopClientHandler();
+          return;
+        }
         add2WaitingMap(peer, dimension);
 
       } while (keepRunning);

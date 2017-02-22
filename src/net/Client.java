@@ -37,7 +37,7 @@ public class Client {
       e.printStackTrace();
     }
     peer = new Peer(socket);
-    in = peer.getIn();
+    in = peer.getScanner();
   }
 
   public static void main(String[] args) {
@@ -74,17 +74,39 @@ public class Client {
   }
 
   private void startClient() {
+    // Start peer thread and play
     peer.startPeer();
-    play();
+    try {
+      play();
+    } catch (MalformedArgumentsException | UnexpectedKeywordException e) {
+      e.printStackTrace(); //TODO delete me
+      try {
+        cancel();
+      } catch (CancelException ignored) {
+      }
+      return;
+    } catch (CancelException e) {
+      return;
+    }
   }
 
-  private void play() {
-    String input = null;
-    announcePlayer();
-
+  private void play()
+      throws MalformedArgumentsException, UnexpectedKeywordException, CancelException {
     System.out.println(
         "While not in game, type CANCEL to cancel the previous request to play a game.");
 
+    // Announce player
+    announcePlayer();
+
+    // Announce board dimension
+    announceBoardDimension(getBoardDimension());
+
+    List<String> command;
+    command = expect(in, WAITING, READY);
+  }
+
+  private int getBoardDimension() throws CancelException {
+    String input;
     int dimension = 0;
     System.out.print("On what board dimension do you want to play? ");
     do {
@@ -92,50 +114,43 @@ public class Client {
         input = Strings.readLine("Please enter an odd number between 5 and 131: ");
         if (input.toUpperCase().trim().equals("CANCEL")) {
           cancel();
-          return;
         }
-
         dimension = Integer.parseInt(input);
       } catch (NumberFormatException e) {
         System.err.println("Unable to parse number from input, please try again.");
       }
       //TODO support specifying opponent name
     } while (!Protocol.isValidDimension(dimension));
-    announceBoardDimension(dimension);
+    return dimension;
+  }
 
-    List<String> command;
+  private void announcePlayer() throws MalformedArgumentsException {
+    send(PLAYER, name);
+  }
+
+  private void cancel() throws CancelException {
     try {
-      command = expect(in, WAITING, READY);
-
-    } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
-      e.printStackTrace();
+      send(CANCEL);
+    } catch (MalformedArgumentsException ignored) {
     }
+    throw new CancelException();
   }
 
-  private void announcePlayer() {
-    sendCommand(PLAYER, name);
+  private void announceBoardDimension(int dimension) throws MalformedArgumentsException {
+    send(GO, Integer.toString(dimension));
   }
 
-  private void cancel() {
-    sendCommand(CANCEL);
-    stopClient();
+  private void send(Keyword keyword, String... arguments) throws MalformedArgumentsException {
+    send(Protocol.validateAndFormatCommandString(keyword, arguments));
   }
 
-  private void announceBoardDimension(int dimension) {
-    sendCommand(GO, Integer.toString(dimension));
-  }
-
-  private void sendCommand(Keyword keyword, String... keys) {
-    setChanged();
-    try {
-      notifyObservers(Protocol.validateAndFormatCommandString(keyword, keys));
-    } catch (MalformedArgumentsException e) {
-      e.printStackTrace();
-      stopClient();
-    }
+  private void send(String command) {
+    peer.send(command);
   }
 
   private void stopClient() {
     peer.shutDown();
   }
+
+  private class CancelException extends Exception {}
 }
