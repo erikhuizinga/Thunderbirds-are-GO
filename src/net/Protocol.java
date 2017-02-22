@@ -169,10 +169,19 @@ public interface Protocol {
     GO,
     CANCEL;
 
+    private List<String> argList = Collections.emptyList();
+
     private Executable executable =
-        () -> {
+        (argList) -> {
           throw new ExecutableNotSetException("set " + this + " executable with setExecutable");
         };
+
+    public void setArgList(List<String> argList) throws MalformedArgumentsException {
+      if (!isValidArgList(argList)) {
+        throw new MalformedArgumentsException();
+      }
+      this.argList = argList;
+    }
 
     public void setExecutable(Executable executable) {
       this.executable = executable;
@@ -295,14 +304,18 @@ public interface Protocol {
     }
 
     @Override
+    public void execute(List<String> argList) throws ExecutableNotSetException {
+      executable.execute(argList);
+    }
+
     public void execute() throws ExecutableNotSetException {
-      executable.execute();
+      execute(argList);
     }
   }
 
   @FunctionalInterface
   interface Executable {
-    void execute() throws ExecutableNotSetException;
+    void execute(List<String> argList) throws ExecutableNotSetException;
 
     class ExecutableNotSetException extends Exception {
       ExecutableNotSetException(String message) {
