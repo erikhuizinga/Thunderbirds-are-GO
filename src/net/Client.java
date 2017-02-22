@@ -1,14 +1,18 @@
 package net;
 
 import static net.Protocol.Keyword.CANCEL;
+import static net.Protocol.Keyword.CHAT;
 import static net.Protocol.Keyword.GO;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.READY;
 import static net.Protocol.Keyword.WAITING;
-import static net.Protocol.expect;
+import static net.Protocol.Keyword.WARNING;
+import static net.Protocol.SPACE;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
@@ -24,6 +28,7 @@ public class Client {
   private final String name;
   private final Peer peer;
   private final Scanner in;
+  private boolean ready = false;
 
   public Client(String name, String address, int port) {
     this.name = name;
@@ -89,38 +94,78 @@ public class Client {
     }
   }
 
+  private Keyword expect(Keyword... keywords)
+      throws UnexpectedKeywordException, MalformedArgumentsException {
+    //TODO now that's some fugly use of arrays!
+    List<Keyword> keywordList = Arrays.asList(keywords);
+    WARNING.setExecutable(System.out::println);
+    CHAT.setExecutable(Protocol::chatPrinter);
+    keywordList.add(WARNING);
+    keywordList.add(CHAT);
+    keywords = keywordList.toArray(new Keyword[] {});
+    return Protocol.expect(in, keywords);
+  }
+
   private void play()
       throws MalformedArgumentsException, UnexpectedKeywordException, CancelException {
     System.out.println(
-        "While not in game, type CANCEL to cancel the previous request to play a game.");
+        "While not in game, type:\n"
+            + "  CANCEL to cancel the current request to play a game.\n"
+            + "  CHAT with a chat message to chat with anybody on the server.\n");
 
-    // Announce player
+    WAITING.setExecutable(Protocol::doNothing);
+    READY.setExecutable(this::startGame);
+
+    // Client: PLAYER name
     announcePlayer();
 
-    // Announce board dimension
+    // Client: GO dimension [opponentName]
     announceBoardDimension(getBoardDimension());
 
-    Keyword keyword;
-    keyword = expect(in, WAITING, READY);
+    // Wait for ready signal to play a game
+    do {
+      expect(WAITING, CHAT, READY).execute();
+    } while (!ready);
+  }
+
+  private void startGame(List<String> argList) {
+    ready = true;
   }
 
   private int getBoardDimension() throws CancelException {
     String input;
     int dimension = 0;
-    System.out.print("On what board dimension do you want to play? ");
+    System.out.println("On what board dimension do you want to play?");
     do {
+      input = Strings.readLine("Please enter an odd number between 5 and 131: ");
+      String[] inputWords = input.trim().split(SPACE);
+      inputWords[0] = inputWords[0].toUpperCase();
       try {
-        input = Strings.readLine("Please enter an odd number between 5 and 131: ");
-        if (input.toUpperCase().trim().equals("CANCEL")) {
-          cancel();
-        }
         dimension = Integer.parseInt(input);
       } catch (NumberFormatException e) {
-        System.err.println("Unable to parse number from input, please try again.");
+        switch (Keyword.valueOf(inputWords[0])) {
+          case CANCEL:
+            cancel();
+            break;
+
+          case CHAT:
+            chat(Arrays.copyOfRange(inputWords, 1, inputWords.length));
+            break;
+        }
+      } catch (IllegalArgumentException e) {
+        System.err.println("Unable to parse number or command from input, please try again.");
       }
       //TODO support specifying opponent name
     } while (!Protocol.isValidDimension(dimension));
     return dimension;
+  }
+
+  private void chat(String[] words) {
+    try {
+      send(CHAT, words);
+    } catch (MalformedArgumentsException e) {
+      System.err.println("CHAT arguments malformed");
+    }
   }
 
   private void announcePlayer() throws MalformedArgumentsException {
