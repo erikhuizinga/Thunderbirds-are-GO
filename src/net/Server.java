@@ -5,6 +5,7 @@ import static net.Protocol.Keyword.CHAT;
 import static net.Protocol.Keyword.GO;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.WAITING;
+import static net.Protocol.SPACE;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -162,7 +163,7 @@ public class Server {
       in = peer.getScanner();
     }
 
-    private List<String> expect(Keyword... keywords)
+    private Keyword expect(Keyword... keywords)
         throws UnexpectedKeywordException, MalformedArgumentsException {
       return Protocol.expect(in, keywords);
     }
@@ -183,11 +184,12 @@ public class Server {
     @Override
     public void run() {
       do {
-        List<String> command;
+        Keyword keyword;
         // Client: PLAYER name
         try {
-          command = expect(PLAYER, CHAT);
-          System.out.println(command);
+          CHAT.setExecutable(this::chatHandler);
+          PLAYER.setExecutable((list) -> System.out.println("PLAYER was received"));
+          keyword = expect(PLAYER, CHAT);
 
         } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
           //TODO send a warning / shutdown peer
@@ -196,8 +198,8 @@ public class Server {
         // Client: GO dimension
         int dimension = 0;
         try {
-          command = expect(GO, CANCEL);
-          System.out.println(command);
+          keyword = expect(GO, CANCEL);
+          System.out.println(keyword);
 
         } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
           //TODO send a warning / shutdown peer
@@ -219,6 +221,13 @@ public class Server {
     public void start() {
       thread = new Thread(this);
       thread.start();
+    }
+
+    void chatHandler(List<String> message) {
+      for (String word : message) {
+        System.out.print(word + SPACE);
+      }
+      System.out.println();
     }
   }
 

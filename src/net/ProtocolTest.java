@@ -13,15 +13,18 @@ import static net.Protocol.validateAndFormatArgList;
 import static net.Protocol.validateAndFormatCommandString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Scanner;
 import net.Protocol.Executable.ExecutableNotSetException;
+import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
 import org.junit.jupiter.api.AfterEach;
@@ -39,7 +42,12 @@ class ProtocolTest {
   private String stone = Protocol.BLACK;
 
   @BeforeEach
-  void setUp() {}
+  void setUp() {
+    EnumSet<Keyword> keywords = EnumSet.allOf(Keyword.class);
+    for (Keyword keyword : keywords) {
+      keyword.reset();
+    }
+  }
 
   @Test
   void testValidateAndFormatArgList() {
@@ -95,47 +103,49 @@ class ProtocolTest {
 
   @Test
   void testExpect() {
-    String keywordString;
-    List<String> command;
+    String commandString;
+    List<String> argList;
     try {
       // Test missing argument
-      keywordString = PLAYER.toString();
-      scanner = new Scanner(keywordString);
+      commandString = PLAYER.toString();
+      scanner = new Scanner(commandString);
       assertThrows(MalformedArgumentsException.class, () -> expect(scanner, PLAYER));
 
       // Test malformed argument
-      keywordString = PLAYER.toString() + SPACE + badName;
-      scanner = new Scanner(keywordString);
+      commandString = PLAYER.toString() + SPACE + badName;
+      scanner = new Scanner(commandString);
       assertThrows(MalformedArgumentsException.class, () -> expect(scanner, PLAYER));
 
       // Test zero arguments
-      keywordString = validateAndFormatCommandString(WAITING);
-      scanner = new Scanner(keywordString);
-      assertEquals(Collections.singletonList(WAITING.toString()), expect(scanner, WAITING));
+      commandString = validateAndFormatCommandString(WAITING);
+      scanner = new Scanner(commandString);
+      assertEquals(Collections.emptyList(), expect(scanner, WAITING).getArgList());
 
       // Test ignoring of redundant arguments
-      keywordString += SPACE + "we are arguments and we shouldn't be here :')";
-      scanner = new Scanner(keywordString);
-      assertEquals(Collections.singletonList(WAITING.toString()), expect(scanner, WAITING));
+      commandString += SPACE + "we are arguments and we shouldn't be here :')";
+      scanner = new Scanner(commandString);
+      assertEquals(WAITING, expect(scanner, WAITING));
+      scanner = new Scanner(commandString);
+      assertEquals(WAITING.getArgList(), expect(scanner, WAITING).getArgList());
 
       // Test one argument
-      keywordString = validateAndFormatCommandString(PLAYER, name);
-      scanner = new Scanner(keywordString);
-      command = expect(scanner, PLAYER);
-      assertEquals(Arrays.asList(PLAYER.toString(), name), command);
-      assertTrue(PLAYER.isValidArgList(command.subList(1, command.size())));
+      commandString = validateAndFormatCommandString(PLAYER, name);
+      scanner = new Scanner(commandString);
+      argList = expect(scanner, PLAYER).getArgList();
+      assertEquals(Collections.singletonList(name), argList);
+      assertTrue(PLAYER.isValidArgList(argList));
 
       // Test more than one argument
-      keywordString = validateAndFormatCommandString(READY, stone, name, dimensionString);
-      scanner = new Scanner(keywordString);
-      command = expect(scanner, READY);
-      assertEquals(Arrays.asList(READY.toString(), stone, name, dimensionString), command);
-      assertTrue(READY.isValidArgList(command.subList(1, command.size())));
+      commandString = validateAndFormatCommandString(READY, stone, name, dimensionString);
+      scanner = new Scanner(commandString);
+      argList = expect(scanner, READY).getArgList();
+      assertEquals(Arrays.asList(stone, name, dimensionString), argList);
+      assertTrue(READY.isValidArgList(argList));
 
       // Test more than one command
-      scanner = new Scanner(keywordString);
-      command = expect(scanner, PLAYER, WAITING, READY);
-      assertTrue(READY.isValidArgList(command.subList(1, command.size())));
+      scanner = new Scanner(commandString);
+      argList = expect(scanner, PLAYER, WAITING, READY).getArgList();
+      assertTrue(READY.isValidArgList(argList));
 
     } catch (MalformedArgumentsException | UnexpectedKeywordException e) {
       failAllTheThings();
@@ -166,6 +176,7 @@ class ProtocolTest {
 
     // Test malformed arguments
     assertFalse(GO.isValidArgList(Collections.singletonList(Integer.toString(3))));
+    assertFalse(GO.isValidArgList(Arrays.asList(Integer.toString(3), name)));
     assertFalse(GO.isValidArgList(Collections.singletonList("thisIsNotAnInteger")));
     assertFalse(GO.isValidArgList(Arrays.asList(dimensionString, badName)));
 
@@ -208,7 +219,7 @@ class ProtocolTest {
   @Test
   void testCHAT() {
     // Test one argument
-    assertTrue(CHAT.isValidArgList(Collections.singletonList("hi!")));
+    assertTrue(CHAT.isValidArgList(Collections.singletonList("¡Hola!")));
 
     // Test missing argument
     assertFalse(CHAT.isValidArgList(Collections.emptyList()));
@@ -238,6 +249,44 @@ class ProtocolTest {
       failAllTheThings();
     }
     assertThrows(MalformedArgumentsException.class, () -> CHAT.setArgList(Collections.emptyList()));
+  }
+
+  @Test
+  void testKeywordGetArgList() {
+    assertThrows(MalformedArgumentsException.class, CHAT::getArgList);
+    try {
+      assertEquals(Collections.emptyList(), WAITING.getArgList());
+
+      List<String> argList = Collections.singletonList("OK");
+      List<String> otherArgList = Arrays.asList("Other", "args");
+
+      CHAT.setArgList(otherArgList);
+      assertNotEquals(argList, CHAT.getArgList());
+
+      CHAT.setArgList(argList);
+      assertEquals(argList, CHAT.getArgList());
+
+    } catch (MalformedArgumentsException e) {
+      failAllTheThings();
+    }
+  }
+
+  @Test
+  void testKeywordGetArgs() {
+    List<String> argList = Arrays.asList("OK", "args");
+    String[] args = argList.stream().toArray(String[]::new);
+    List<String> otherArgList = Arrays.asList("Other", "args");
+
+    try {
+      CHAT.setArgList(otherArgList);
+      assertNotEquals(args, CHAT.getArgs());
+
+      CHAT.setArgList(argList);
+      assertTrue(Arrays.equals(args, CHAT.getArgs()));
+
+    } catch (MalformedArgumentsException e) {
+      e.printStackTrace();
+    }
   }
 
   @Test

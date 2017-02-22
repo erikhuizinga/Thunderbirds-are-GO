@@ -9,7 +9,6 @@ import static net.Protocol.expect;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.List;
 import java.util.Scanner;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
@@ -101,8 +100,8 @@ public class Client {
     // Announce board dimension
     announceBoardDimension(getBoardDimension());
 
-    List<String> command;
-    command = expect(in, WAITING, READY);
+    Keyword keyword;
+    keyword = expect(in, WAITING, READY);
   }
 
   private int getBoardDimension() throws CancelException {

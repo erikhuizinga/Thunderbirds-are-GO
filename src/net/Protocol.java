@@ -1,14 +1,11 @@
 package net;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-import java.util.Set;
 
 /** Created by erik.huizinga on 2-2-17. */
 public interface Protocol {
@@ -24,15 +21,15 @@ public interface Protocol {
   //                  Arrays.stream(ServerKeywords.values()).map(Enum::name)),
   //              Arrays.stream(ClientKeywords.values()).map(Enum::name))
   //          .collect(Collectors.toList());
-
-  /** The general protocol keywords for {@code Client}-{@code Server} communication. */
-  Set<Keyword> GENERAL_KEYWORDS = EnumSet.of(Keyword.CHAT);
-
-  /** The {@code Client} protocol keywords. */
-  Set<Keyword> CLIENT_KEYWORDS = EnumSet.of(Keyword.PLAYER, Keyword.GO, Keyword.CANCEL);
-
-  /** The {@code Server} protocol keywords. */
-  Set<Keyword> SERVER_KEYWORDS = EnumSet.of(Keyword.WAITING, Keyword.READY);
+  //
+  //  /** The general protocol keywords for {@code Client}-{@code Server} communication. */
+  //  Set<Keyword> GENERAL_KEYWORDS = EnumSet.of(Keyword.CHAT);
+  //
+  //  /** The {@code Client} protocol keywords. */
+  //  Set<Keyword> CLIENT_KEYWORDS = EnumSet.of(Keyword.PLAYER, Keyword.GO, Keyword.CANCEL);
+  //
+  //  /** The {@code Server} protocol keywords. */
+  //  Set<Keyword> SERVER_KEYWORDS = EnumSet.of(Keyword.WAITING, Keyword.READY);
 
   /**
    * Validate the specified {@code String} arguments for the specified {@code Keyword} and format
@@ -107,21 +104,19 @@ public interface Protocol {
   }
 
   /**
-   * Get the {@code List<String>} command of the expected specified {@code Keyword} on the specified
-   * {@code Scanner}.
+   * Get a {@code Keyword} with any arguments from the specified {@code Scanner} if it is one of the
+   * specified expected keywords. This method may block until the {@code Scanner} has next input.
    *
-   * @param scanner the {@code Scanner}.
+   * @param scanner the {@code Scanner}, which must not be closed.
    * @param expectedKeywords one {@code Keyword} or more.
-   * @return the {@code List<String>} of the protocol keyword and arguments. The list contains only
-   *     the keyword (size equals one) if there are no arguments.
+   * @return the {@code Keyword} with the corresponding arguments (may have size 0 if none) gettable
+   *     with {@code getArgs} or {@code getArgList}.
    * @throws UnexpectedKeywordException if the the incoming keyword is not expected.
-   * @throws MalformedArgumentsException if the incoming arguments are invalid for the expected
-   *     keyword.
+   * @throws MalformedArgumentsException if the incoming arguments are invalid.
    */
-  static List<String> expect(Scanner scanner, Keyword... expectedKeywords)
+  static Keyword expect(Scanner scanner, Keyword... expectedKeywords)
       throws UnexpectedKeywordException, MalformedArgumentsException {
     String keywordString;
-
     if (scanner.hasNext() // There is next incoming communication to scan
         && (keywordString = scanner.next()).toUpperCase().length()
             > 0) // The next keyword contains one or more characters
@@ -141,15 +136,10 @@ public interface Protocol {
           String[] args = scanner.nextLine().trim().split(Protocol.SPACE);
           argList = validateAndFormatArgList(theKeyword, args);
         } catch (NoSuchElementException | MalformedArgumentsException ignored) {
-          argList = new ArrayList<>();
+          argList = Collections.emptyList();
         }
-
-        if (theKeyword.isValidArgList(argList)) {
-          argList.add(0, theKeyword.toString());
-          return argList;
-        } else {
-          throw new MalformedArgumentsException();
-        }
+        theKeyword.setArgList(argList);
+        return theKeyword;
       }
     }
     throw new UnexpectedKeywordException();
@@ -169,18 +159,42 @@ public interface Protocol {
     GO,
     CANCEL;
 
-    private List<String> argList = Collections.emptyList();
-
-    private Executable executable =
+    private final List<String> defaultArgList = Collections.emptyList();
+    private final Executable defaultExecutable =
         (argList) -> {
           throw new ExecutableNotSetException("set " + this + " executable with setExecutable");
         };
+    private List<String> argList;
+    private Executable executable;
+
+    Keyword() {
+      reset();
+    }
+
+    /**
+     * @return the {@code List<String>} of arguments.
+     * @throws MalformedArgumentsException if the list of arguments is malformed.
+     */
+    public List<String> getArgList() throws MalformedArgumentsException {
+      if (!isValidArgList(argList)) {
+        throw new MalformedArgumentsException();
+      }
+      return argList;
+    }
 
     public void setArgList(List<String> argList) throws MalformedArgumentsException {
       if (!isValidArgList(argList)) {
         throw new MalformedArgumentsException();
       }
       this.argList = argList;
+    }
+
+    /**
+     * @return the arguments of this {@code Keyword} as a {@code String[]}.
+     * @throws MalformedArgumentsException if the list of arguments is malformed.
+     */
+    public String[] getArgs() throws MalformedArgumentsException {
+      return getArgList().toArray(new String[] {});
     }
 
     public void setExecutable(Executable executable) {
@@ -310,6 +324,11 @@ public interface Protocol {
 
     public void execute() throws ExecutableNotSetException {
       execute(argList);
+    }
+
+    public void reset() {
+      argList = defaultArgList;
+      executable = defaultExecutable;
     }
   }
 
