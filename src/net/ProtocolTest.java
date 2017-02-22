@@ -232,6 +232,12 @@ class ProtocolTest {
   @Test
   void testExecutableKeywords() {
     assertThrows(ExecutableNotSetException.class, CHAT::execute);
+    CHAT.setExecutable(() -> {});
+    try {
+      CHAT.execute();
+    } catch (ExecutableNotSetException e) {
+      failAllTheThings();
+    }
   }
 
   @AfterEach

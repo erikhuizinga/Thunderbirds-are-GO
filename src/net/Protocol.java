@@ -171,8 +171,7 @@ public interface Protocol {
 
     private Executable executable =
         () -> {
-          System.err.println("set executable with setExecutable");
-          throw new ExecutableNotSetException();
+          throw new ExecutableNotSetException("set " + this + " executable with setExecutable");
         };
 
     public void setExecutable(Executable executable) {
@@ -305,7 +304,11 @@ public interface Protocol {
   interface Executable {
     void execute() throws ExecutableNotSetException;
 
-    class ExecutableNotSetException extends Exception {}
+    class ExecutableNotSetException extends Exception {
+      ExecutableNotSetException(String message) {
+        super(message);
+      }
+    }
   }
 
   /** The {@code Exception} thrown for malformed arguments of a keyword. */
