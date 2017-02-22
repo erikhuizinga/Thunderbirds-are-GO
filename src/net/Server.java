@@ -5,6 +5,7 @@ import static net.Protocol.Keyword.CHAT;
 import static net.Protocol.Keyword.GO;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.WAITING;
+import static net.Protocol.Keyword.WARNING;
 import static net.Protocol.SPACE;
 
 import java.io.IOException;
@@ -157,6 +158,8 @@ public class Server {
     private Scanner in;
     private Thread thread;
     private boolean keepRunning = true;
+    private boolean waiting4Player = true;
+    private String playerName = null;
 
     public ClientHandler(Peer peer) {
       this.peer = peer;
@@ -184,26 +187,11 @@ public class Server {
     @Override
     public void run() {
       do {
-        Keyword keyword;
         // Client: PLAYER name
-        try {
-          CHAT.setExecutable(this::chatHandler);
-          PLAYER.setExecutable((list) -> System.out.println("PLAYER was received"));
-          keyword = expect(PLAYER, CHAT);
-
-        } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
-          //TODO send a warning / shutdown peer
-        }
+        receivePlayer();
 
         // Client: GO dimension
-        int dimension = 0;
-        try {
-          keyword = expect(GO, CANCEL);
-          System.out.println(keyword);
-
-        } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
-          //TODO send a warning / shutdown peer
-        }
+        int dimension = receiveDimension();
 
         // Server: WAITING
         try {
@@ -218,16 +206,71 @@ public class Server {
       } while (keepRunning);
     }
 
+    public int receiveDimension() {
+      Keyword keyword;
+      int dimension = 0;
+      try {
+        keyword = expect(GO, CANCEL);
+        System.out.println(keyword);
+
+      } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
+        //TODO send a warning / shutdown peer
+      }
+      return dimension;
+    }
+
+    private void receivePlayer() {
+      PLAYER.setExecutable(
+          (list) -> {
+            System.out.println("PLAYER was received with arguments " + list + ".");
+            playerName = list.get(0);
+            waiting4Player = false;
+          });
+      do {
+        try {
+          expect(PLAYER).execute();
+
+        } catch (UnexpectedKeywordException e) {
+          warn("unexpected keyword");
+        } catch (MalformedArgumentsException e) {
+          warn("malformed argument(s)");
+        }
+      } while (waiting4Player);
+    }
+
+    private void chatHandler(List<String> argList) {
+      // Log chat message to console
+      List<String> serverArgList = new LinkedList<>(argList);
+      serverArgList.add(0, ((playerName == null) ? "UNKNOWN" : playerName) + ":");
+      Protocol.chatPrinter(serverArgList);
+
+      // Broadcast message to all clients //TODO only waiting clients
+      String command;
+      try {
+        command = Protocol.validateAndFormatCommandString(CHAT, argList.toArray(new String[] {}));
+      } catch (MalformedArgumentsException e) {
+        warn("CHAT arguments malformed");
+        return;
+      }
+      for (Peer client : clients) {
+        if (client.equals(peer)) {
+          continue;
+        }
+        client.send(command);
+      }
+    }
+
+    private void warn(String message) {
+      try {
+        send(Protocol.validateAndFormatCommandString(WARNING, message.split(SPACE)));
+      } catch (MalformedArgumentsException e) {
+        System.err.println("Wachoouptoo, server?");
+      }
+    }
+
     public void start() {
       thread = new Thread(this);
       thread.start();
-    }
-
-    void chatHandler(List<String> message) {
-      for (String word : message) {
-        System.out.print(word + SPACE);
-      }
-      System.out.println();
     }
   }
 
