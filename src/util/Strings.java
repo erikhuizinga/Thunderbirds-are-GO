@@ -30,6 +30,7 @@ public class Strings {
    */
   public static String readLine(String prompt) {
     System.out.print(prompt);
+    System.out.println();
     String line = null;
     while (line == null && in.hasNextLine()) {
       line = in.nextLine();

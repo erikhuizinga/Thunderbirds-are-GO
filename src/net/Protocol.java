@@ -145,6 +145,15 @@ public interface Protocol {
     throw new UnexpectedKeywordException();
   }
 
+  static void doNothing(List list) {}
+
+  static void chatPrinter(List<String> message) {
+    for (String word : message) {
+      System.out.print(word + SPACE);
+    }
+    System.out.println();
+  }
+
   /** The {@code Protocol} keywords. */
   enum Keyword implements Executable {
     // General
