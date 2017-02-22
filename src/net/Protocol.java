@@ -153,6 +153,7 @@ public interface Protocol {
     // Server
     WAITING,
     READY,
+    WARNING,
 
     // Client
     PLAYER,
@@ -242,6 +243,13 @@ public interface Protocol {
                 && isValidDimension(dimension);
           }
 
+        case WARNING:
+          /*
+          WARNING string...
+          string...: any number of arguments, treated as a string
+           */
+          return isValidArgListSize(argList);
+
         case PLAYER:
           /*
           PLAYER name
@@ -291,6 +299,8 @@ public interface Protocol {
           return 1;
         case GO:
           return 1;
+        case WARNING:
+          return 1;
         default:
           return maxArgs();
       }
@@ -300,9 +310,11 @@ public interface Protocol {
     int maxArgs() {
       switch (this) {
         case CHAT:
-          return Integer.MAX_VALUE; // Probably not a good idea, but you get the idea...
+          return Integer.MAX_VALUE; // Probably not a good idea...
         case READY:
           return 3;
+        case WARNING:
+          return Integer.MAX_VALUE; // Probably not a good idea...
         case PLAYER:
           return 1;
         case GO:
