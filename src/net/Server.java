@@ -7,6 +7,7 @@ import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.WAITING;
 import static net.Protocol.Keyword.WARNING;
 import static net.Protocol.SPACE;
+import static net.Protocol.isValidDimension;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
@@ -168,6 +170,10 @@ public class Server {
 
     private Keyword expect(Keyword... keywords)
         throws UnexpectedKeywordException, MalformedArgumentsException {
+      List<Keyword> keywordList = Arrays.stream(keywords).collect(Collectors.toList());
+      CHAT.setExecutable(this::chatHandler);
+      keywordList.add(CHAT);
+      keywords = keywordList.toArray(new Keyword[] {});
       return Protocol.expect(in, keywords);
     }
 
@@ -209,13 +215,16 @@ public class Server {
     public int receiveDimension() {
       Keyword keyword;
       int dimension = 0;
-      try {
-        keyword = expect(GO, CANCEL);
-        System.out.println(keyword);
+      do {
+        try {
+          expect(GO, CANCEL).execute();
 
-      } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
-        //TODO send a warning / shutdown peer
-      }
+        } catch (UnexpectedKeywordException e) {
+          warn("unexpected keyword");
+        } catch (MalformedArgumentsException e) {
+          warn("malformed argument(s)");
+        }
+      } while (!isValidDimension(dimension));
       return dimension;
     }
 
@@ -240,9 +249,8 @@ public class Server {
 
     private void chatHandler(List<String> argList) {
       // Log chat message to console
-      List<String> serverArgList = new LinkedList<>(argList);
-      serverArgList.add(0, ((playerName == null) ? "UNKNOWN" : playerName) + ":");
-      Protocol.chatPrinter(serverArgList);
+      argList.add(0, getPlayerName() + ":");
+      Protocol.chatPrinter(argList);
 
       // Broadcast message to all clients //TODO only waiting clients
       String command;
@@ -258,6 +266,10 @@ public class Server {
         }
         client.send(command);
       }
+    }
+
+    private String getPlayerName() {
+      return (playerName == null) ? "UNKNOWN" : playerName;
     }
 
     private void warn(String message) {

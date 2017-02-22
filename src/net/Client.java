@@ -14,6 +14,7 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
@@ -97,7 +98,7 @@ public class Client {
   private Keyword expect(Keyword... keywords)
       throws UnexpectedKeywordException, MalformedArgumentsException {
     //TODO now that's some fugly use of arrays!
-    List<Keyword> keywordList = Arrays.asList(keywords);
+    List<Keyword> keywordList = Arrays.stream(keywords).collect(Collectors.toList());
     WARNING.setExecutable(System.out::println);
     CHAT.setExecutable(Protocol::chatPrinter);
     keywordList.add(WARNING);
