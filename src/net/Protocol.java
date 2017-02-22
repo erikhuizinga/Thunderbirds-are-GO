@@ -182,7 +182,7 @@ public interface Protocol {
       return argList;
     }
 
-    public void setArgList(List<String> argList) throws MalformedArgumentsException {
+    void setArgList(List<String> argList) throws MalformedArgumentsException {
       if (!isValidArgList(argList)) {
         throw new MalformedArgumentsException();
       }
@@ -214,7 +214,7 @@ public interface Protocol {
           CHAT string...
           string...: any number of arguments, treated as a string
            */
-          return isValidateArgListSize(argList);
+          return isValidArgListSize(argList);
 
         case WAITING:
           /*
@@ -230,7 +230,7 @@ public interface Protocol {
           opponentName: opponent player's name
           dimension: board dimension, see keyword GO
            */
-          if (isValidateArgListSize(argList)) {
+          if (isValidArgListSize(argList)) {
             int dimension;
             try {
               dimension = Integer.parseInt(argList.get(2));
@@ -247,7 +247,7 @@ public interface Protocol {
           PLAYER name
           name: 1-20 word characters without spaces
            */
-          return isValidateArgListSize(argList)
+          return isValidArgListSize(argList)
               && argList.get(0) != null
               && argList.get(0).matches("^\\w{1,20}$");
 
@@ -256,7 +256,7 @@ public interface Protocol {
           GO dimension
           dimension: String of int where 5 <= dimension <= 131 && dimension % 2 == 1
            */
-          if (isValidateArgListSize(argList)) {
+          if (isValidArgListSize(argList)) {
             if (argList.size() == maxArgs()
                 && !Keyword.PLAYER.isValidArgList(argList.subList(1, 2))) {
               return false;
@@ -313,7 +313,7 @@ public interface Protocol {
     }
 
     /** @return {@code true} if the specified list of arguments has a valid size. */
-    boolean isValidateArgListSize(List argList) {
+    boolean isValidArgListSize(List argList) {
       return argList.size() >= minArgs() && argList.size() <= maxArgs();
     }
 
@@ -322,8 +322,12 @@ public interface Protocol {
       executable.execute(argList);
     }
 
-    public void execute() throws ExecutableNotSetException {
-      execute(argList);
+    public void execute() {
+      assert !executable.equals(defaultExecutable) : "set executable before executing";
+      try {
+        execute(argList);
+      } catch (ExecutableNotSetException ignored) {
+      }
     }
 
     public void reset() {

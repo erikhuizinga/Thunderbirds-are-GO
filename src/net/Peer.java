@@ -36,10 +36,6 @@ public class Peer implements Runnable {
     return scanner;
   }
 
-  public Socket getSocket() {
-    return socket;
-  }
-
   @Override
   public void run() {
     String line;

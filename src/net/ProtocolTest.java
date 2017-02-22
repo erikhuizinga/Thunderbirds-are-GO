@@ -291,7 +291,7 @@ class ProtocolTest {
 
   @Test
   void testExecutableKeywords() {
-    assertThrows(ExecutableNotSetException.class, CHAT::execute);
+    assertThrows(AssertionError.class, CHAT::execute);
     try {
       CHAT.setExecutable(list -> {});
       CHAT.execute();
