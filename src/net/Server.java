@@ -58,6 +58,7 @@ public class Server {
       serverSocket = new ServerSocket(port);
     } catch (IOException e) {
       e.printStackTrace();
+      stopServer();
     }
     this.serverSocket = serverSocket;
   }
@@ -113,7 +114,7 @@ public class Server {
     isOpen = false;
     try {
       serverSocket.close();
-    } catch (IOException e) {
+    } catch (IOException | NullPointerException e) {
       e.printStackTrace();
     }
   }
