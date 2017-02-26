@@ -71,15 +71,22 @@ public class Server {
     }
 
     String name = args[0];
-    if (name.equals("") || name.equals(null)) {
+    if (name == null || name.equals("")) {
       System.out.println("first argument must not be null or empty");
       System.out.println(USAGE);
       System.exit(0);
     }
 
-    int port = Integer.parseInt(args[1]);
-    if (name.equals("") || name.equals(null)) {
-      System.out.println("second argument must not be null or empty");
+    int port = -1;
+    try {
+      port = Integer.parseInt(args[2]);
+    } catch (NumberFormatException e) {
+      System.err.println("second argument must be a valid port number");
+      System.out.println(USAGE);
+      System.exit(0);
+    }
+    if (port < 0 || port > 65535) {
+      System.err.println("second argument must be a port number between 0 and 65535, inclusive");
       System.out.println(USAGE);
       System.exit(0);
     }
