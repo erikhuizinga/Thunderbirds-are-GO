@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import net.Protocol.Command;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
@@ -176,13 +177,28 @@ public class Server {
       in = peer.getScanner();
     }
 
-    private Keyword expect(Keyword... keywords)
+    private Command expect(Keyword... expectedKeywords)
         throws UnexpectedKeywordException, MalformedArgumentsException {
-      List<Keyword> keywordList = Arrays.stream(keywords).collect(Collectors.toList());
-      CHAT.setExecutable(this::chatHandler);
-      keywordList.add(CHAT);
-      keywords = keywordList.toArray(new Keyword[] {});
-      return Protocol.expect(in, keywords);
+      List<Command> expectedCommandList =
+          Arrays.stream(expectedKeywords).map(Command::new).collect(Collectors.toList());
+
+      Command chatCommand = new Command(CHAT);
+      chatCommand.setExecutable(this::chatHandler);
+      expectedCommandList.add(chatCommand);
+
+      return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
+    }
+
+    private Command expect(Command... expectedCommands)
+        throws UnexpectedKeywordException, MalformedArgumentsException {
+      List<Command> expectedCommandList =
+          Arrays.stream(expectedCommands).collect(Collectors.toList());
+
+      Command chatCommand = new Command(CHAT);
+      chatCommand.setExecutable(this::chatHandler);
+      expectedCommandList.add(chatCommand);
+
+      return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
     }
 
     private void send(Keyword keyword, String... arguments) throws MalformedArgumentsException {
@@ -237,7 +253,8 @@ public class Server {
     }
 
     private void receivePlayer() {
-      PLAYER.setExecutable(
+      Command playerCommand = new Command(PLAYER);
+      playerCommand.setExecutable(
           (list) -> {
             System.out.println("PLAYER was received with arguments " + list + ".");
             playerName = list.get(0);
@@ -245,7 +262,7 @@ public class Server {
           });
       do {
         try {
-          expect(PLAYER).execute();
+          expect(playerCommand).execute();
 
         } catch (UnexpectedKeywordException e) {
           warn("unexpected keyword");

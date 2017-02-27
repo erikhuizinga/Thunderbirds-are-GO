@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import net.Protocol.Command;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
@@ -102,16 +103,35 @@ public class Client {
     }
   }
 
-  private Keyword expect(Keyword... keywords)
+  private Command expect(Keyword... expectedKeywords)
       throws UnexpectedKeywordException, MalformedArgumentsException {
-    //TODO now that's some fugly use of arrays!
-    List<Keyword> keywordList = Arrays.stream(keywords).collect(Collectors.toList());
-    WARNING.setExecutable(System.out::println);
-    CHAT.setExecutable(Protocol::chatPrinter);
-    keywordList.add(WARNING);
-    keywordList.add(CHAT);
-    keywords = keywordList.toArray(new Keyword[] {});
-    return Protocol.expect(in, keywords);
+    List<Command> expectedCommandList =
+        Arrays.stream(expectedKeywords).map(Command::new).collect(Collectors.toList());
+
+    Command chatCommand = new Command(CHAT);
+    chatCommand.setExecutable(Protocol::chatPrinter);
+    expectedCommandList.add(chatCommand);
+
+    Command warningCommand = new Command(WARNING);
+    warningCommand.setExecutable(System.out::println);
+    expectedCommandList.add(warningCommand);
+
+    return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
+  }
+
+  private Command expect(Command... expectedCommands)
+      throws UnexpectedKeywordException, MalformedArgumentsException {
+    List<Command> expectedCommandList =
+        Arrays.stream(expectedCommands).collect(Collectors.toList());
+
+    Command chatCommand = new Command(CHAT);
+    chatCommand.setExecutable(Protocol::chatPrinter);
+    expectedCommandList.add(chatCommand);
+
+    Command warningCommand = new Command(WARNING);
+    warningCommand.setExecutable(System.out::println);
+    expectedCommandList.add(warningCommand);
+    return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
   }
 
   private void play()
@@ -121,8 +141,11 @@ public class Client {
             + "  CANCEL to cancel the current request to play a game.\n"
             + "  CHAT with a chat message to chat with anybody on the server.\n");
 
-    WAITING.setExecutable(Protocol::doNothing);
-    READY.setExecutable(this::startGame);
+    Command waitingCommand = new Command(WAITING);
+    waitingCommand.setExecutable(Protocol::doNothing);
+
+    Command readyCommand = new Command(READY);
+    readyCommand.setExecutable(this::startGame);
 
     // Client: PLAYER name
     announcePlayer();
@@ -132,7 +155,7 @@ public class Client {
 
     // Wait for ready signal to play a game
     do {
-      expect(WAITING, CHAT, READY).execute();
+      expect(waitingCommand, readyCommand).execute();
     } while (!ready);
   }
 

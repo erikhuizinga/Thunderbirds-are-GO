@@ -21,11 +21,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Scanner;
-import net.Protocol.Executable.ExecutableNotSetException;
-import net.Protocol.Keyword;
+import net.Protocol.Command;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
 import org.junit.jupiter.api.AfterEach;
@@ -43,12 +41,7 @@ class ProtocolTest {
   private String stone = Protocol.BLACK;
 
   @BeforeEach
-  void setUp() {
-    EnumSet<Keyword> keywords = EnumSet.allOf(Keyword.class);
-    for (Keyword keyword : keywords) {
-      keyword.reset();
-    }
-  }
+  void setUp() {}
 
   @Test
   void testValidateAndFormatArgList() {
@@ -105,6 +98,7 @@ class ProtocolTest {
   @Test
   void testExpect() {
     String commandString;
+    Command command;
     List<String> argList;
     try {
       // Test missing argument
@@ -125,9 +119,10 @@ class ProtocolTest {
       // Test ignoring of redundant arguments
       commandString += SPACE + "we are arguments and we shouldn't be here :')";
       scanner = new Scanner(commandString);
-      assertEquals(WAITING, expect(scanner, WAITING));
+      command = new Command(WAITING);
+      assertEquals(command, expect(scanner, WAITING));
       scanner = new Scanner(commandString);
-      assertEquals(WAITING.getArgList(), expect(scanner, WAITING).getArgList());
+      assertEquals(command.getArgList(), expect(scanner, WAITING).getArgList());
 
       // Test one argument
       commandString = validateAndFormatCommandString(PLAYER, name);
@@ -257,30 +252,34 @@ class ProtocolTest {
   }
 
   @Test
-  void testKeywordSetArgList() {
+  void testCommandSetArgList() {
+    Command command = new Command(CHAT);
     try {
-      CHAT.setArgList(Collections.singletonList("OK"));
-      CHAT.setArgList(Arrays.asList("OK", "as", "well"));
+      command.setArgList(Collections.singletonList("OK"));
+      command.setArgList(Arrays.asList("OK", "as", "well"));
     } catch (MalformedArgumentsException e) {
       failAllTheThings();
     }
-    assertThrows(MalformedArgumentsException.class, () -> CHAT.setArgList(Collections.emptyList()));
+    assertThrows(
+        MalformedArgumentsException.class, () -> command.setArgList(Collections.emptyList()));
   }
 
   @Test
-  void testKeywordGetArgList() {
-    assertThrows(MalformedArgumentsException.class, CHAT::getArgList);
+  void testCommandGetArgList() {
+    Command chatCommand = new Command(CHAT);
+    assertThrows(MalformedArgumentsException.class, chatCommand::getArgList);
     try {
-      assertEquals(Collections.emptyList(), WAITING.getArgList());
+      Command waitingCommand = new Command(WAITING);
+      assertEquals(Collections.emptyList(), waitingCommand.getArgList());
 
       List<String> argList = Collections.singletonList("OK");
       List<String> otherArgList = Arrays.asList("Other", "args");
 
-      CHAT.setArgList(otherArgList);
-      assertNotEquals(argList, CHAT.getArgList());
+      chatCommand.setArgList(otherArgList);
+      assertNotEquals(argList, chatCommand.getArgList());
 
-      CHAT.setArgList(argList);
-      assertEquals(argList, CHAT.getArgList());
+      chatCommand.setArgList(argList);
+      assertEquals(argList, chatCommand.getArgList());
 
     } catch (MalformedArgumentsException e) {
       failAllTheThings();
@@ -288,17 +287,18 @@ class ProtocolTest {
   }
 
   @Test
-  void testKeywordGetArgs() {
+  void testCommandGetArgs() {
+    Command chatCommand = new Command(CHAT);
     List<String> argList = Arrays.asList("OK", "args");
     String[] args = argList.stream().toArray(String[]::new);
     List<String> otherArgList = Arrays.asList("Other", "args");
 
     try {
-      CHAT.setArgList(otherArgList);
-      assertNotEquals(args, CHAT.getArgs());
+      chatCommand.setArgList(otherArgList);
+      assertNotEquals(args, chatCommand.getArgs());
 
-      CHAT.setArgList(argList);
-      assertTrue(Arrays.equals(args, CHAT.getArgs()));
+      chatCommand.setArgList(argList);
+      assertTrue(Arrays.equals(args, chatCommand.getArgs()));
 
     } catch (MalformedArgumentsException e) {
       e.printStackTrace();
@@ -306,21 +306,33 @@ class ProtocolTest {
   }
 
   @Test
-  void testExecutableKeywords() {
-    assertThrows(AssertionError.class, CHAT::execute);
+  void testCommandExecute() {
+    Command chatCommand = new Command(CHAT);
     try {
-      CHAT.setExecutable(list -> {});
-      CHAT.execute();
+      // Do nothing
+      chatCommand.execute();
+      chatCommand.setExecutable(list -> {});
+      chatCommand.execute();
 
-      CHAT.setExecutable(System.out::println);
-      CHAT.execute(Collections.singletonList("Hello!"));
+      // Do something
+      chatCommand.setExecutable(System.out::println);
+      chatCommand.execute(Collections.singletonList("Hello!"));
 
-      CHAT.setArgList(Arrays.asList("¡Hola,", "Mundo!"));
-      CHAT.execute();
+      chatCommand.setArgList(Arrays.asList("¡Hola,", "Mundo!"));
+      chatCommand.execute();
 
-    } catch (ExecutableNotSetException | MalformedArgumentsException e) {
+    } catch (MalformedArgumentsException e) {
       failAllTheThings();
     }
+  }
+
+  @Test
+  void testCommandEquals() {
+    Command command1 = new Command(CHAT, Arrays.asList("Hello,", "World!"));
+    Command command2 = new Command(CHAT, Arrays.asList("Hello,", "World!"));
+    Command command3 = new Command(CHAT, Arrays.asList("¡Hola,", "Mundo!"));
+    assertEquals(command1, command2);
+    assertNotEquals(command1, command3);
   }
 
   @AfterEach

@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 /** Created by erik.huizinga on 2-2-17. */
 public interface Protocol {
@@ -13,6 +14,9 @@ public interface Protocol {
   String SPACE = " ";
   String BLACK = "black";
   String WHITE = "white";
+
+  List<String> DEFAULT_EMPTY_ARGUMENT_LIST = Collections.emptyList();
+  Executable DEFAULT_EXECUTABLE = Protocol::doNothing;
 
   //  List<String> KEYWORDS =
   //      Stream.concat(
@@ -38,8 +42,8 @@ public interface Protocol {
    *
    * @param keyword the {@code Keyword}.
    * @param args the {@code String} arguments.
-   * @return the {@code List} of {@code String} arguments.
-   * @throws MalformedArgumentsException if the specified arguments are not conform the protocol.
+   * @return the {@code List<String>} of arguments.
+   * @throws MalformedArgumentsException if the specified arguments are malformed.
    */
   static List<String> validateAndFormatArgList(Keyword keyword, String... args)
       throws MalformedArgumentsException {
@@ -56,6 +60,21 @@ public interface Protocol {
       return argList;
     }
     throw new MalformedArgumentsException();
+  }
+
+  /**
+   * Validate the specified {@code String} arguments for the specified {@code Command} and format
+   * them according to protocol. If more arguments are provided than the allowed maximum, then any
+   * superfluous arguments are ignored and not returned in the argument list.
+   *
+   * @param command the {@code Command}.
+   * @param args the {@code String} arguments.
+   * @return the {@code List<String>} of arguments.
+   * @throws MalformedArgumentsException if the specified arguments are malformed.
+   */
+  static List<String> validateAndFormatArgList(Command command, String... args)
+      throws MalformedArgumentsException {
+    return validateAndFormatArgList(command.getKeyword(), args);
   }
 
   /**
@@ -104,48 +123,72 @@ public interface Protocol {
   }
 
   /**
-   * Get a {@code Keyword} with any arguments from the specified {@code Scanner} if it is one of the
-   * specified expected keywords. This method may block until the {@code Scanner} has next input.
+   * Get a {@code Command} with any arguments from the specified {@code Scanner} if it is one of the
+   * specified expected commands. This method may block until the {@code Scanner} has next input.
    *
    * @param scanner the {@code Scanner}, which must not be closed.
-   * @param expectedKeywords one {@code Keyword} or more.
-   * @return the {@code Keyword} with the corresponding arguments (may have size 0 if none) gettable
-   *     with {@code getArgs} or {@code getArgList}.
-   * @throws UnexpectedKeywordException if the the incoming keyword is not expected.
-   * @throws MalformedArgumentsException if the incoming arguments are invalid.
+   * @param expectedCommands one or more expected {@code Command} instances.
+   * @return an expected {@code Command} with the corresponding arguments (there may be zero)
+   *     gettable with {@code getArgs} or {@code getArgList}.
+   * @throws UnexpectedKeywordException if the the incoming command is not expected.
+   * @throws MalformedArgumentsException if the incoming arguments are malformed for the expected
+   *     command.
    */
-  static Keyword expect(Scanner scanner, Keyword... expectedKeywords)
+  static Command expect(Scanner scanner, Command... expectedCommands)
       throws UnexpectedKeywordException, MalformedArgumentsException {
     String keywordString;
     if (scanner.hasNext() // There is next incoming communication to scan
         && (keywordString = scanner.next()).toUpperCase().length()
-            > 0) // The next keyword contains one or more characters
+            > 0) // The next keyword contains any characters
     {
-      Keyword theKeyword = null;
-      for (Keyword expectedKeyword : expectedKeywords) {
-        if (expectedKeyword.toString().equals(keywordString)) {
-          theKeyword = expectedKeyword;
+      Command theCommand = null;
+      for (Command expectedCommand : expectedCommands) {
+        if (expectedCommand.getKeyword().toString().equals(keywordString)) {
+          theCommand = expectedCommand;
           break;
         }
       }
 
-      if (theKeyword != null) {
+      if (theCommand != null) {
         // Read the argument list
         List<String> argList;
         try {
           String[] args = scanner.nextLine().trim().split(Protocol.SPACE);
-          argList = validateAndFormatArgList(theKeyword, args);
+          argList = validateAndFormatArgList(theCommand, args);
         } catch (NoSuchElementException | MalformedArgumentsException ignored) {
-          argList = Collections.emptyList();
+          argList = DEFAULT_EMPTY_ARGUMENT_LIST;
         }
-        theKeyword.setArgList(argList);
-        return theKeyword;
+        theCommand.setArgList(argList);
+        return theCommand;
       }
     }
     throw new UnexpectedKeywordException();
   }
 
-  static void doNothing(List list) {}
+  /**
+   * Get a {@code Command} with any arguments from the specified {@code Scanner} if it is one of the
+   * specified expected {@code Keyword} instances. This method may block until the {@code Scanner}
+   * has next input.
+   *
+   * @param scanner the {@code Scanner}, which must not be closed.
+   * @param expectedKeywords one or more expected {@code Keyword} instances.
+   * @return an expected {@code Command} with the corresponding arguments (there may be zero)
+   *     gettable with {@code getArgs} or {@code getArgList}.
+   * @throws UnexpectedKeywordException if the the incoming command is not expected.
+   * @throws MalformedArgumentsException if the incoming arguments are malformed for the expected
+   *     command.
+   */
+  static Command expect(Scanner scanner, Keyword... expectedKeywords)
+      throws UnexpectedKeywordException, MalformedArgumentsException {
+    Command[] expectedCommands =
+        Arrays.stream(expectedKeywords)
+            .map(Command::new)
+            .collect(Collectors.toList())
+            .toArray(new Command[] {});
+    return expect(scanner, expectedCommands);
+  }
+
+  static void doNothing(List ignored) {}
 
   static void chatPrinter(List<String> message) {
     for (String word : message) {
@@ -155,7 +198,7 @@ public interface Protocol {
   }
 
   /** The {@code Protocol} keywords. */
-  enum Keyword implements Executable {
+  enum Keyword {
     // General
     CHAT,
 
@@ -168,48 +211,6 @@ public interface Protocol {
     PLAYER,
     GO,
     CANCEL;
-
-    private final List<String> defaultArgList = Collections.emptyList();
-    private final Executable defaultExecutable =
-        (argList) -> {
-          throw new ExecutableNotSetException("set " + this + " executable with setExecutable");
-        };
-    private List<String> argList;
-    private Executable executable;
-
-    Keyword() {
-      reset();
-    }
-
-    /**
-     * @return the {@code List<String>} of arguments.
-     * @throws MalformedArgumentsException if the list of arguments is malformed.
-     */
-    public List<String> getArgList() throws MalformedArgumentsException {
-      if (!isValidArgList(argList)) {
-        throw new MalformedArgumentsException();
-      }
-      return argList;
-    }
-
-    void setArgList(List<String> argList) throws MalformedArgumentsException {
-      if (!isValidArgList(argList)) {
-        throw new MalformedArgumentsException();
-      }
-      this.argList = argList;
-    }
-
-    /**
-     * @return the arguments of this {@code Keyword} as a {@code String[]}.
-     * @throws MalformedArgumentsException if the list of arguments is malformed.
-     */
-    public String[] getArgs() throws MalformedArgumentsException {
-      return getArgList().toArray(new String[] {});
-    }
-
-    public void setExecutable(Executable executable) {
-      this.executable = executable;
-    }
 
     /**
      * Check if the specified {@code List<String>} of arguments is valid for the {@code Keyword}.
@@ -337,34 +338,102 @@ public interface Protocol {
     boolean isValidArgListSize(List argList) {
       return argList.size() >= minArgs() && argList.size() <= maxArgs();
     }
-
-    @Override
-    public void execute(List<String> argList) throws ExecutableNotSetException {
-      executable.execute(argList);
-    }
-
-    public void execute() {
-      assert !executable.equals(defaultExecutable) : "set executable before executing";
-      try {
-        execute(argList);
-      } catch (ExecutableNotSetException ignored) {
-      }
-    }
-
-    public void reset() {
-      argList = defaultArgList;
-      executable = defaultExecutable;
-    }
   }
 
   @FunctionalInterface
   interface Executable {
-    void execute(List<String> argList) throws ExecutableNotSetException;
 
-    class ExecutableNotSetException extends Exception {
-      ExecutableNotSetException(String message) {
-        super(message);
+    /**
+     * Execute this {@code Executable} with the specified {@code List<String>} of arguments.
+     *
+     * @param argList the {@code List<String>} of arguments.
+     */
+    void execute(List<String> argList);
+  }
+
+  class Command implements Executable {
+
+    private final Keyword keyword;
+    private boolean isExecutableSet = false;
+    private List<String> argList = DEFAULT_EMPTY_ARGUMENT_LIST;
+    private Executable executable = DEFAULT_EXECUTABLE;
+
+    public Command(Keyword keyword, List<String> argList) {
+      this.keyword = keyword;
+      this.argList = argList;
+    }
+
+    public Command(Keyword keyword) {
+      this.keyword = keyword;
+    }
+
+    public Keyword getKeyword() {
+      return keyword;
+    }
+
+    @Override
+    public String toString() {
+      String argListString = "";
+      for (String arg : argList) {
+        argListString += arg + SPACE;
       }
+      String commandString = keyword + SPACE + argListString;
+      commandString = commandString.trim();
+      return "Command{" + commandString + "}";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof Command && toString().equals(obj.toString());
+    }
+
+    /**
+     * @return the {@code List<String>} of arguments.
+     * @throws MalformedArgumentsException if the list of arguments is malformed.
+     */
+    List<String> getArgList() throws MalformedArgumentsException {
+      if (!keyword.isValidArgList(argList)) {
+        throw new MalformedArgumentsException();
+      }
+      return argList;
+    }
+
+    /**
+     * @param argList the {@code List<String>} of arguments.
+     * @throws MalformedArgumentsException if the list of arguments is malformed.
+     */
+    void setArgList(List<String> argList) throws MalformedArgumentsException {
+      if (!keyword.isValidArgList(argList)) {
+        throw new MalformedArgumentsException();
+      }
+      this.argList = argList;
+    }
+
+    /**
+     * @return the arguments of this {@code Keyword} as a {@code String[]}.
+     * @throws MalformedArgumentsException if the list of arguments is malformed.
+     */
+    public String[] getArgs() throws MalformedArgumentsException {
+      return getArgList().toArray(new String[] {});
+    }
+
+    public void setExecutable(Executable executable) {
+      this.executable = executable;
+      isExecutableSet = true;
+    }
+
+    @Override
+    public void execute(List<String> argList) {
+      if (!isExecutableSet) {
+        System.err.println("executable not set, not executing");
+        return;
+      }
+      executable.execute(argList);
+    }
+
+    /** Execute the {@code Executable} of this {@code Command} with this command's argument list. */
+    public void execute() {
+      execute(argList);
     }
   }
 
