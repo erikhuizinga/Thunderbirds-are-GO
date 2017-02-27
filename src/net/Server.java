@@ -80,7 +80,7 @@ public class Server {
 
     int port = -1;
     try {
-      port = Integer.parseInt(args[2]);
+      port = Integer.parseInt(args[1]);
     } catch (NumberFormatException e) {
       System.err.println("second argument must be a valid port number");
       System.out.println(USAGE);
