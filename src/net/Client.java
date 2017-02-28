@@ -174,17 +174,19 @@ public class Client {
       try {
         dimension = Integer.parseInt(input);
       } catch (NumberFormatException e) {
-        switch (Keyword.valueOf(inputWords[0])) {
-          case CANCEL:
-            cancel();
-            break;
+        try {
+          switch (Keyword.valueOf(inputWords[0])) {
+            case CANCEL:
+              cancel();
+              break;
 
-          case CHAT:
-            chat(Arrays.copyOfRange(inputWords, 1, inputWords.length));
-            break;
+            case CHAT:
+              chat(Arrays.copyOfRange(inputWords, 1, inputWords.length));
+              break;
+          }
+        } catch (IllegalArgumentException ee) {
+          System.err.println("Unable to parse number or command from input, please try again.");
         }
-      } catch (IllegalArgumentException e) {
-        System.err.println("Unable to parse number or command from input, please try again.");
       }
       //TODO support specifying opponent name
     } while (!Protocol.isValidDimension(dimension));
