@@ -43,8 +43,8 @@ public class Server {
   /** The map of peers and their desired board dimensions. */
   private final Map<Peer, Integer> waitingPeerDimensionMap = new HashMap<>();
 
-  /** The list of matched peers playing games. */
-  private final List<List<Peer>> gameList = new LinkedList<>();
+  /** The list of games. */
+  private final List<GameHandler> games = new LinkedList<>();
 
   /**
    * The switch indicating whether or not the {@code Server} is open to accept new connections from
@@ -127,7 +127,7 @@ public class Server {
     }
   }
 
-  private synchronized void add2WaitingMap(Peer peer, int dimension) {
+  private synchronized void handleWaitingPeer(Peer peer, int dimension) {
     waitingPeerDimensionMap.put(peer, dimension);
     checkWaitingPeerDimensionMap4DimensionMatch();
   }
@@ -143,7 +143,6 @@ public class Server {
           Peer peer1 = waitingDimensionPeerMap.get(entry.getValue());
           Peer peer2 = entry.getKey();
           List<Peer> peerList = Arrays.asList(peer1, peer2);
-          gameList.add(peerList);
 
           // Remove the peers from the waiting lists
           waitingPeerDimensionMap.remove(entry.getKey());
@@ -151,7 +150,9 @@ public class Server {
           waitingDimensionPeerMap.remove(entry.getValue());
 
           // Start a new game
-          new GameHandler(peerList).start();
+          GameHandler gameHandler = new GameHandler(peerList);
+          games.add(gameHandler);
+          gameHandler.start();
 
           // Break the loop; we know there cannot be any more matches until a new client connects
           break;
@@ -231,7 +232,7 @@ public class Server {
           stopClientHandler();
           return;
         }
-        add2WaitingMap(peer, dimension);
+        handleWaitingPeer(peer, dimension);
       }
     }
 
