@@ -216,7 +216,7 @@ public class Server {
 
     @Override
     public void run() {
-      do {
+      while (keepRunning) {
         // Client: PLAYER name
         receivePlayer();
 
@@ -232,24 +232,40 @@ public class Server {
           return;
         }
         add2WaitingMap(peer, dimension);
-
-      } while (keepRunning);
+      }
     }
 
-    public int receiveDimension() {
+    private int receiveDimension() {
       Keyword keyword;
-      int dimension = 0;
+      final int[] dimension = {0};
       do {
         try {
-          expect(GO, CANCEL).execute();
+          Command goCommand = new Command(GO);
+          goCommand.setExecutable(
+              argList -> {
+                try {
+                  dimension[0] = Integer.parseInt(argList.get(0));
+                } catch (NumberFormatException e) {
+                  warn("invalid dimension sent with " + GO + " keyword");
+                }
+                if (argList.size() > 1) {
+                  warn("specifying opponent name not supported by " + name + " the server");
+                }
+              });
+
+          Command cancelCommand = new Command(CANCEL);
+          cancelCommand.setExecutable(argList -> stopClientHandler());
+
+          Command expectedCommand = expect(goCommand, cancelCommand);
+          expectedCommand.execute();
 
         } catch (UnexpectedKeywordException e) {
           warn("unexpected keyword");
         } catch (MalformedArgumentsException e) {
           warn("malformed argument(s)");
         }
-      } while (!isValidDimension(dimension));
-      return dimension;
+      } while (!isValidDimension(dimension[0]));
+      return dimension[0];
     }
 
     private void receivePlayer() {
