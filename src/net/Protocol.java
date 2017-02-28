@@ -435,6 +435,12 @@ public interface Protocol {
     public void execute() {
       execute(argList);
     }
+
+    /** Print this {@code Command} and execute its {@code Executable}. */
+    public void printAndExecute() {
+      System.out.println(this);
+      execute();
+    }
   }
 
   /** The {@code Exception} thrown for malformed arguments of a keyword. */

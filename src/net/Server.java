@@ -249,15 +249,14 @@ public class Server {
                   warn("invalid dimension sent with " + GO + " keyword");
                 }
                 if (argList.size() > 1) {
-                  warn("specifying opponent name not supported by " + name + " the server");
+                  warn("specifying opponent name not supported by " + name + " the server"); //TODO
                 }
               });
 
           Command cancelCommand = new Command(CANCEL);
           cancelCommand.setExecutable(argList -> stopClientHandler());
 
-          Command expectedCommand = expect(goCommand, cancelCommand);
-          expectedCommand.execute();
+          expect(goCommand, cancelCommand).printAndExecute();
 
         } catch (UnexpectedKeywordException e) {
           warn("unexpected keyword");
@@ -278,7 +277,7 @@ public class Server {
           });
       do {
         try {
-          expect(playerCommand).execute();
+          expect(playerCommand).printAndExecute();
 
         } catch (UnexpectedKeywordException e) {
           warn("unexpected keyword");
