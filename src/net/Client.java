@@ -129,7 +129,7 @@ public class Client {
     expectedCommandList.add(chatCommand);
 
     Command warningCommand = new Command(WARNING);
-    warningCommand.setExecutable(System.out::println);
+    warningCommand.setExecutable(System.err::println);
     expectedCommandList.add(warningCommand);
     return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
   }
