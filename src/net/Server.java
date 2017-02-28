@@ -270,9 +270,8 @@ public class Server {
     private void receivePlayer() {
       Command playerCommand = new Command(PLAYER);
       playerCommand.setExecutable(
-          (list) -> {
-            System.out.println("PLAYER was received with arguments " + list + ".");
-            playerName = list.get(0);
+          argList -> {
+            playerName = argList.get(0);
             waiting4Player = false;
           });
       do {
