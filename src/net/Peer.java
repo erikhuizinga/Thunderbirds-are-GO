@@ -38,14 +38,6 @@ public class Peer implements Runnable {
 
   @Override
   public void run() {
-    String line;
-    while (keepRunning && scanner.hasNextLine() && (line = scanner.nextLine()) != null) {
-      println(line);
-      try {
-        Thread.sleep(1);
-      } catch (InterruptedException ignored) {
-      }
-    }
   }
 
   void shutDown() {
