@@ -448,7 +448,4 @@ public interface Protocol {
 
   /** The {@code Exception} for an unexpected keyword. */
   class UnexpectedKeywordException extends Exception {}
-
-  /** The {@code Exception} thrown when client-server communication is cancelled by either end. */
-  class CancelException extends Exception {}
 }

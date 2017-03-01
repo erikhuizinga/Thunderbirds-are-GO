@@ -129,10 +129,10 @@ public class Server {
 
   private synchronized void handleWaitingPeer(Peer peer, int dimension) {
     waitingPeerDimensionMap.put(peer, dimension);
-    checkWaitingPeerDimensionMap4DimensionMatch();
+    matchWaitingPeers();
   }
 
-  private synchronized void checkWaitingPeerDimensionMap4DimensionMatch() {
+  private synchronized void matchWaitingPeers() {
     if (waitingPeerDimensionMap.size() >= 2) {
       Map<Integer, Peer> waitingDimensionPeerMap = new HashMap<>();
       Map<Peer, Integer> waitingPeerDimensionMapCopy = new HashMap<>(waitingPeerDimensionMap);
@@ -223,6 +223,9 @@ public class Server {
 
         // Client: GO dimension
         int dimension = receiveDimension();
+        if (!keepRunning) {
+          return;
+        }
 
         // Server: WAITING
         try {
@@ -234,6 +237,25 @@ public class Server {
         }
         handleWaitingPeer(peer, dimension);
       }
+    }
+
+    private void receivePlayer() {
+      Command playerCommand = new Command(PLAYER);
+      playerCommand.setExecutable(
+          argList -> {
+            playerName = argList.get(0);
+            waiting4Player = false;
+          });
+      do {
+        try {
+          expect(playerCommand).printAndExecute();
+
+        } catch (UnexpectedKeywordException e) {
+          warn("unexpected keyword");
+        } catch (MalformedArgumentsException e) {
+          warn("malformed argument(s)");
+        }
+      } while (waiting4Player);
     }
 
     private int receiveDimension() {
@@ -264,27 +286,8 @@ public class Server {
         } catch (MalformedArgumentsException e) {
           warn("malformed argument(s)");
         }
-      } while (!isValidDimension(dimension[0]));
+      } while (keepRunning && !isValidDimension(dimension[0]));
       return dimension[0];
-    }
-
-    private void receivePlayer() {
-      Command playerCommand = new Command(PLAYER);
-      playerCommand.setExecutable(
-          argList -> {
-            playerName = argList.get(0);
-            waiting4Player = false;
-          });
-      do {
-        try {
-          expect(playerCommand).printAndExecute();
-
-        } catch (UnexpectedKeywordException e) {
-          warn("unexpected keyword");
-        } catch (MalformedArgumentsException e) {
-          warn("malformed argument(s)");
-        }
-      } while (waiting4Player);
     }
 
     private void chatHandler(List<String> argList) {

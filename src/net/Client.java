@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
-import net.Protocol.CancelException;
 import net.Protocol.Command;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
@@ -31,7 +30,8 @@ public class Client {
   private final String name;
   private final Peer peer;
   private final Scanner in;
-  private boolean ready = false;
+  private boolean isReady = false;
+  private boolean isCancelled = false;
 
   public Client(String name, String address, int port) {
     this.name = name;
@@ -94,13 +94,7 @@ public class Client {
       play();
     } catch (MalformedArgumentsException | UnexpectedKeywordException e) {
       e.printStackTrace(); //TODO delete me
-      try {
-        cancel();
-      } catch (CancelException ignored) {
-      }
-      return;
-    } catch (CancelException e) {
-      return;
+      cancel();
     }
   }
 
@@ -135,36 +129,40 @@ public class Client {
     return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
   }
 
-  private void play()
-      throws MalformedArgumentsException, UnexpectedKeywordException, CancelException {
+  private void play() throws MalformedArgumentsException, UnexpectedKeywordException {
     System.out.println(
         "While not in game, type:\n"
             + "  CANCEL to cancel the current request to play a game.\n"
             + "  CHAT with a chat message to chat with anybody on the server.\n");
 
+    // Client: PLAYER name
+    announcePlayer();
+
+    // Client: GO dimension [opponentName]
+    int dimension = getBoardDimension();
+    if (isCancelled) {
+      return;
+    }
+    announceBoardDimension(dimension);
+
+    // Server: WAITING
     Command waitingCommand = new Command(WAITING);
     waitingCommand.setExecutable(Protocol::doNothing);
 
     Command readyCommand = new Command(READY);
     readyCommand.setExecutable(this::startGame);
 
-    // Client: PLAYER name
-    announcePlayer();
-
-    // Client: GO dimension [opponentName]
-    announceBoardDimension(getBoardDimension());
-
     // Wait for ready signal to play a game
     do {
       expect(waitingCommand, readyCommand).execute();
-    } while (!ready);
+    } while (!isReady);
   }
 
-  private void startGame(List<String> argList) {
-    ready = true;
+  private void announcePlayer() throws MalformedArgumentsException {
+    send(PLAYER, name);
   }
 
-  private int getBoardDimension() throws CancelException {
+  private int getBoardDimension() {
     String input;
     int dimension = 0;
     System.out.println("On what board dimension do you want to play?");
@@ -190,8 +188,16 @@ public class Client {
         }
       }
       //TODO support specifying opponent name
-    } while (!Protocol.isValidDimension(dimension));
+    } while (!isCancelled && !Protocol.isValidDimension(dimension));
     return dimension;
+  }
+
+  private void announceBoardDimension(int dimension) throws MalformedArgumentsException {
+    send(GO, Integer.toString(dimension));
+  }
+
+  private void startGame(List<String> argList) {
+    isReady = true;
   }
 
   private void chat(String[] words) {
@@ -202,20 +208,12 @@ public class Client {
     }
   }
 
-  private void announcePlayer() throws MalformedArgumentsException {
-    send(PLAYER, name);
-  }
-
-  private void cancel() throws CancelException {
+  private void cancel() {
     try {
       send(CANCEL);
     } catch (MalformedArgumentsException ignored) {
     }
-    throw new CancelException();
-  }
-
-  private void announceBoardDimension(int dimension) throws MalformedArgumentsException {
-    send(GO, Integer.toString(dimension));
+    isCancelled = true;
   }
 
   private void send(Keyword keyword, String... arguments) throws MalformedArgumentsException {
