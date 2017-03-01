@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import net.Protocol.CancelException;
 import net.Protocol.Command;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
@@ -228,6 +229,4 @@ public class Client {
   private void stopClient() {
     peer.shutDown();
   }
-
-  private class CancelException extends Exception {}
 }
