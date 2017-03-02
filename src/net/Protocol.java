@@ -18,6 +18,8 @@ public interface Protocol {
 
   List<String> DEFAULT_EMPTY_ARGUMENT_LIST = Collections.emptyList();
   Executable DEFAULT_EXECUTABLE = Protocol::doNothing;
+  int MIN_DIMENSION = 5;
+  int MAX_DIMENSION = 131;
 
   //  List<String> KEYWORDS =
   //      Stream.concat(
@@ -120,7 +122,7 @@ public interface Protocol {
    * @return {@code true} if valid; {@code false} otherwise.
    */
   static boolean isValidDimension(int dimension) {
-    return dimension >= 5 && dimension <= 131 && dimension % 2 != 0;
+    return dimension >= MIN_DIMENSION && dimension <= MAX_DIMENSION && dimension % 2 != 0;
   }
 
   /**
