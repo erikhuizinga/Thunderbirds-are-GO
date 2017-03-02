@@ -4,7 +4,7 @@ import game.action.Move;
 import game.action.Move.MoveType;
 import game.material.Stone;
 import game.material.board.Board;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import util.Lists;
 
@@ -12,13 +12,13 @@ import util.Lists;
 public abstract class Player {
 
   /** The list of default {@code Player} names. */
-  public static final List<String> NAMES = Arrays.asList("player");
-
-  /** The {@code Player} name. */
-  private final String name;
+  public static final List<String> NAMES = Collections.singletonList("player");
 
   /** The {@code Player} {@code Stone}. */
-  private final Stone stone;
+  private Stone stone;
+
+  /** The {@code Player} name. */
+  private String name;
 
   /** The {@code MoveType} of the last {@code Move}. */
   private MoveType moveType;
@@ -40,7 +40,7 @@ public abstract class Player {
    */
   public Player(Stone stone, String name) {
     this.stone = stone;
-    this.name = name;
+    setName(name);
   }
 
   /**
@@ -62,6 +62,10 @@ public abstract class Player {
    */
   public static String displayFormat(String name, Stone stone) {
     return stone + " " + name;
+  }
+
+  public String displayFormat() {
+    return displayFormat(getName(), getStone());
   }
 
   /** @return the {@code Player} generalization. */
@@ -93,6 +97,15 @@ public abstract class Player {
    */
   public String getName() {
     return name;
+  }
+
+  public void setName(String name) {
+    assert name.length() > 0;
+    this.name = name;
+  }
+
+  public void setStone(Stone stone) {
+    this.stone = stone;
   }
 
   /**
