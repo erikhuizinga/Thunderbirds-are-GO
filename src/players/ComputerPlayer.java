@@ -15,17 +15,16 @@ public class ComputerPlayer extends Player {
   /** The list of default {@code ComputerPlayer} names. */
   public static final List<String> NAMES =
       Arrays.asList(
-          "Willy Wonka",
-          "Oompa Loompa",
+          "WillyWonka",
+          "OompaLoompa",
           "Fluffy",
           "B100",
-          "HAL 9000",
+          "HAL9000",
           "AlphaGo",
           "Watson",
           "Dragon",
           "Sloth",
-          "Proteus IV",
-          "I.N.T.E.L.L.I.G.E.N.C.E.",
+          "Proteus-IV",
           "Funnybot",
           "KITT",
           "A.I.D.A.",

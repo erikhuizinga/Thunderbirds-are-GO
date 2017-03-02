@@ -15,17 +15,17 @@ public class HumanPlayer extends Player {
   /** The list of default {@code HumanPlayer} names. */
   public static final List<String> NAMES =
       Arrays.asList(
-          "Jeff Tracy",
-          "Scott Tracy",
-          "Virgil Tracy",
-          "Alan Tracy",
-          "Gordon Tracy",
-          "John Tracy",
+          "Jeff",
+          "Scott",
+          "Virgil",
+          "Alan",
+          "Gordon",
+          "John",
           "Brains",
-          "Lady Penelope Creighton-Ward",
-          "Aloysius Parker",
-          "Zanger Rinus",
-          "Barry Badpak");
+          "Penelope",
+          "Parker",
+          "Rinus",
+          "Barry");
 
   public static final String HELP =
       "\n - To input a command, type the command and press \u2B90 (return).\n"
