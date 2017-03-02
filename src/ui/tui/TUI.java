@@ -10,16 +10,23 @@ import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Scanner;
+import net.Client;
+import net.Protocol;
+import net.Server;
+import players.ComputerPlayer;
 import players.HumanPlayer;
 import players.Player;
+import players.RemotePlayer;
 import ui.gui.GUI;
 
 /** Created by erik.huizinga on 27-1-17. */
 public class TUI implements Observer {
 
   /** The default menu prompt. */
-  public static final String DEFAULT_MENU_PROMPT =
+  private static final String DEFAULT_MENU_PROMPT =
       "Choose an option (enter the number of choice): ";
+
+  private static final String INDENT = " ";
 
   /** The input scanner. */
   private final Scanner scanner = new Scanner(System.in);
@@ -28,33 +35,23 @@ public class TUI implements Observer {
   private Go go;
 
   /** The first player (black). */
-  private Player p1;
-
-  /** The first player's name. */
-  private String p1Name;
+  private Player player1 = new HumanPlayer(Stone.UNKNOWN);
 
   /** The second player (white). */
-  private Player p2;
-
-  /** The second player's name. */
-  private String p2Name;
+  private Player player2 = new HumanPlayer(Stone.UNKNOWN);
 
   /** {@code true} if the player names have been set; {@code false} otherwise. */
   private boolean areNamesSet = false;
-
-  /** The display text for player 1. */
-  private String p1Display;
-
-  /** The display text for player 2. */
-  private String p2Display;
 
   /** {@code true} if identical player names are to be kept; {@code false} otherwise. */
   private boolean keepIdenticalNames = false;
 
   /** The single-side board dimension. */
-  private int dim;
+  private int dimension;
 
   private UIType uiType = UIType.TUI;
+
+  private boolean isNetGame;
 
   /** Instantiate a {@code TUI} to play Go. */
   public TUI() {
@@ -125,7 +122,12 @@ public class TUI implements Observer {
    * @param args the input arguments; none are supported.
    */
   public static void main(String[] args) {
-    TUI tui = new TUI();
+    new TUI();
+  }
+
+  private static void printNetPlayerConfig(Player player1) {
+    System.out.println("Current player name:");
+    System.out.println(INDENT + player1.getName() + " (" + player1.getGeneralization() + ")");
   }
 
   /** Print and handle the main menu. */
@@ -162,6 +164,8 @@ public class TUI implements Observer {
     System.out.println("o------------G");
     System.out.println();
 
+    isNetGame = false;
+
     List<String> choiceNumbers = Arrays.asList("0", "1", "2", "99", "100");
     String[] choiceStrings =
         new String[] {
@@ -192,8 +196,43 @@ public class TUI implements Observer {
     System.out.println("| NETWORK GAME |");
     System.out.println("o--------------G");
     System.out.println();
-    System.out.println("Not yet implemented, bummer!");
-    mainMenu();
+
+    isNetGame = true;
+
+    player2 = new RemotePlayer(Stone.UNKNOWN);
+
+    printNetPlayerConfig(player1);
+    System.out.println();
+
+    List<String> choiceNumbers = Arrays.asList("1", "2", "3", "99", "100");
+    String[] choiceStrings =
+        new String[] {
+          "Accept player configuration; continue to board size selection",
+          "Toggle human / computer player",
+          "Change name of " + player1.getName(),
+          "Go back to main menu",
+          "Exit"
+        };
+    MenuAction[] menuActions =
+        new MenuAction[] {
+          () -> acceptPlayers(player1, player2, this::netMenu),
+          () -> toggleHumanCPU(this::netMenu),
+          () -> {
+            String currentName = player1.getName();
+            changePlayerNameMenu(
+                player1.getName(),
+                this::setPlayer1Name,
+                () -> {
+                  do {
+                    setPlayer1Name(HumanPlayer.randomName());
+                  } while (player1.getName().equals(currentName));
+                },
+                this::netMenu);
+          },
+          this::mainMenu,
+          this::exitMenu
+        };
+    handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
   }
 
   /**
@@ -209,7 +248,6 @@ public class TUI implements Observer {
     System.out.println("Not yet implemented, bummer!");
     localMenu();
   }
-
   /**
    * Print and handle the single player game menu. A single player game is played locally between a
    * human player and a computer player.
@@ -236,35 +274,55 @@ public class TUI implements Observer {
     System.out.println();
 
     if (!areNamesSet) {
-      setP1Name(HumanPlayer.randomName());
+      setPlayer1Name(HumanPlayer.randomName());
       do {
-        setP2Name(HumanPlayer.randomName());
-      } while (p2Name.equals(p1Name));
+        setPlayer2Name(HumanPlayer.randomName());
+      } while (player2.getName().equals(player1.getName()));
       areNamesSet = true;
     }
 
-    printPlayerConfig();
+    if (player1 instanceof HumanPlayer) {
+      player1 = new HumanPlayer(player1.getName(), Stone.BLACK);
+    } else {
+      player1 = new HumanPlayer(Stone.BLACK);
+    }
+    if (player2 instanceof HumanPlayer) {
+      player2 = new HumanPlayer(player2.getName(), Stone.WHITE);
+    } else {
+      player2 = new HumanPlayer(Stone.WHITE);
+    }
 
-    if (!keepIdenticalNames && p1Name.equals(p2Name)) {
+    System.out.println(
+        "Current players (note that "
+            + Stone.BLACK
+            + " black goes before "
+            + Stone.WHITE
+            + " white):");
+    printPlayerConfig(player1, player2);
+    System.out.println();
+
+    if (!keepIdenticalNames && player1.getName().equals(player2.getName())) {
       System.out.println("The player names are identical, what do you want to do with them?");
       List<String> choiceNumbers = Arrays.asList("1", "2", "3");
       String[] choiceStrings =
           new String[] {
-            "Change name of " + p1Display, "Change name of " + p2Display, "Keep identical names"
+            "Change name of " + player1.displayFormat(),
+            "Change name of " + player2.displayFormat(),
+            "Keep identical names"
           };
       MenuAction[] menuActions =
           new MenuAction[] {
             () ->
                 changePlayerNameMenu(
-                    p1Display,
-                    this::setP1Name,
-                    () -> setP1Name(HumanPlayer.randomName()),
+                    player1.displayFormat(),
+                    this::setPlayer1Name,
+                    () -> setPlayer1Name(HumanPlayer.randomName()),
                     this::twoPlayerMenu),
             () ->
                 changePlayerNameMenu(
-                    p2Display,
-                    this::setP2Name,
-                    () -> setP2Name(HumanPlayer.randomName()),
+                    player2.displayFormat(),
+                    this::setPlayer2Name,
+                    () -> setPlayer2Name(HumanPlayer.randomName()),
                     this::twoPlayerMenu),
             () -> keepIdenticalNames = true
           };
@@ -274,8 +332,8 @@ public class TUI implements Observer {
     List<String> choiceNumbers = Arrays.asList("1", "2", "3", "4", "99", "100");
     String[] choiceStrings =
         new String[] {
-          "Change name of " + p1Name,
-          "Change name of " + p2Name,
+          "Change name of " + player1.getName(),
+          "Change name of " + player2.getName(),
           "Swap player colours",
           "Accept player configuration; continue to board size selection",
           "Go back to local game menu",
@@ -285,29 +343,29 @@ public class TUI implements Observer {
         new MenuAction[] {
           () ->
               changePlayerNameMenu(
-                  p1Name,
-                  this::setP1Name,
+                  player1.getName(),
+                  this::setPlayer1Name,
                   () -> {
                     do {
-                      setP1Name(HumanPlayer.randomName());
-                    } while (p1Name.equals(p2Name));
+                      setPlayer1Name(HumanPlayer.randomName());
+                    } while (player1.getName().equals(player2.getName()));
                   },
                   this::twoPlayerMenu),
           () ->
               changePlayerNameMenu(
-                  p2Name,
-                  this::setP2Name,
+                  player2.getName(),
+                  this::setPlayer2Name,
                   () -> {
                     do {
-                      setP2Name(HumanPlayer.randomName());
-                    } while (p2Name.equals(p1Name));
+                      setPlayer2Name(HumanPlayer.randomName());
+                    } while (player2.getName().equals(player1.getName()));
                   },
                   this::twoPlayerMenu),
           () -> swapPlayerColors(this::twoPlayerMenu),
           () ->
               acceptPlayers(
-                  new HumanPlayer(p1Name, Stone.BLACK),
-                  new HumanPlayer(p2Name, Stone.WHITE),
+                  new HumanPlayer(player1.getName(), Stone.BLACK),
+                  new HumanPlayer(player2.getName(), Stone.WHITE),
                   this::twoPlayerMenu),
           this::localMenu,
           this::exitMenu
@@ -333,8 +391,7 @@ public class TUI implements Observer {
     List<String> choiceNumbers = Arrays.asList("1", "2", "9");
     String[] choiceStrings =
         new String[] {"Set a custom name", "Set a random name", "Keep current name"};
-    MenuAction[] menuActions =
-        new MenuAction[] {() -> setPName.go(), () -> randomName.go(), () -> {}};
+    MenuAction[] menuActions = new MenuAction[] {setPName, randomName, () -> {}};
 
     handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
 
@@ -351,8 +408,8 @@ public class TUI implements Observer {
    * @param previousMenu the previous menu.
    */
   private void acceptPlayers(Player player1, Player player2, MenuAction previousMenu) {
-    setP1(player1);
-    setP2(player2);
+    this.player1 = player1;
+    this.player2 = player2;
     boardMenu(previousMenu);
   }
 
@@ -377,11 +434,11 @@ public class TUI implements Observer {
         };
     MenuAction[] menuActions =
         new MenuAction[] {
-          this::setDim,
-          () -> setDim(9),
-          () -> setDim(13),
-          () -> setDim(19),
-          () -> previousMenu.go(),
+          this::setDimension,
+          () -> dimension = 9,
+          () -> dimension = 13,
+          () -> dimension = 19,
+          previousMenu,
           this::exitMenu
         };
 
@@ -403,7 +460,20 @@ public class TUI implements Observer {
     System.out.println("o---------------------------G");
     System.out.println();
 
-    printPlayerConfig();
+    if (player2 instanceof RemotePlayer) {
+      printNetPlayerConfig(player1);
+
+    } else {
+      System.out.println(
+          "Current players (note that "
+              + Stone.BLACK
+              + " black goes before "
+              + Stone.WHITE
+              + " white):");
+      printPlayerConfig(player1, player2);
+    }
+    System.out.println();
+
     printBoardConfig();
     printUIConfig();
 
@@ -413,18 +483,18 @@ public class TUI implements Observer {
     List<String> choiceNumbers = Arrays.asList("1", "2", "3", "4", "99");
     String[] choiceStrings =
         new String[] {
+          isNetGame ? "Connect to server and play GO!" : "Play GO!",
           "Review player configuration",
           "Review board configuration",
           "Change UI to " + uiType.other(),
-          "Start game!",
           "Go back to main menu"
         };
     MenuAction[] menuActions =
         new MenuAction[] {
-          () -> previousMenu.go(),
+          this::play,
+          previousMenu,
           () -> boardMenu(() -> reviewMenu(previousMenu)),
           () -> swapUIConfiguration(() -> reviewMenu(previousMenu)),
-          this::play,
           this::mainMenu
         };
     handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
@@ -439,23 +509,18 @@ public class TUI implements Observer {
     handleChoices(DEFAULT_MENU_PROMPT, choiceNumbers, choiceStrings, menuActions);
   }
 
-  /** Print the current player configuration. */
-  private void printPlayerConfig() {
-    System.out.println(
-        "Current players (note that "
-            + Stone.BLACK
-            + " black goes before "
-            + Stone.WHITE
-            + " white):");
-    p1Display = HumanPlayer.displayFormat(p1Name, Stone.BLACK);
-    System.out.println(" " + p1Display);
-    p2Display = HumanPlayer.displayFormat(p2Name, Stone.WHITE);
-    System.out.println(" " + p2Display);
-    System.out.println();
+  private void printPlayerConfig(Player player) {
+    String displayFormat = player.displayFormat();
+    System.out.println(INDENT + displayFormat);
+  }
+
+  private void printPlayerConfig(Player player1, Player player2) {
+    printPlayerConfig(player1);
+    printPlayerConfig(player2);
   }
 
   private void printBoardConfig() {
-    System.out.println("Current board size is " + dim + "×" + dim + ".");
+    System.out.println("Current board size is " + dimension + "×" + dimension + ".");
   }
 
   private void printUIConfig() {
@@ -474,7 +539,7 @@ public class TUI implements Observer {
       String prompt, List<String> choiceNumbers, String[] choiceStrings, MenuAction[] menuActions) {
     Map<String, MenuAction> actionMap = new HashMap<>();
     for (int i = 0; i < choiceNumbers.size(); i++) {
-      System.out.println(" " + choiceNumbers.get(i) + ". " + choiceStrings[i]);
+      System.out.println(INDENT + choiceNumbers.get(i) + ". " + choiceStrings[i]);
       actionMap.put(choiceNumbers.get(i), menuActions[i]);
     }
     System.out.println();
@@ -501,9 +566,18 @@ public class TUI implements Observer {
    * @param previousMenu the previous menu.
    */
   private void swapPlayerColors(MenuAction previousMenu) {
-    String oldP1Name = p1Name;
-    setP1Name(p2Name);
-    setP2Name(oldP1Name);
+    String oldP1Name = player1.getName();
+    setPlayer1Name(player2.getName());
+    setPlayer2Name(oldP1Name);
+    previousMenu.go();
+  }
+
+  private void toggleHumanCPU(MenuAction previousMenu) {
+    if (player1 instanceof HumanPlayer) {
+      player1 = new ComputerPlayer(player1.getStone());
+    } else {
+      player1 = new HumanPlayer(player1.getStone());
+    }
     previousMenu.go();
   }
 
@@ -550,17 +624,44 @@ public class TUI implements Observer {
 
   /** Play the game. */
   private void play() {
-    setGo(new Go(dim, p1, p2));
-    if (uiType == UIType.GUI) {
-      go.addObserver(new GUI(dim));
+    if (isNetGame) {
+      String serverAddress =
+          readPrompt("Please input a server address (or leave empty for default): ");
+      if (serverAddress.equals("")) {
+        serverAddress = Server.DEFAULT_ADDRESS;
+      }
+
+      String serverPort = readPrompt("Please input a server port (or leave empty for default): ");
+      if (serverPort.equals("")) {
+        serverPort = Server.DEFAULT_PORT;
+      }
+      System.out.println();
+
+      printPlayHeader();
+      System.out.println();
+
+      Client client =
+          new Client(
+              player1.getName(), serverAddress, Integer.parseInt(serverPort), this, dimension);
+      client.startClient();
+
+    } else {
+      System.out.println();
+      printPlayHeader();
+      setGo(new Go(dimension, player1, player2));
+      if (uiType == UIType.GUI) {
+        go.addObserver(new GUI(dimension));
+      }
+      go.addObserver(this);
+      Thread goThread = new Thread(go);
+      goThread.start();
     }
-    go.addObserver(this);
-    Thread goThread = new Thread(go);
-    System.out.println();
+  }
+
+  private void printPlayHeader() {
     System.out.println("G---------------o");
     System.out.println("| LET'S PLAY GO |");
     System.out.println("o---------------G");
-    goThread.start();
   }
 
   @Override
@@ -591,57 +692,54 @@ public class TUI implements Observer {
     this.go = go;
   }
 
-  private void setP1Name() {
+  private void setPlayer1Name() {
     String newName = readName();
-    setP1Name(newName);
+    setPlayer1Name(newName);
   }
 
-  private void setP2Name() {
+  private void setPlayer2Name() {
     String newName = readName();
-    setP2Name(newName);
+    setPlayer2Name(newName);
   }
 
-  private void setP1Name(String name) {
-    if (!name.equals("") && name != null) {
+  private void setPlayer1Name(String name) {
+    if (!name.equals("")) {
       keepIdenticalNames = false;
-      p1Name = name;
+      player1.setName(name);
     }
   }
 
-  private void setP2Name(String name) {
-    if (!name.equals("") && name != null) {
+  private void setPlayer2Name(String name) {
+    if (!name.equals("")) {
       keepIdenticalNames = false;
-      p2Name = name;
+      player2.setName(name);
     }
   }
 
-  private void setP1(Player p1) {
-    this.p1 = p1;
-  }
-
-  private void setP2(Player p2) {
-    this.p2 = p2;
-  }
-
-  private void setDim(int dim) {
-    this.dim = dim;
-  }
-
-  private void setDim() {
-    int dim;
+  private void setDimension() {
+    int dimension;
+    final int minDimension = Protocol.MIN_DIMENSION;
+    final int maxDimension = isNetGame ? Protocol.MAX_DIMENSION : 1001;
     do {
       try {
-        dim =
+        dimension =
             Integer.parseInt(
                 readPrompt(
                     "\nEnter a custom dimension by entering just one number, i.e., \n"
-                        + "the single-side board length (must be greater than or equal to 5 and\n"
-                        + "less than or equal to 1001): "));
+                        + "the single-side board length (must be greater than or equal to "
+                        + minDimension
+                        + " and\n"
+                        + "less than or equal to "
+                        + maxDimension
+                        + (isNetGame ? " and odd" : "")
+                        + "): "));
       } catch (NumberFormatException e) {
-        dim = -1;
+        dimension = -1;
       }
-    } while (dim < 5 || 1001 < dim);
-    setDim(dim);
+    } while (isNetGame
+        ? !Protocol.isValidDimension(dimension)
+        : dimension < minDimension || maxDimension < dimension);
+    this.dimension = dimension;
   }
 
   /** The type of UI used. */
@@ -661,7 +759,54 @@ public class TUI implements Observer {
     }
   }
 
-  /** An adapter to allow pointers to functions. */
+  //  private enum PlayerType {
+  //    HUMAN,
+  //    COMPUTER;
+  //
+  //    PlayerType other() {
+  //      switch (this) {
+  //        case COMPUTER:
+  //          return HUMAN;
+  //        case HUMAN:
+  //          return COMPUTER;
+  //        default:
+  //          return null;
+  //      }
+  //    }
+  //
+  //    //    Player instantiate(Object... args) {
+  //    //      Class[] argClasses = new Class[args.length];
+  //    //      for (int i = 0; i < args.length; i++) {
+  //    //        argClasses[i] = args[i].getClass();
+  //    //      }
+  //    //      Player player = null;
+  //    //      Constructor constructor;
+  //    //      try {
+  //    //        switch (this) {
+  //    //          case COMPUTER:
+  //    //            constructor = ComputerPlayer.class.getDeclaredConstructor(argClasses);
+  //    //            player = (ComputerPlayer) constructor.newInstance(args);
+  //    //            break;
+  //    //
+  //    //          case HUMAN:
+  //    //            constructor = HumanPlayer.class.getDeclaredConstructor(argClasses);
+  //    //            player = (HumanPlayer) constructor.newInstance(args);
+  //    //            break;
+  //    //
+  //    //          default:
+  //    //            player = null;
+  //    //        }
+  //    //      } catch (InstantiationException
+  //    //          | IllegalAccessException
+  //    //          | NoSuchMethodException
+  //    //          | InvocationTargetException e) {
+  //    //        e.printStackTrace();
+  //    //      }
+  //    //      return player;
+  //    //    }
+  //  }
+
+  //TODO make a Menu class/interface for every menu
   @FunctionalInterface
   private interface MenuAction {
     void go();

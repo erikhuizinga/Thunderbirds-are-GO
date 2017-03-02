@@ -7,7 +7,10 @@ public enum Stone implements Material {
   BLACK,
 
   /** The white stone. */
-  WHITE;
+  WHITE,
+
+  /** An unknown stone. */
+  UNKNOWN;
 
   /** @return the {@code Stone} as a {@code String}. */
   @Override
@@ -21,7 +24,7 @@ public enum Stone implements Material {
         string = "●"; // ●⬤
         break;
       default:
-        string = null;
+        string = BLACK + " or " + WHITE;
     }
     return string;
   }
@@ -37,7 +40,7 @@ public enum Stone implements Material {
         stone = BLACK;
         break;
       default:
-        stone = null;
+        stone = UNKNOWN;
     }
     return stone;
   }

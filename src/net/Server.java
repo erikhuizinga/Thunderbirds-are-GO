@@ -15,6 +15,7 @@ import static net.Protocol.isValidDimension;
 
 import game.Go;
 import game.material.Stone;
+import game.material.board.Board;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -38,6 +39,10 @@ import players.RemotePlayer;
 
 /** Created by erik.huizinga on 2-2-17. */
 public class Server {
+
+  public static final String DEFAULT_ADDRESS = "localhost";
+
+  public static final String DEFAULT_PORT = "1336";
 
   public static final String USAGE = "usage: java " + Server.class.getName() + " <name> <port>";
 
@@ -115,8 +120,9 @@ public class Server {
         socket = serverSocket.accept();
         peer = new Peer(socket);
         new ClientHandler(peer).start();
+        Thread.sleep(10);
 
-      } catch (IOException e) {
+      } catch (IOException | InterruptedException e) {
         e.printStackTrace();
       }
     }
@@ -394,6 +400,11 @@ public class Server {
     public void update(Observable o, Object arg) {
       if (o instanceof Go) {
         Go go = (Go) o;
+        if (arg instanceof Board) {
+          Board board = (Board) arg;
+          System.out.println(board);
+          System.out.println();
+        }
       }
     }
 

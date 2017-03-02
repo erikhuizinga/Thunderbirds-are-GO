@@ -14,6 +14,15 @@ public class RemotePlayer extends Player {
     super(stone, name);
   }
 
+  public RemotePlayer(Stone stone) {
+    super(stone);
+  }
+
+  /** @return a randomly generated remote player name, identical to a random human player name. */
+  public static String randomName() {
+    return HumanPlayer.randomName();
+  }
+
   @Override
   public String getGeneralization() {
     return generalization;

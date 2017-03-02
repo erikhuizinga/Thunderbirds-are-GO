@@ -26,7 +26,9 @@ import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
 import players.HumanPlayer;
+import players.Player;
 import players.RemotePlayer;
+import ui.tui.TUI;
 import util.Strings;
 
 /** Created by erik.huizinga on 2-2-17. */
@@ -42,8 +44,9 @@ public class Client implements Observer {
   private boolean isCancelled = false;
   private int dimension;
   private Stone stone;
+  private TUI tui = null;
 
-  private Client(String name, String address, int port) {
+  public Client(String name, String address, int port) {
     this.name = name;
 
     // Set peer
@@ -61,6 +64,12 @@ public class Client implements Observer {
     this.name = name;
     this.peer = peer;
     this.in = peer.getScanner();
+  }
+
+  public Client(String name, String address, int port, TUI tui, int dimension) {
+    this(name, address, port);
+    this.tui = tui;
+    this.dimension = dimension;
   }
 
   public static void main(String[] args) {
@@ -107,7 +116,7 @@ public class Client implements Observer {
     return peer;
   }
 
-  private void startClient() {
+  public void startClient() {
     // Start peer thread and play
     peer.startPeer();
     try {
@@ -143,7 +152,9 @@ public class Client implements Observer {
     announcePlayer();
 
     // Client: GO dimension [opponentName]
-    dimension = getBoardDimension();
+    if (!Protocol.isValidDimension(dimension)) {
+      dimension = getBoardDimension();
+    }
     if (isCancelled) {
       return;
     }
@@ -214,15 +225,25 @@ public class Client implements Observer {
             + "."); // TODO create argument getters depending on Keyword
     System.out.println("Your opponent is " + opponentName + ".");
 
+    // Instantiate players
+    Player blackPlayer;
+    Player whitePlayer;
+    if (stone == Stone.BLACK) {
+      blackPlayer = new HumanPlayer(name, stone);
+      whitePlayer = new RemotePlayer(stone.other(), opponentName);
+    } else {
+      whitePlayer = new HumanPlayer(name, stone);
+      blackPlayer = new RemotePlayer(stone.other(), opponentName);
+    }
+
     // Start the game
-    Go go =
-        new Go(
-            dimension, new HumanPlayer(name, stone), new RemotePlayer(stone.other(), opponentName));
+    Go go = new Go(dimension, blackPlayer, whitePlayer);
     Thread goThread = new Thread(go);
     goThread.start();
+
     while (!Rules.isFinished(go)) {
       try {
-        Thread.sleep(1000); //TODO reduce time or handle end differently
+        Thread.sleep(1000); //TODO reduce time or handle finished game differently
       } catch (InterruptedException ignored) {
       }
     }
@@ -252,7 +273,7 @@ public class Client implements Observer {
     peer.send(command);
   }
 
-  private void stopClient() {
+  public void stopClient() {
     try {
       send(EXIT);
     } catch (MalformedArgumentsException ignored) {
