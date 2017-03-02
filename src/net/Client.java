@@ -10,21 +10,27 @@ import static net.Protocol.Keyword.WAITING;
 import static net.Protocol.Keyword.WARNING;
 import static net.Protocol.SPACE;
 
+import game.Go;
+import game.Rules;
 import game.material.Stone;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import net.Protocol.Command;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
+import players.HumanPlayer;
+import players.RemotePlayer;
 import util.Strings;
 
 /** Created by erik.huizinga on 2-2-17. */
-public class Client {
+public class Client implements Observer {
 
   public static final String USAGE =
       "usage: java " + Client.class.getName() + " <name> <address> <port>";
@@ -34,6 +40,8 @@ public class Client {
   private final Scanner in;
   private boolean isReady = false;
   private boolean isCancelled = false;
+  private int dimension;
+  private Stone stone;
 
   private Client(String name, String address, int port) {
     this.name = name;
@@ -135,7 +143,7 @@ public class Client {
     announcePlayer();
 
     // Client: GO dimension [opponentName]
-    int dimension = getBoardDimension();
+    dimension = getBoardDimension();
     if (isCancelled) {
       return;
     }
@@ -193,17 +201,31 @@ public class Client {
   }
 
   private void startGame(List<String> argList) {
-    String color = argList.get(0);
+    isReady = true;
+    String color = argList.get(0).toUpperCase();
+    stone = Enum.valueOf(Stone.class, color);
     String opponentName = argList.get(1);
     System.out.println("Ready to play GO!");
     System.out.println(
         "Your colour is "
-            + Enum.valueOf(Stone.class, color.toUpperCase())
+            + stone
             + " "
             + color
             + "."); // TODO create argument getters depending on Keyword
     System.out.println("Your opponent is " + opponentName + ".");
-    isReady = true;
+
+    // Start the game
+    Go go =
+        new Go(
+            dimension, new HumanPlayer(name, stone), new RemotePlayer(stone.other(), opponentName));
+    Thread goThread = new Thread(go);
+    goThread.start();
+    while (!Rules.isFinished(go)) {
+      try {
+        Thread.sleep(1000); //TODO reduce time or handle end differently
+      } catch (InterruptedException ignored) {
+      }
+    }
   }
 
   private void chat(String[] words) {
@@ -240,5 +262,12 @@ public class Client {
 
   public String getName() {
     return name;
+  }
+
+  @Override
+  public void update(Observable o, Object arg) {
+    if (o instanceof Go) {
+      Go go = (Go) o;
+    }
   }
 }

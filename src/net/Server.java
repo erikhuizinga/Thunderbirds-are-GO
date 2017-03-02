@@ -184,10 +184,10 @@ public class Server {
       in = peer.getScanner();
     }
 
-    private Command expect(Keyword... expectedKeywords)
+    private Command expect(Command... expectedCommands)
         throws UnexpectedKeywordException, MalformedArgumentsException {
       List<Command> expectedCommandList =
-          Arrays.stream(expectedKeywords).map(Command::new).collect(Collectors.toList());
+          Arrays.stream(expectedCommands).collect(Collectors.toList());
 
       Command chatCommand = new Command(CHAT);
       chatCommand.setExecutable(this::chatHandler);
@@ -352,8 +352,8 @@ public class Server {
       BLACK_INDEX = (int) Math.round(Math.random());
       blackClient = clients.get(BLACK_INDEX);
       whiteClient = clients.get(1 - BLACK_INDEX);
-      blackPlayer = new RemotePlayer(Stone.BLACK, blackClient.getName(), blackClient.getPeer());
-      whitePlayer = new RemotePlayer(Stone.WHITE, whiteClient.getName(), blackClient.getPeer());
+      blackPlayer = new RemotePlayer(Stone.BLACK, blackClient.getName());
+      whitePlayer = new RemotePlayer(Stone.WHITE, whiteClient.getName());
       this.dimension = dimension;
     }
 
@@ -367,7 +367,7 @@ public class Server {
 
       // Play GO
       Thread goThread = new Thread(go);
-      // goThread.start();
+      goThread.start();
     }
 
     private void sendReady() {

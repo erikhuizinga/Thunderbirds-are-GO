@@ -25,6 +25,12 @@ public class RemotePlayer extends Player {
 
   @Override
   public Move nextMove(Board board) {
+    while (nextMove == null) {
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException ignored) {
+      }
+    }
     Move nextMove = this.nextMove;
     this.nextMove = null;
     return nextMove;
