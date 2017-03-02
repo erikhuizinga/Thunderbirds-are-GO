@@ -8,12 +8,11 @@ import java.net.Socket;
 import java.util.Scanner;
 
 /** Created by erik.huizinga on 2-2-17. */
-public class Peer implements Runnable {
+public class Peer {
 
   private final Socket socket;
   private final Scanner scanner;
   private final PrintStream out;
-  private final Thread thread = new Thread(this);
   private boolean keepRunning;
 
   public Peer(Socket socket) {
@@ -36,10 +35,6 @@ public class Peer implements Runnable {
     return scanner;
   }
 
-  @Override
-  public void run() {
-  }
-
   void shutDown() {
     try {
       keepRunning = false;
@@ -55,7 +50,6 @@ public class Peer implements Runnable {
 
   void startPeer() {
     keepRunning = true;
-    thread.start();
   }
 
   void send(String command) {
