@@ -2,6 +2,7 @@ package net;
 
 import static net.Protocol.Keyword.CANCEL;
 import static net.Protocol.Keyword.CHAT;
+import static net.Protocol.Keyword.EXIT;
 import static net.Protocol.Keyword.GO;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.READY;
@@ -196,6 +197,15 @@ class ProtocolTest {
 
     // Test any arguments, which should be ignored
     assertTrue(CANCEL.isValidArgList(Arrays.asList("a", "bc", "def")));
+  }
+
+  @Test
+  void testEXIT() {
+    // Test correct arguments
+    assertTrue(EXIT.isValidArgList(Collections.emptyList()));
+
+    // Test any arguments, which should be ignored
+    assertTrue(EXIT.isValidArgList(Arrays.asList("a", "bc", "def")));
   }
 
   @Test

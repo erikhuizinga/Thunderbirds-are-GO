@@ -211,7 +211,8 @@ public interface Protocol {
     // Client
     PLAYER,
     GO,
-    CANCEL;
+    CANCEL,
+    EXIT;
 
     /**
      * Check if the specified {@code List<String>} of arguments is valid for the {@code Keyword}.
@@ -294,6 +295,13 @@ public interface Protocol {
         case CANCEL:
           /*
           CANCEL
+          No arguments, ignore any
+           */
+          return true;
+
+        case EXIT:
+          /*
+          EXIT
           No arguments, ignore any
            */
           return true;

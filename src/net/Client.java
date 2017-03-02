@@ -2,6 +2,7 @@ package net;
 
 import static net.Protocol.Keyword.CANCEL;
 import static net.Protocol.Keyword.CHAT;
+import static net.Protocol.Keyword.EXIT;
 import static net.Protocol.Keyword.GO;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.READY;
@@ -246,6 +247,10 @@ public class Client {
   }
 
   private void stopClient() {
+    try {
+      send(EXIT);
+    } catch (MalformedArgumentsException ignored) {
+    }
     peer.shutDown();
   }
 

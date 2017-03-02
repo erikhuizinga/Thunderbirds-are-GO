@@ -3,6 +3,7 @@ package net;
 import static net.Protocol.BLACK;
 import static net.Protocol.Keyword.CANCEL;
 import static net.Protocol.Keyword.CHAT;
+import static net.Protocol.Keyword.EXIT;
 import static net.Protocol.Keyword.GO;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.READY;
@@ -191,6 +192,10 @@ public class Server {
       Command chatCommand = new Command(CHAT);
       chatCommand.setExecutable(this::chatHandler);
       expectedCommandList.add(chatCommand);
+
+      Command exitCommand = new Command(EXIT);
+      exitCommand.setExecutable(argList -> stopClientHandler());
+      expectedCommandList.add(exitCommand);
 
       return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
     }
