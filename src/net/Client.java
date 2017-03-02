@@ -221,7 +221,7 @@ public class Client implements Observer {
         "Your colour is "
             + stone
             + " "
-            + color
+            + color.toLowerCase()
             + "."); // TODO create argument getters depending on Keyword
     System.out.println("Your opponent is " + opponentName + ".");
 
@@ -236,8 +236,15 @@ public class Client implements Observer {
       blackPlayer = new RemotePlayer(stone.other(), opponentName);
     }
 
-    // Start the game
+    // Instantiate game
     Go go = new Go(dimension, blackPlayer, whitePlayer);
+
+    // Add TUI as observer of the game
+    if (tui != null) {
+      go.addObserver(tui);
+    }
+
+    // Start the game
     Thread goThread = new Thread(go);
     goThread.start();
 

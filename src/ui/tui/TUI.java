@@ -648,6 +648,7 @@ public class TUI implements Observer {
     } else {
       System.out.println();
       printPlayHeader();
+
       setGo(new Go(dimension, player1, player2));
       if (uiType == UIType.GUI) {
         go.addObserver(new GUI(dimension));
@@ -668,9 +669,10 @@ public class TUI implements Observer {
   public void update(Observable observable, Object arg) {
     if (observable instanceof Go) {
       if (arg instanceof Board && uiType == UIType.TUI) {
+        Board board = (Board) arg;
         setGo((Go) observable);
         System.out.println();
-        System.out.println(arg);
+        System.out.println(board);
         System.out.println();
 
       } else if (arg instanceof String) {

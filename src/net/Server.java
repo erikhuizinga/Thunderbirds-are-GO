@@ -402,6 +402,7 @@ public class Server {
         Go go = (Go) o;
         if (arg instanceof Board) {
           Board board = (Board) arg;
+          System.out.println();
           System.out.println(board);
           System.out.println();
         }
