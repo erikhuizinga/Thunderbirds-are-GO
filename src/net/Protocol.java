@@ -1,5 +1,6 @@
 package net;
 
+import game.material.Stone;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -12,8 +13,8 @@ import java.util.stream.Collectors;
 public interface Protocol {
 
   String SPACE = " ";
-  String BLACK = "black";
-  String WHITE = "white";
+  String BLACK = Stone.BLACK.name().toLowerCase();
+  String WHITE = Stone.WHITE.name().toLowerCase();
 
   List<String> DEFAULT_EMPTY_ARGUMENT_LIST = Collections.emptyList();
   Executable DEFAULT_EXECUTABLE = Protocol::doNothing;

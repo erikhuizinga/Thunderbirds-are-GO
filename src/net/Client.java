@@ -9,6 +9,7 @@ import static net.Protocol.Keyword.WAITING;
 import static net.Protocol.Keyword.WARNING;
 import static net.Protocol.SPACE;
 
+import game.material.Stone;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
@@ -33,7 +34,7 @@ public class Client {
   private boolean isReady = false;
   private boolean isCancelled = false;
 
-  public Client(String name, String address, int port) {
+  private Client(String name, String address, int port) {
     this.name = name;
 
     // Set peer
@@ -45,6 +46,12 @@ public class Client {
     }
     peer = new Peer(socket);
     in = peer.getScanner();
+  }
+
+  protected Client(String name, Peer peer) {
+    this.name = name;
+    this.peer = peer;
+    this.in = peer.getScanner();
   }
 
   public static void main(String[] args) {
@@ -85,6 +92,10 @@ public class Client {
     Client client = new Client(name, address, port);
     client.startClient();
     client.stopClient();
+  }
+
+  public Peer getPeer() {
+    return peer;
   }
 
   private void startClient() {
@@ -147,7 +158,7 @@ public class Client {
 
     // Server: WAITING
     Command waitingCommand = new Command(WAITING);
-    waitingCommand.setExecutable(Protocol::doNothing);
+    waitingCommand.setExecutable(argList -> System.out.println("Waiting for another player..."));
 
     Command readyCommand = new Command(READY);
     readyCommand.setExecutable(this::startGame);
@@ -197,6 +208,16 @@ public class Client {
   }
 
   private void startGame(List<String> argList) {
+    String color = argList.get(0);
+    String opponentName = argList.get(1);
+    System.out.println("Ready to play GO!");
+    System.out.println(
+        "Your colour is "
+            + Enum.valueOf(Stone.class, color.toUpperCase())
+            + " "
+            + color
+            + "."); // TODO create argument getters depending on Keyword
+    System.out.println("Your opponent is " + opponentName + ".");
     isReady = true;
   }
 
@@ -226,5 +247,9 @@ public class Client {
 
   private void stopClient() {
     peer.shutDown();
+  }
+
+  public String getName() {
+    return name;
   }
 }

@@ -75,7 +75,7 @@ public class Go extends Observable implements Runnable {
       playTurn();
     } while (!Rules.isFinished(this));
     setChanged();
-    // Determine reason for finish
+    // Determine reason for end of game
     if (Rules.isFinishedAfterPasses(this)) {
       Stone stone = getCurrentPlayer().getStone();
       notifyObservers(stone + " passed after " + stone.other() + "; the game is over.");

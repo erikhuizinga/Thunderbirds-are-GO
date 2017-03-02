@@ -1,30 +1,39 @@
 package net;
 
+import static net.Protocol.BLACK;
 import static net.Protocol.Keyword.CANCEL;
 import static net.Protocol.Keyword.CHAT;
 import static net.Protocol.Keyword.GO;
 import static net.Protocol.Keyword.PLAYER;
+import static net.Protocol.Keyword.READY;
 import static net.Protocol.Keyword.WAITING;
 import static net.Protocol.Keyword.WARNING;
 import static net.Protocol.SPACE;
+import static net.Protocol.WHITE;
 import static net.Protocol.isValidDimension;
 
+import game.Go;
+import game.material.Stone;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import net.Protocol.Command;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
+import players.Player;
+import players.RemotePlayer;
 
 /** Created by erik.huizinga on 2-2-17. */
 public class Server {
@@ -38,13 +47,13 @@ public class Server {
   private final ServerSocket serverSocket;
 
   /** The list of client peers. */
-  private final Collection<Peer> clients = new LinkedList<>();
+  private final List<Client> clients = Collections.synchronizedList(new LinkedList<>());
 
   /** The map of peers and their desired board dimensions. */
-  private final Map<Peer, Integer> waitingPeerDimensionMap = new HashMap<>();
+  private final Map<Client, Integer> waitingClientDimensionMap = new HashMap<>();
 
   /** The list of games. */
-  private final List<GameHandler> games = new LinkedList<>();
+  private final List<GameHandler> games = Collections.synchronizedList(new LinkedList<>());
 
   /**
    * The switch indicating whether or not the {@code Server} is open to accept new connections from
@@ -104,7 +113,6 @@ public class Server {
       try {
         socket = serverSocket.accept();
         peer = new Peer(socket);
-        clients.add(peer);
         new ClientHandler(peer).start();
 
       } catch (IOException e) {
@@ -127,41 +135,38 @@ public class Server {
     }
   }
 
-  private synchronized void handleWaitingPeer(Peer peer, int dimension) {
-    waitingPeerDimensionMap.put(peer, dimension);
-    matchWaitingPeers();
+  private synchronized GameHandler handleWaitingClient(Client client, int dimension) {
+    waitingClientDimensionMap.put(client, dimension);
+    return matchWaitingPeers();
   }
 
-  private synchronized void matchWaitingPeers() {
-    if (waitingPeerDimensionMap.size() >= 2) {
-      Map<Integer, Peer> waitingDimensionPeerMap = new HashMap<>();
-      Map<Peer, Integer> waitingPeerDimensionMapCopy = new HashMap<>(waitingPeerDimensionMap);
+  private synchronized GameHandler matchWaitingPeers() {
+    if (waitingClientDimensionMap.size() >= 2) {
+      Map<Integer, Client> waitingDimensionClientMap = new HashMap<>();
+      Map<Client, Integer> waitingClientDimensionMapCopy = new HashMap<>(waitingClientDimensionMap);
 
-      for (Entry<Peer, Integer> entry : waitingPeerDimensionMapCopy.entrySet()) {
-        if (waitingDimensionPeerMap.containsKey(
-            entry.getValue())) { // There is a match, match up the peers and handle their game
-          Peer peer1 = waitingDimensionPeerMap.get(entry.getValue());
-          Peer peer2 = entry.getKey();
-          List<Peer> peerList = Arrays.asList(peer1, peer2);
+      for (Entry<Client, Integer> entry : waitingClientDimensionMapCopy.entrySet()) {
+        //TODO assert connected status
+        if (waitingDimensionClientMap.containsKey(entry.getValue())) {
+          // There is a dimension match, match the clients and handle their game
+          Client client1 = waitingDimensionClientMap.get(entry.getValue());
+          Client client2 = entry.getKey();
+          int dimension = entry.getValue();
 
           // Remove the peers from the waiting lists
-          waitingPeerDimensionMap.remove(entry.getKey());
-          waitingPeerDimensionMap.remove(waitingDimensionPeerMap.get(entry.getValue()));
-          waitingDimensionPeerMap.remove(entry.getValue());
+          waitingClientDimensionMap.remove(entry.getKey());
+          waitingClientDimensionMap.remove(waitingDimensionClientMap.get(entry.getValue()));
+          waitingDimensionClientMap.remove(entry.getValue());
 
           // Start a new game
-          GameHandler gameHandler = new GameHandler(peerList);
-          games.add(gameHandler);
-          gameHandler.start();
-
-          // Break the loop; we know there cannot be any more matches until a new client connects
-          break;
+          return new GameHandler(client1, client2, dimension);
 
         } else { // Store the unmatched dimension as a key to the unmatched peer
-          waitingDimensionPeerMap.put(entry.getValue(), entry.getKey());
+          waitingDimensionClientMap.put(entry.getValue(), entry.getKey());
         }
       }
     }
+    return null;
   }
 
   private class ClientHandler implements Runnable {
@@ -203,11 +208,7 @@ public class Server {
     }
 
     private void send(Keyword keyword, String... arguments) throws MalformedArgumentsException {
-      send(Protocol.validateAndFormatCommandString(keyword, arguments));
-    }
-
-    private void send(String command) {
-      peer.send(command);
+      peer.send(Protocol.validateAndFormatCommandString(keyword, arguments));
     }
 
     private void stopClientHandler() {
@@ -219,7 +220,7 @@ public class Server {
     public void run() {
       while (keepRunning) {
         // Client: PLAYER name
-        receivePlayer();
+        Client client = receiveClient();
 
         // Client: GO dimension
         int dimension = receiveDimension();
@@ -235,15 +236,26 @@ public class Server {
           stopClientHandler();
           return;
         }
-        handleWaitingPeer(peer, dimension);
+
+        // Handle waiting clients
+        GameHandler gameHandler = handleWaitingClient(client, dimension);
+
+        // Start a new game
+        if (gameHandler != null) {
+          games.add(gameHandler);
+          gameHandler.start();
+        }
       }
     }
 
-    private void receivePlayer() {
+    private Client receiveClient() {
+      final Client[] client = new Client[1];
       Command playerCommand = new Command(PLAYER);
       playerCommand.setExecutable(
           argList -> {
             playerName = argList.get(0);
+            client[0] = new Client(playerName, peer);
+            clients.add(client[0]);
             waiting4Player = false;
           });
       do {
@@ -256,6 +268,7 @@ public class Server {
           warn("malformed argument(s)");
         }
       } while (waiting4Player);
+      return client[0];
     }
 
     private int receiveDimension() {
@@ -303,11 +316,12 @@ public class Server {
         warn("CHAT arguments malformed");
         return;
       }
-      for (Peer client : clients) {
-        if (client.equals(peer)) {
+      for (Client client : clients) {
+        Peer peer = client.getPeer();
+        if (peer.equals(this.peer)) {
           continue;
         }
-        client.send(command);
+        peer.send(command);
       }
     }
 
@@ -317,7 +331,7 @@ public class Server {
 
     private void warn(String message) {
       try {
-        send(Protocol.validateAndFormatCommandString(WARNING, message.split(SPACE)));
+        peer.send(Protocol.validateAndFormatCommandString(WARNING, message.split(SPACE)));
       } catch (MalformedArgumentsException e) {
         System.err.println("Wachoouptoo, server?");
       }
@@ -329,19 +343,70 @@ public class Server {
     }
   }
 
-  private class GameHandler implements Runnable {
+  private class GameHandler implements Runnable, Observer {
 
-    private final List<Peer> peers;
+    private final int BLACK_INDEX;
+    private final Client blackClient;
+    private final Client whiteClient;
+    private final Player blackPlayer;
+    private final Player whitePlayer;
+    private final int dimension;
+    private final List<Client> clients;
+    private final Thread thread = new Thread(this);
+    private Go go;
 
-    public GameHandler(List<Peer> peers) {
-      this.peers = peers;
+    public GameHandler(Client client1, Client client2, int dimension) {
+      clients = Arrays.asList(client1, client2);
+      BLACK_INDEX = (int) Math.round(Math.random());
+      blackClient = clients.get(BLACK_INDEX);
+      whiteClient = clients.get(1 - BLACK_INDEX);
+      blackPlayer = new RemotePlayer(Stone.BLACK, blackClient.getName(), blackClient.getPeer());
+      whitePlayer = new RemotePlayer(Stone.WHITE, whiteClient.getName(), blackClient.getPeer());
+      this.dimension = dimension;
     }
 
     @Override
-    public void run() {}
+    public void run() {
+      go = new Go(dimension, blackPlayer, whitePlayer);
+      go.addObserver(this);
+
+      // Server: READY thisColour opponentName dimension
+      sendReady();
+
+      // Play GO
+      Thread goThread = new Thread(go);
+      // goThread.start();
+    }
+
+    private void sendReady() {
+      try {
+        send(blackClient, READY, BLACK, whiteClient.getName(), Integer.toString(dimension));
+        send(whiteClient, READY, WHITE, blackClient.getName(), Integer.toString(dimension));
+      } catch (MalformedArgumentsException ignored) {
+      }
+    }
+
+    private void broadcast(Keyword keyword, String... arguments)
+        throws MalformedArgumentsException {
+      for (Client client : clients) {
+        client.getPeer().send(Protocol.validateAndFormatCommandString(keyword, arguments));
+      }
+    }
+
+    private void send(Client client, Keyword keyword, String... arguments)
+        throws MalformedArgumentsException {
+      client.getPeer().send(Protocol.validateAndFormatCommandString(keyword, arguments));
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+      if (o instanceof Go) {
+        Go go = (Go) o;
+      }
+    }
 
     public void start() {
-      new Thread(this).start();
+      thread.start();
     }
   }
 }
