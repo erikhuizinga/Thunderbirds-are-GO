@@ -200,18 +200,6 @@ public class Server {
       return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
     }
 
-    private Command expect(Command... expectedCommands)
-        throws UnexpectedKeywordException, MalformedArgumentsException {
-      List<Command> expectedCommandList =
-          Arrays.stream(expectedCommands).collect(Collectors.toList());
-
-      Command chatCommand = new Command(CHAT);
-      chatCommand.setExecutable(this::chatHandler);
-      expectedCommandList.add(chatCommand);
-
-      return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
-    }
-
     private void send(Keyword keyword, String... arguments) throws MalformedArgumentsException {
       peer.send(Protocol.validateAndFormatCommandString(keyword, arguments));
     }
@@ -277,7 +265,6 @@ public class Server {
     }
 
     private int receiveDimension() {
-      Keyword keyword;
       final int[] dimension = {0};
       do {
         try {

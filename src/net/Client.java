@@ -110,22 +110,6 @@ public class Client {
     }
   }
 
-  private Command expect(Keyword... expectedKeywords)
-      throws UnexpectedKeywordException, MalformedArgumentsException {
-    List<Command> expectedCommandList =
-        Arrays.stream(expectedKeywords).map(Command::new).collect(Collectors.toList());
-
-    Command chatCommand = new Command(CHAT);
-    chatCommand.setExecutable(Protocol::chatPrinter);
-    expectedCommandList.add(chatCommand);
-
-    Command warningCommand = new Command(WARNING);
-    warningCommand.setExecutable(System.out::println);
-    expectedCommandList.add(warningCommand);
-
-    return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
-  }
-
   private Command expect(Command... expectedCommands)
       throws UnexpectedKeywordException, MalformedArgumentsException {
     List<Command> expectedCommandList =
