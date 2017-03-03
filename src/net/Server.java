@@ -117,6 +117,38 @@ public class Server {
     server.stopServer();
   }
 
+  private static Command expect(
+      BufferedReader reader,
+      Executable chatExecutable,
+      Executable exitExecutable,
+      Command... expectedCommands)
+      throws UnexpectedKeywordException, MalformedArgumentsException {
+
+    // Create a list of expected commands
+    List<Command> expectedCommandList =
+        Arrays.stream(expectedCommands).collect(Collectors.toList());
+
+    // Add commands expected by server
+    Command chatCommand = new Command(CHAT);
+    chatCommand.setExecutable(chatExecutable);
+    expectedCommandList.add(chatCommand);
+
+    Command exitCommand = new Command(EXIT);
+    exitCommand.setExecutable(exitExecutable);
+    expectedCommandList.add(exitCommand);
+
+    // Expect the commands
+    return Protocol.expect(reader, expectedCommandList.toArray(new Command[] {}));
+  }
+
+  private static void warn(Client client, String message) {
+    try {
+      client.getPeer().send(Protocol.validateAndFormatCommandString(WARNING, message.split(SPACE)));
+    } catch (MalformedArgumentsException e) {
+      System.err.println("Wachoouptoo, server?");
+    }
+  }
+
   private void acceptClients() {
     Socket socket;
     Peer peer;
@@ -222,12 +254,22 @@ public class Server {
 
     private Command expect(Command... expectedCommands)
         throws UnexpectedKeywordException, MalformedArgumentsException {
-      return Server.this.expect(
+
+      // Create a list of expected commands
+      List<Command> expectedCommandList =
+          Arrays.stream(expectedCommands).collect(Collectors.toList());
+
+      // Add commands expected by client handler
+      Command cancelCommand = new Command(CANCEL);
+      cancelCommand.setExecutable(argList -> stopClientHandler());
+      expectedCommandList.add(cancelCommand);
+
+      // Expect commands
+      return Server.expect(
           in,
           this::chatHandler,
           argList -> stopClientHandler(),
-          argList -> stopClientHandler(),
-          expectedCommands);
+          expectedCommandList.toArray(new Command[] {}));
     }
 
     private void send(Keyword keyword, String... arguments) throws MalformedArgumentsException {

@@ -249,6 +249,7 @@ public class TUI implements Observer {
     System.out.println("Not yet implemented, bummer!");
     localMenu();
   }
+
   /**
    * Print and handle the single player game menu. A single player game is played locally between a
    * human player and a computer player.
