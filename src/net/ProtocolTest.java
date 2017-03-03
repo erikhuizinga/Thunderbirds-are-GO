@@ -4,6 +4,7 @@ import static net.Protocol.Keyword.CANCEL;
 import static net.Protocol.Keyword.CHAT;
 import static net.Protocol.Keyword.EXIT;
 import static net.Protocol.Keyword.GO;
+import static net.Protocol.Keyword.MOVE;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.READY;
 import static net.Protocol.Keyword.WAITING;
@@ -250,6 +251,23 @@ class ProtocolTest {
     assertTrue(
         WARNING.isValidArgList(
             Collections.nCopies((int) (Math.random() * (Integer.MAX_VALUE - 1)) + 1, "warn?")));
+  }
+
+  @Test
+  void testMOVE() {
+    // Test two arguments
+    assertTrue(MOVE.isValidArgList(Arrays.asList("1", "1")));
+    String maxInt = Integer.toString(Integer.MAX_VALUE);
+    assertTrue(MOVE.isValidArgList(Arrays.asList(maxInt, maxInt)));
+
+    // Test incorrect number of arguments
+    assertFalse(MOVE.isValidArgList(Collections.emptyList()));
+    assertFalse(MOVE.isValidArgList(Collections.singletonList("1")));
+    assertFalse(MOVE.isValidArgList(Arrays.asList("1", "1", "1")));
+
+    // Test invalid arguments
+    assertFalse(MOVE.isValidArgList(Arrays.asList("0", "1")));
+    assertFalse(MOVE.isValidArgList(Arrays.asList("1", "0")));
   }
 
   @Test

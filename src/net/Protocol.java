@@ -214,7 +214,8 @@ public interface Protocol {
     PLAYER,
     GO,
     CANCEL,
-    EXIT;
+    EXIT,
+    MOVE;
 
     /**
      * Check if the specified {@code List<String>} of arguments is valid for the {@code Keyword}.
@@ -308,6 +309,26 @@ public interface Protocol {
            */
           return true;
 
+        case MOVE:
+          /*
+          MOVE x y
+          x: x coordinate of the move
+          y: y coordinate of the move
+           */
+          int x;
+          int y;
+          if (isValidArgListSize(argList)) {
+            try {
+              x = Integer.parseInt(argList.get(0));
+              y = Integer.parseInt(argList.get(1));
+            } catch (NumberFormatException e) {
+              return false;
+            }
+          } else {
+            return false;
+          }
+          return x > 0 && y > 0;
+
         default:
           return false;
       }
@@ -322,6 +343,8 @@ public interface Protocol {
           return 1;
         case WARNING:
           return 1;
+        case MOVE:
+          return 2;
         default:
           return maxArgs();
       }
@@ -339,6 +362,8 @@ public interface Protocol {
         case PLAYER:
           return 1;
         case GO:
+          return 2;
+        case MOVE:
           return 2;
         default:
           return 0;
