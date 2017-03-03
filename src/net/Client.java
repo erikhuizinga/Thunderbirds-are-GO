@@ -17,6 +17,7 @@ import game.action.Move;
 import game.action.Move.MoveType;
 import game.material.Stone;
 import game.material.board.Board;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
@@ -25,8 +26,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Scanner;
-import java.util.stream.Collectors;
 import net.Client.ExpectListener.CommandAlreadyAddedException;
 import net.Protocol.Command;
 import net.Protocol.Keyword;
@@ -46,7 +45,7 @@ public class Client implements Observer {
 
   private final String name;
   private final Peer peer;
-  private final Scanner in;
+  private final BufferedReader in;
   private boolean isReady = false;
   private boolean isCancelled = false;
   private int dimension;
@@ -65,13 +64,13 @@ public class Client implements Observer {
       e.printStackTrace();
     }
     peer = new Peer(socket);
-    in = peer.getScanner();
+    in = peer.getReader();
   }
 
   protected Client(String name, Peer peer) {
     this.name = name;
     this.peer = peer;
-    this.in = peer.getScanner();
+    this.in = peer.getReader();
   }
 
   public Client(String name, String address, int port, TUI tui, int dimension) {
@@ -135,21 +134,6 @@ public class Client implements Observer {
     }
   }
 
-  private Command expect(Command... expectedCommands)
-      throws UnexpectedKeywordException, MalformedArgumentsException {
-    List<Command> expectedCommandList =
-        Arrays.stream(expectedCommands).collect(Collectors.toList());
-
-    Command chatCommand = new Command(CHAT);
-    chatCommand.setExecutable(Protocol::chatPrinter);
-    expectedCommandList.add(chatCommand);
-
-    Command warningCommand = new Command(WARNING);
-    warningCommand.setExecutable(System.err::println);
-    expectedCommandList.add(warningCommand);
-    return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
-  }
-
   private void play() throws MalformedArgumentsException, UnexpectedKeywordException {
     System.out.println(
         "While not in game, type:\n"
@@ -193,11 +177,16 @@ public class Client implements Observer {
     readyCommand.setExecutable(this::startGame);
 
     // Wait for ready signal to play a game
+    try {
+      expectListener.addCommand(waitingCommand);
+      expectListener.addCommand(readyCommand);
+    } catch (CommandAlreadyAddedException ignored) {
+    }
+    expectListener.start();
     do {
       try {
-        expectListener.addCommand(waitingCommand);
-        expectListener.addCommand(readyCommand);
-      } catch (CommandAlreadyAddedException ignored) {
+        Thread.sleep(100);
+      } catch (InterruptedException ignored) {
       }
     } while (!isReady);
     expectListener.removeCommand(waitingCommand);
@@ -356,25 +345,25 @@ public class Client implements Observer {
 
     private final Thread thread = new Thread(this);
     private List<Command> commands2Listen4 = Collections.synchronizedList(new LinkedList<>());
-    private boolean keepRunning = false;
-
-    ExpectListener() {
-      start();
-    }
+    private boolean keepListening = false;
 
     @Override
     public void run() {
-      while (keepRunning) {
+      while (keepListening) {
         try {
           Protocol.expect(in, commands2Listen4.toArray(new Command[] {})).execute();
-        } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
+          Thread.sleep(100);
+
+        } catch (UnexpectedKeywordException
+            | MalformedArgumentsException
+            | InterruptedException e) {
           e.printStackTrace();
         }
       }
     }
 
     public void start() {
-      keepRunning = true;
+      keepListening = true;
       thread.start();
     }
 
@@ -386,17 +375,15 @@ public class Client implements Observer {
         }
       }
       commands2Listen4.add(command);
-      restart();
     }
 
     private void removeCommand(Command command) {
       commands2Listen4.remove(command);
-      restart();
     }
 
-    private void restart() {
+    void restart() {
       // Restart thread
-      keepRunning = false;
+      keepListening = false;
       try {
         thread.join();
       } catch (InterruptedException ignored) {

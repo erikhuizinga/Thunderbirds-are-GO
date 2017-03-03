@@ -21,21 +21,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.BufferedReader;
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
 import net.Protocol.Command;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /** Created by erik.huizinga on 2-2-17. */
 class ProtocolTest {
 
-  private Scanner scanner;
+  private BufferedReader reader;
   private String name = "barrybadpak";
   private String badName = "thisNameIsABitTooLong";
   private int dimension = 19;
@@ -105,44 +105,44 @@ class ProtocolTest {
     try {
       // Test missing argument
       commandString = PLAYER.toString();
-      scanner = new Scanner(commandString);
-      assertThrows(MalformedArgumentsException.class, () -> expect(scanner, PLAYER));
+      reader = new BufferedReader(new StringReader(commandString));
+      assertThrows(MalformedArgumentsException.class, () -> expect(reader, PLAYER));
 
       // Test malformed argument
       commandString = PLAYER.toString() + SPACE + badName;
-      scanner = new Scanner(commandString);
-      assertThrows(MalformedArgumentsException.class, () -> expect(scanner, PLAYER));
+      reader = new BufferedReader(new StringReader(commandString));
+      assertThrows(MalformedArgumentsException.class, () -> expect(reader, PLAYER));
 
       // Test zero arguments
       commandString = validateAndFormatCommandString(WAITING);
-      scanner = new Scanner(commandString);
-      assertEquals(Collections.emptyList(), expect(scanner, WAITING).getArgList());
+      reader = new BufferedReader(new StringReader(commandString));
+      assertEquals(Collections.emptyList(), expect(reader, WAITING).getArgList());
 
       // Test ignoring of redundant arguments
       commandString += SPACE + "we are arguments and we shouldn't be here :')";
-      scanner = new Scanner(commandString);
+      reader = new BufferedReader(new StringReader(commandString));
       command = new Command(WAITING);
-      assertEquals(command, expect(scanner, WAITING));
-      scanner = new Scanner(commandString);
-      assertEquals(command.getArgList(), expect(scanner, WAITING).getArgList());
+      assertEquals(command, expect(reader, WAITING));
+      reader = new BufferedReader(new StringReader(commandString));
+      assertEquals(command.getArgList(), expect(reader, WAITING).getArgList());
 
       // Test one argument
       commandString = validateAndFormatCommandString(PLAYER, name);
-      scanner = new Scanner(commandString);
-      argList = expect(scanner, PLAYER).getArgList();
+      reader = new BufferedReader(new StringReader(commandString));
+      argList = expect(reader, PLAYER).getArgList();
       assertEquals(Collections.singletonList(name), argList);
       assertTrue(PLAYER.isValidArgList(argList));
 
       // Test more than one argument
       commandString = validateAndFormatCommandString(READY, stone, name, dimensionString);
-      scanner = new Scanner(commandString);
-      argList = expect(scanner, READY).getArgList();
+      reader = new BufferedReader(new StringReader(commandString));
+      argList = expect(reader, READY).getArgList();
       assertEquals(Arrays.asList(stone, name, dimensionString), argList);
       assertTrue(READY.isValidArgList(argList));
 
       // Test more than one command
-      scanner = new Scanner(commandString);
-      argList = expect(scanner, PLAYER, WAITING, READY).getArgList();
+      reader = new BufferedReader(new StringReader(commandString));
+      argList = expect(reader, PLAYER, WAITING, READY).getArgList();
       assertTrue(READY.isValidArgList(argList));
 
     } catch (MalformedArgumentsException | UnexpectedKeywordException e) {
@@ -150,8 +150,8 @@ class ProtocolTest {
     }
 
     // Test unexpected keyword
-    scanner = new Scanner(READY.toString());
-    assertThrows(UnexpectedKeywordException.class, () -> expect(scanner, WAITING, PLAYER));
+    reader = new BufferedReader(new StringReader(READY.toString()));
+    assertThrows(UnexpectedKeywordException.class, () -> expect(reader, WAITING, PLAYER));
   }
 
   @Test
@@ -361,13 +361,6 @@ class ProtocolTest {
     Command command3 = new Command(CHAT, Arrays.asList("¡Hola,", "Mundo!"));
     assertEquals(command1, command2);
     assertNotEquals(command1, command3);
-  }
-
-  @AfterEach
-  void tearDown() {
-    if (scanner != null) {
-      scanner.close();
-    }
   }
 
   private void failAllTheThings() {

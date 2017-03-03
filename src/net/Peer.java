@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -11,7 +12,7 @@ import java.util.Scanner;
 public class Peer {
 
   private final Socket socket;
-  private final Scanner scanner;
+  private final BufferedReader reader;
   private final PrintStream out;
   private boolean keepRunning;
 
@@ -19,20 +20,20 @@ public class Peer {
     this.socket = socket;
 
     // Set I/O
-    Scanner scanner = null;
+    BufferedReader reader = null;
     PrintStream printStream = null;
     try {
-      scanner = new Scanner(new BufferedReader(new InputStreamReader(socket.getInputStream())));
+      reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       printStream = new PrintStream(socket.getOutputStream(), true);
     } catch (IOException e) {
       e.printStackTrace();
     }
-    this.scanner = scanner;
+    this.reader = reader;
     out = printStream;
   }
 
-  public Scanner getScanner() {
-    return scanner;
+  public BufferedReader getReader() {
+    return reader;
   }
 
   void shutDown() {

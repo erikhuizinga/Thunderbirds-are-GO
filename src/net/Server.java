@@ -18,6 +18,7 @@ import game.action.Move;
 import game.action.Move.MoveType;
 import game.material.Stone;
 import game.material.board.Board;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -30,7 +31,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Scanner;
 import java.util.stream.Collectors;
 import net.Protocol.Command;
 import net.Protocol.Executable;
@@ -179,7 +179,12 @@ public class Server {
     return null;
   }
 
-  private Command expect(Scanner in, Executable chat, Executable exit, Command... expectedCommands)
+  private Command expect(
+      BufferedReader reader,
+      Executable chat,
+      Executable cancel,
+      Executable exit,
+      Command... expectedCommands)
       throws UnexpectedKeywordException, MalformedArgumentsException {
     List<Command> expectedCommandList =
         Arrays.stream(expectedCommands).collect(Collectors.toList());
@@ -188,17 +193,21 @@ public class Server {
     chatCommand.setExecutable(chat);
     expectedCommandList.add(chatCommand);
 
+    Command cancelCommand = new Command(CANCEL);
+    cancelCommand.setExecutable(cancel);
+    expectedCommandList.add(cancelCommand);
+
     Command exitCommand = new Command(EXIT);
     exitCommand.setExecutable(exit);
     expectedCommandList.add(exitCommand);
 
-    return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
+    return Protocol.expect(reader, expectedCommandList.toArray(new Command[] {}));
   }
 
   private class ClientHandler implements Runnable {
 
     private final Peer peer;
-    private Scanner in;
+    private BufferedReader in;
     private Thread thread;
     private boolean keepRunning = true;
     private boolean waiting4Player = true;
@@ -206,14 +215,14 @@ public class Server {
 
     public ClientHandler(Peer peer) {
       this.peer = peer;
-      in = peer.getScanner();
+      in = peer.getReader();
     }
 
     private Command expect(Command... expectedCommands)
         throws UnexpectedKeywordException, MalformedArgumentsException {
-      List<Command> expectedCommandList =
-          Arrays.stream(expectedCommands).collect(Collectors.toList());
-
+      // List<Command> expectedCommandList =
+      //     Arrays.stream(expectedCommands).collect(Collectors.toList());
+      //
       //      Command chatCommand = new Command(CHAT);
       //      chatCommand.setExecutable(this::chatHandler);
       //      expectedCommandList.add(chatCommand);
@@ -224,7 +233,11 @@ public class Server {
       //
       //      return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
       return Server.this.expect(
-          in, this::chatHandler, argList -> stopClientHandler(), expectedCommands);
+          in,
+          this::chatHandler,
+          argList -> stopClientHandler(),
+          argList -> stopClientHandler(),
+          expectedCommands);
     }
 
     private void send(Keyword keyword, String... arguments) throws MalformedArgumentsException {
@@ -241,6 +254,9 @@ public class Server {
       while (keepRunning) {
         // Client: PLAYER name
         Client client = receiveClient();
+        if (!keepRunning) {
+          return;
+        }
 
         // Client: GO dimension
         int dimension = receiveDimension();
@@ -287,31 +303,28 @@ public class Server {
         } catch (MalformedArgumentsException e) {
           warn("malformed argument(s)");
         }
-      } while (waiting4Player);
+      } while (waiting4Player && keepRunning);
       return client[0];
     }
 
     private int receiveDimension() {
       final int[] dimension = {0};
+      Command goCommand = new Command(GO);
+      goCommand.setExecutable(
+          argList -> {
+            try {
+              dimension[0] = Integer.parseInt(argList.get(0));
+            } catch (NumberFormatException e) {
+              warn("invalid dimension sent with " + GO + " keyword");
+            }
+            if (argList.size() > 1) {
+              warn("specifying opponent name not supported by " + name + " the server"); //TODO
+            }
+          });
       do {
         try {
-          Command goCommand = new Command(GO);
-          goCommand.setExecutable(
-              argList -> {
-                try {
-                  dimension[0] = Integer.parseInt(argList.get(0));
-                } catch (NumberFormatException e) {
-                  warn("invalid dimension sent with " + GO + " keyword");
-                }
-                if (argList.size() > 1) {
-                  warn("specifying opponent name not supported by " + name + " the server"); //TODO
-                }
-              });
 
-          Command cancelCommand = new Command(CANCEL);
-          cancelCommand.setExecutable(argList -> stopClientHandler());
-
-          expect(goCommand, cancelCommand).printAndExecute();
+          expect(goCommand).printAndExecute();
 
         } catch (UnexpectedKeywordException e) {
           warn("unexpected keyword");

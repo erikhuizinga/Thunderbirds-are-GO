@@ -1,6 +1,10 @@
 package net;
 
+import static net.Protocol.Keyword.DUMMY;
+
 import game.material.Stone;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -129,7 +133,7 @@ public interface Protocol {
    * Get a {@code Command} with any arguments from the specified {@code Scanner} if it is one of the
    * specified expected commands. This method may block until the {@code Scanner} has next input.
    *
-   * @param scanner the {@code Scanner}, which must not be closed.
+   * @param reader the {@code Scanner}, which must not be closed.
    * @param expectedCommands one or more expected {@code Command} instances.
    * @return an expected {@code Command} with the corresponding arguments (there may be zero)
    *     gettable with {@code getArgs} or {@code getArgList}.
@@ -137,12 +141,36 @@ public interface Protocol {
    * @throws MalformedArgumentsException if the incoming arguments are malformed for the expected
    *     command.
    */
-  static Command expect(Scanner scanner, Command... expectedCommands)
+  static Command expect(BufferedReader reader, Command... expectedCommands)
       throws UnexpectedKeywordException, MalformedArgumentsException {
-    String keywordString;
-    if (scanner.hasNext() // There is next incoming communication to scan
-        && (keywordString = scanner.next()).toUpperCase().length()
-            > 0) // The next keyword contains any characters
+    String commandString = "", keywordString = "";
+
+    // Read command string
+    try {
+      if (reader.ready()) {
+        commandString = reader.readLine();
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    // Read first word from line
+    Scanner scanner = new Scanner(commandString);
+    if (commandString.length() > 0) {
+      keywordString = scanner.next().toUpperCase();
+    } else {
+      Command dummy = new Command(DUMMY);
+      dummy.setExecutable(
+          argList -> {
+            try {
+              Thread.sleep(10);
+            } catch (InterruptedException ignored) {
+            }
+          });
+      return dummy;
+    }
+
+    if (keywordString.length() > 0) // The next keyword contains any characters
     {
       Command theCommand = null;
       for (Command expectedCommand : expectedCommands) {
@@ -162,9 +190,11 @@ public interface Protocol {
           argList = DEFAULT_EMPTY_ARGUMENT_LIST;
         }
         theCommand.setArgList(argList);
+        scanner.close();
         return theCommand;
       }
     }
+    scanner.close();
     throw new UnexpectedKeywordException();
   }
 
@@ -173,7 +203,7 @@ public interface Protocol {
    * specified expected {@code Keyword} instances. This method may block until the {@code Scanner}
    * has next input.
    *
-   * @param scanner the {@code Scanner}, which must not be closed.
+   * @param reader the {@code Scanner}, which must not be closed.
    * @param expectedKeywords one or more expected {@code Keyword} instances.
    * @return an expected {@code Command} with the corresponding arguments (there may be zero)
    *     gettable with {@code getArgs} or {@code getArgList}.
@@ -181,14 +211,14 @@ public interface Protocol {
    * @throws MalformedArgumentsException if the incoming arguments are malformed for the expected
    *     command.
    */
-  static Command expect(Scanner scanner, Keyword... expectedKeywords)
+  static Command expect(BufferedReader reader, Keyword... expectedKeywords)
       throws UnexpectedKeywordException, MalformedArgumentsException {
     Command[] expectedCommands =
         Arrays.stream(expectedKeywords)
             .map(Command::new)
             .collect(Collectors.toList())
             .toArray(new Command[] {});
-    return expect(scanner, expectedCommands);
+    return expect(reader, expectedCommands);
   }
 
   static void doNothing(List ignored) {}
@@ -215,7 +245,10 @@ public interface Protocol {
     GO,
     CANCEL,
     EXIT,
-    MOVE;
+    MOVE,
+
+    // Not for public use
+    DUMMY;
 
     /**
      * Check if the specified {@code List<String>} of arguments is valid for the {@code Keyword}.
@@ -474,7 +507,9 @@ public interface Protocol {
 
     /** Print this {@code Command} and execute its {@code Executable}. */
     public void printAndExecute() {
-      System.out.println(this);
+      if (this.getKeyword() != DUMMY) {
+        System.out.println(this);
+      }
       execute();
     }
   }
