@@ -213,35 +213,11 @@ public class Server {
     return null;
   }
 
-  private Command expect(
-      BufferedReader reader,
-      Executable chat,
-      Executable cancel,
-      Executable exit,
-      Command... expectedCommands)
-      throws UnexpectedKeywordException, MalformedArgumentsException {
-    List<Command> expectedCommandList =
-        Arrays.stream(expectedCommands).collect(Collectors.toList());
-
-    Command chatCommand = new Command(CHAT);
-    chatCommand.setExecutable(chat);
-    expectedCommandList.add(chatCommand);
-
-    Command cancelCommand = new Command(CANCEL);
-    cancelCommand.setExecutable(cancel);
-    expectedCommandList.add(cancelCommand);
-
-    Command exitCommand = new Command(EXIT);
-    exitCommand.setExecutable(exit);
-    expectedCommandList.add(exitCommand);
-
-    return Protocol.expect(reader, expectedCommandList.toArray(new Command[] {}));
-  }
-
   private class ClientHandler implements Runnable {
 
     private final Peer peer;
     private BufferedReader in;
+    private Client client;
     private Thread thread;
     private boolean keepRunning = true;
     private boolean waiting4Player = true;
@@ -285,7 +261,7 @@ public class Server {
     public void run() {
       while (keepRunning) {
         // Client: PLAYER name
-        Client client = receiveClient();
+        client = receiveClient();
         if (!keepRunning) {
           return;
         }
@@ -317,6 +293,7 @@ public class Server {
     }
 
     private Client receiveClient() {
+      waiting4Player = true;
       final Client[] client = new Client[1];
       Command playerCommand = new Command(PLAYER);
       playerCommand.setExecutable(
@@ -329,11 +306,13 @@ public class Server {
       do {
         try {
           expect(playerCommand).printAndExecute();
+          Thread.sleep(1000);
 
         } catch (UnexpectedKeywordException e) {
           warn("unexpected keyword");
         } catch (MalformedArgumentsException e) {
           warn("malformed argument(s)");
+        } catch (InterruptedException ignored) {
         }
       } while (waiting4Player && keepRunning);
       return client[0];
@@ -394,11 +373,7 @@ public class Server {
     }
 
     private void warn(String message) {
-      try {
-        peer.send(Protocol.validateAndFormatCommandString(WARNING, message.split(SPACE)));
-      } catch (MalformedArgumentsException e) {
-        System.err.println("Wachoouptoo, server?");
-      }
+      Server.warn(client, message);
     }
 
     public void start() {
