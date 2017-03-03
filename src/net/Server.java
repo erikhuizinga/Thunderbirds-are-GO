@@ -16,7 +16,6 @@ import static net.Protocol.isValidDimension;
 import game.Go;
 import game.action.Move;
 import game.action.Move.MoveType;
-import game.action.MoveTest;
 import game.material.Stone;
 import game.material.board.Board;
 import java.io.IOException;
@@ -34,6 +33,7 @@ import java.util.Observer;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import net.Protocol.Command;
+import net.Protocol.Executable;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
@@ -179,6 +179,22 @@ public class Server {
     return null;
   }
 
+  private Command expect(Scanner in, Executable chat, Executable exit, Command... expectedCommands)
+      throws UnexpectedKeywordException, MalformedArgumentsException {
+    List<Command> expectedCommandList =
+        Arrays.stream(expectedCommands).collect(Collectors.toList());
+
+    Command chatCommand = new Command(CHAT);
+    chatCommand.setExecutable(chat);
+    expectedCommandList.add(chatCommand);
+
+    Command exitCommand = new Command(EXIT);
+    exitCommand.setExecutable(exit);
+    expectedCommandList.add(exitCommand);
+
+    return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
+  }
+
   private class ClientHandler implements Runnable {
 
     private final Peer peer;
@@ -198,15 +214,17 @@ public class Server {
       List<Command> expectedCommandList =
           Arrays.stream(expectedCommands).collect(Collectors.toList());
 
-      Command chatCommand = new Command(CHAT);
-      chatCommand.setExecutable(this::chatHandler);
-      expectedCommandList.add(chatCommand);
-
-      Command exitCommand = new Command(EXIT);
-      exitCommand.setExecutable(argList -> stopClientHandler());
-      expectedCommandList.add(exitCommand);
-
-      return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
+      //      Command chatCommand = new Command(CHAT);
+      //      chatCommand.setExecutable(this::chatHandler);
+      //      expectedCommandList.add(chatCommand);
+      //
+      //      Command exitCommand = new Command(EXIT);
+      //      exitCommand.setExecutable(argList -> stopClientHandler());
+      //      expectedCommandList.add(exitCommand);
+      //
+      //      return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
+      return Server.this.expect(
+          in, this::chatHandler, argList -> stopClientHandler(), expectedCommands);
     }
 
     private void send(Keyword keyword, String... arguments) throws MalformedArgumentsException {

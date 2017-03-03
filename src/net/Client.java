@@ -4,6 +4,7 @@ import static net.Protocol.Keyword.CANCEL;
 import static net.Protocol.Keyword.CHAT;
 import static net.Protocol.Keyword.EXIT;
 import static net.Protocol.Keyword.GO;
+import static net.Protocol.Keyword.MOVE;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.READY;
 import static net.Protocol.Keyword.WAITING;
@@ -19,11 +20,14 @@ import game.material.board.Board;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import net.Client.ExpectListener.CommandAlreadyAddedException;
 import net.Protocol.Command;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
@@ -48,6 +52,7 @@ public class Client implements Observer {
   private int dimension;
   private Stone stone;
   private TUI tui = null;
+  private boolean doExpect = false;
 
   public Client(String name, String address, int port) {
     this.name = name;
@@ -151,6 +156,22 @@ public class Client implements Observer {
             + "  CANCEL to cancel the current request to play a game.\n"
             + "  CHAT with a chat message to chat with anybody on the server.\n");
 
+    doExpect = true;
+    ExpectListener expectListener = new ExpectListener();
+
+    // Add commands to expect at all times while playing
+    Command chatCommand = new Command(CHAT);
+    chatCommand.setExecutable(Protocol::chatPrinter);
+
+    Command warningCommand = new Command(WARNING);
+    warningCommand.setExecutable(System.err::println);
+
+    try {
+      expectListener.addCommand(chatCommand);
+      expectListener.addCommand(warningCommand);
+    } catch (CommandAlreadyAddedException ignored) {
+    }
+
     // Client: PLAYER name
     announcePlayer();
 
@@ -167,13 +188,20 @@ public class Client implements Observer {
     Command waitingCommand = new Command(WAITING);
     waitingCommand.setExecutable(argList -> System.out.println("Waiting for another player..."));
 
+    // Server: READY thisColor opponentName dimension
     Command readyCommand = new Command(READY);
     readyCommand.setExecutable(this::startGame);
 
     // Wait for ready signal to play a game
     do {
-      expect(waitingCommand, readyCommand).execute();
+      try {
+        expectListener.addCommand(waitingCommand);
+        expectListener.addCommand(readyCommand);
+      } catch (CommandAlreadyAddedException ignored) {
+      }
     } while (!isReady);
+    expectListener.removeCommand(waitingCommand);
+    expectListener.removeCommand(readyCommand);
   }
 
   private void announcePlayer() throws MalformedArgumentsException {
@@ -185,7 +213,13 @@ public class Client implements Observer {
     int dimension = 0;
     System.out.println("On what board dimension do you want to play?");
     do {
-      input = Strings.readLine("Please enter an odd number between 5 and 131: ");
+      input =
+          Strings.readLine(
+              "Please enter an odd number between "
+                  + Protocol.MIN_DIMENSION
+                  + " and "
+                  + Protocol.MAX_DIMENSION
+                  + ": ");
       String[] inputWords = input.trim().split(SPACE);
       inputWords[0] = inputWords[0].toUpperCase();
       try {
@@ -305,10 +339,71 @@ public class Client implements Observer {
 
       } else if (arg instanceof Move) {
         Move move = (Move) arg;
+        String x = Integer.toString(move.getPlayableX());
+        String y = Integer.toString(move.getPlayableY());
+        try {
+          send(MOVE, x, y);
+        } catch (MalformedArgumentsException ignored) {
+        }
 
       } else if (arg instanceof MoveType) {
         MoveType moveType = (MoveType) arg;
       }
     }
+  }
+
+  class ExpectListener implements Runnable {
+
+    private final Thread thread = new Thread(this);
+    private List<Command> commands2Listen4 = Collections.synchronizedList(new LinkedList<>());
+    private boolean keepRunning = false;
+
+    ExpectListener() {
+      start();
+    }
+
+    @Override
+    public void run() {
+      while (keepRunning) {
+        try {
+          Protocol.expect(in, commands2Listen4.toArray(new Command[] {})).execute();
+        } catch (UnexpectedKeywordException | MalformedArgumentsException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    public void start() {
+      keepRunning = true;
+      thread.start();
+    }
+
+    private void addCommand(Command command) throws CommandAlreadyAddedException {
+      // Ensure uniqueness of commands
+      for (Command command2Listen4 : commands2Listen4) {
+        if (command.getKeyword() == command2Listen4.getKeyword()) {
+          throw new CommandAlreadyAddedException();
+        }
+      }
+      commands2Listen4.add(command);
+      restart();
+    }
+
+    private void removeCommand(Command command) {
+      commands2Listen4.remove(command);
+      restart();
+    }
+
+    private void restart() {
+      // Restart thread
+      keepRunning = false;
+      try {
+        thread.join();
+      } catch (InterruptedException ignored) {
+      }
+      start();
+    }
+
+    class CommandAlreadyAddedException extends Exception {}
   }
 }
