@@ -7,6 +7,7 @@ import static net.Protocol.Keyword.GO;
 import static net.Protocol.Keyword.MOVE;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.READY;
+import static net.Protocol.Keyword.VALID;
 import static net.Protocol.Keyword.WAITING;
 import static net.Protocol.Keyword.WARNING;
 import static net.Protocol.SPACE;
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import game.material.Stone;
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.util.Arrays;
@@ -268,6 +270,28 @@ class ProtocolTest {
     // Test invalid arguments
     assertFalse(MOVE.isValidArgList(Arrays.asList("0", "-1")));
     assertFalse(MOVE.isValidArgList(Arrays.asList("-1", "0")));
+  }
+
+  @Test
+  void testValid() {
+    String blackStone = Stone.BLACK.name().toLowerCase();
+    String whiteStone = Stone.WHITE.name().toLowerCase();
+
+    // Test three arguments
+    assertTrue(VALID.isValidArgList(Arrays.asList(blackStone, "0", "0")));
+    String maxInt = Integer.toString(Integer.MAX_VALUE);
+    assertTrue(VALID.isValidArgList(Arrays.asList(whiteStone, maxInt, maxInt)));
+
+    // Test incorrect number of arguments
+    assertFalse(VALID.isValidArgList(Collections.emptyList()));
+    assertFalse(VALID.isValidArgList(Collections.singletonList("0")));
+    assertFalse(VALID.isValidArgList(Arrays.asList("0", "0")));
+    assertFalse(VALID.isValidArgList(Arrays.asList("0", "0", "0", "0")));
+
+    // Test invalid arguments
+    assertFalse(VALID.isValidArgList(Arrays.asList(blackStone, "0", "-1")));
+    assertFalse(VALID.isValidArgList(Arrays.asList(whiteStone, "-1", "0")));
+    assertFalse(VALID.isValidArgList(Arrays.asList("whatever", "0", "0")));
   }
 
   @Test

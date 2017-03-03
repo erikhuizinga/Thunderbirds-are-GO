@@ -43,7 +43,7 @@ public class TUI implements Observer {
   /** {@code true} if the player names have been set; {@code false} otherwise. */
   private boolean areNamesSet = false;
 
-  /** {@code true} if identical player names are to be kept; {@code false} otherwise. */
+  /** {@code true} if identical play2er names are to be kept; {@code false} otherwise. */
   private boolean keepIdenticalNames = false;
 
   /** The single-side board dimension. */

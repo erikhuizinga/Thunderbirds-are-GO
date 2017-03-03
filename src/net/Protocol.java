@@ -143,7 +143,7 @@ public interface Protocol {
    */
   static Command expect(BufferedReader reader, Command... expectedCommands)
       throws UnexpectedKeywordException, MalformedArgumentsException {
-    String commandString = "", keywordString = "";
+    String commandString = "", keywordString;
 
     // Read command string
     try {
@@ -239,6 +239,7 @@ public interface Protocol {
     WAITING,
     READY,
     WARNING,
+    VALID,
 
     // Client
     PLAYER,
@@ -257,6 +258,8 @@ public interface Protocol {
      * @return {@code true} if valid; {@code false} otherwise.
      */
     boolean isValidArgList(List<String> argList) {
+      int x;
+      int y;
       switch (this) {
         case CHAT:
           /*
@@ -348,8 +351,6 @@ public interface Protocol {
           x: x coordinate of the move
           y: y coordinate of the move
            */
-          int x;
-          int y;
           if (isValidArgListSize(argList)) {
             try {
               x = Integer.parseInt(argList.get(0));
@@ -360,11 +361,34 @@ public interface Protocol {
           } else {
             return false;
           }
-          return x >= 0 && y >= 0;
+          return isValidXY(x, y);
+
+        case VALID:
+          /*
+          VALID color x y
+          color: the valid move's color
+          x: x coordinate of the valid move
+          y: y coordinate of the valid move
+           */
+          if (isValidArgListSize(argList)) {
+            try {
+              x = Integer.parseInt(argList.get(1));
+              y = Integer.parseInt(argList.get(2));
+            } catch (NumberFormatException e) {
+              return false;
+            }
+          } else {
+            return false;
+          }
+          return (argList.get(0).equals(BLACK) || argList.get(0).equals(WHITE)) && isValidXY(x, y);
 
         default:
           return false;
       }
+    }
+
+    private boolean isValidXY(int x, int y) {
+      return x >= 0 && y >= 0;
     }
 
     /** @return the minimum number of arguments for the {@code Keyword}. */
@@ -378,6 +402,8 @@ public interface Protocol {
           return 1;
         case MOVE:
           return 2;
+        case VALID:
+          return 3;
         default:
           return maxArgs();
       }
@@ -398,6 +424,8 @@ public interface Protocol {
           return 2;
         case MOVE:
           return 2;
+        case VALID:
+          return 3;
         default:
           return 0;
       }
@@ -436,7 +464,7 @@ public interface Protocol {
       this.keyword = keyword;
     }
 
-    public Keyword getKeyword() {
+    Keyword getKeyword() {
       return keyword;
     }
 
@@ -486,7 +514,7 @@ public interface Protocol {
       return getArgList().toArray(new String[] {});
     }
 
-    public void setExecutable(Executable executable) {
+    void setExecutable(Executable executable) {
       this.executable = executable;
       isExecutableSet = true;
     }
@@ -501,12 +529,12 @@ public interface Protocol {
     }
 
     /** Execute the {@code Executable} of this {@code Command} with this command's argument list. */
-    public void execute() {
+    void execute() {
       execute(argList);
     }
 
     /** Print this {@code Command} and execute its {@code Executable}. */
-    public void printAndExecute() {
+    void printAndExecute() {
       if (this.getKeyword() != DUMMY) {
         System.out.println(this);
       }

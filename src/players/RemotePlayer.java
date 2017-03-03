@@ -36,7 +36,7 @@ public class RemotePlayer extends Player {
   public Move nextMove(Board board) {
     while (nextMove == null) {
       try {
-        Thread.sleep(10);
+        Thread.sleep(100);
       } catch (InterruptedException ignored) {
       }
     }

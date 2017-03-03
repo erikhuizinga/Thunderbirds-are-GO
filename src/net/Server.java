@@ -8,6 +8,7 @@ import static net.Protocol.Keyword.GO;
 import static net.Protocol.Keyword.MOVE;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.READY;
+import static net.Protocol.Keyword.VALID;
 import static net.Protocol.Keyword.WAITING;
 import static net.Protocol.Keyword.WARNING;
 import static net.Protocol.SPACE;
@@ -39,10 +40,11 @@ import net.Protocol.Executable;
 import net.Protocol.Keyword;
 import net.Protocol.MalformedArgumentsException;
 import net.Protocol.UnexpectedKeywordException;
-import players.Player;
 import players.RemotePlayer;
 
-/** Created by erik.huizinga on 2-2-17. */
+/**
+ * Created by erik.huizinga on 2-2-17.
+ */
 public class Server {
 
   public static final String DEFAULT_ADDRESS = "localhost";
@@ -51,19 +53,29 @@ public class Server {
 
   public static final String USAGE = "usage: java " + Server.class.getName() + " <name> <port>";
 
-  /** The name. */
+  /**
+   * The name.
+   */
   private final String name;
 
-  /** The {@code ServerSocket}. */
+  /**
+   * The {@code ServerSocket}.
+   */
   private final ServerSocket serverSocket;
 
-  /** The list of client peers. */
+  /**
+   * The list of client peers.
+   */
   private final List<Client> clients = Collections.synchronizedList(new LinkedList<>());
 
-  /** The map of peers and their desired board dimensions. */
+  /**
+   * The map of peers and their desired board dimensions.
+   */
   private final Map<Client, Integer> waitingClientDimensionMap = new HashMap<>();
 
-  /** The list of games. */
+  /**
+   * The list of games.
+   */
   private final List<GameHandler> games = Collections.synchronizedList(new LinkedList<>());
 
   /**
@@ -138,7 +150,7 @@ public class Server {
     expectedCommandList.add(exitCommand);
 
     // Expect the commands
-    return Protocol.expect(reader, expectedCommandList.toArray(new Command[] {}));
+    return Protocol.expect(reader, expectedCommandList.toArray(new Command[]{}));
   }
 
   private static void warn(Client client, String message) {
@@ -245,7 +257,7 @@ public class Server {
           in,
           this::chatHandler,
           argList -> stopClientHandler(),
-          expectedCommandList.toArray(new Command[] {}));
+          expectedCommandList.toArray(new Command[]{}));
     }
 
     private void send(Keyword keyword, String... arguments) throws MalformedArgumentsException {
@@ -334,13 +346,17 @@ public class Server {
           });
       do {
         try {
-
           expect(goCommand).printAndExecute();
+
+          if (!isValidDimension(dimension[0])) {
+            Thread.sleep(1000);
+          }
 
         } catch (UnexpectedKeywordException e) {
           warn("unexpected keyword");
         } catch (MalformedArgumentsException e) {
           warn("malformed argument(s)");
+        } catch (InterruptedException ignored) {
         }
       } while (keepRunning && !isValidDimension(dimension[0]));
       return dimension[0];
@@ -354,7 +370,7 @@ public class Server {
       // Broadcast message to all clients //TODO only waiting clients
       String command;
       try {
-        command = Protocol.validateAndFormatCommandString(CHAT, argList.toArray(new String[] {}));
+        command = Protocol.validateAndFormatCommandString(CHAT, argList.toArray(new String[]{}));
       } catch (MalformedArgumentsException e) {
         warn("CHAT arguments malformed");
         return;
@@ -387,12 +403,14 @@ public class Server {
     private final int BLACK_INDEX;
     private final Client blackClient;
     private final Client whiteClient;
-    private final Player blackPlayer;
-    private final Player whitePlayer;
+    private final RemotePlayer blackPlayer;
+    private final RemotePlayer whitePlayer;
     private final int dimension;
     private final List<Client> clients;
     private final Thread thread = new Thread(this);
     private Go go;
+    private Client currentClient;
+    private RemotePlayer currentPlayer;
 
     public GameHandler(Client client1, Client client2, int dimension) {
       clients = Arrays.asList(client1, client2);
@@ -441,7 +459,7 @@ public class Server {
             if (Rules.isTechnicallyValid(currentBoard, move)) {
               Board nextBoard = Rules.playWithDynamicalValidation(currentBoard, move);
               if (Rules.isHistoricallyValid(go, nextBoard)) {
-                sendValid(client, move);
+                handleValid(move);
                 hasReceivedMove[0] = true;
 
               } else {
@@ -459,8 +477,8 @@ public class Server {
       Command tableflipCommand = null;
 
       // Serve the game
-      Client currentClient = blackClient;
-      Player currentPlayer = blackPlayer;
+      currentClient = blackClient;
+      currentPlayer = blackPlayer;
       Stone stone = currentPlayer.getStone();
       while (!Rules.isFinished(go)) {
         hasReceivedMove[0] = false;
@@ -493,6 +511,14 @@ public class Server {
       }
     }
 
+    private void handleValid(Move move) {
+      sendValid(move);
+
+      //TODO place move on go board
+
+      currentPlayer.setNextMove(move);
+    }
+
     private void handleExit(Client exitClient) {
       serverBroadcast(exitClient.getName() + " left, so the game is over");
       stopGameHandler();
@@ -517,7 +543,7 @@ public class Server {
       // Send chat message to other clients in game
       String command;
       try {
-        command = Protocol.validateAndFormatCommandString(CHAT, argList.toArray(new String[] {}));
+        command = Protocol.validateAndFormatCommandString(CHAT, argList.toArray(new String[]{}));
       } catch (MalformedArgumentsException e) {
         warn(chatClient, "CHAT arguments malformed");
         return;
@@ -535,8 +561,16 @@ public class Server {
       // send(...) // kick invalid client, notify the other
     }
 
-    private void sendValid(Client client, Move move) {
-      // broadcast(...) //TODO
+    private void sendValid(Move move) {
+      try {
+        broadcast(
+            VALID,
+            ((Stone) move.getMaterial()).name(),
+            Integer.toString(move.getPlayableX()),
+            Integer.toString(move.getPlayableY()));
+      } catch (MalformedArgumentsException e) {
+        e.printStackTrace(); //TODO delete me
+      }
     }
 
     private void sendReady() {
