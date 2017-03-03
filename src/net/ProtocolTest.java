@@ -256,18 +256,18 @@ class ProtocolTest {
   @Test
   void testMOVE() {
     // Test two arguments
-    assertTrue(MOVE.isValidArgList(Arrays.asList("1", "1")));
+    assertTrue(MOVE.isValidArgList(Arrays.asList("0", "0")));
     String maxInt = Integer.toString(Integer.MAX_VALUE);
     assertTrue(MOVE.isValidArgList(Arrays.asList(maxInt, maxInt)));
 
     // Test incorrect number of arguments
     assertFalse(MOVE.isValidArgList(Collections.emptyList()));
-    assertFalse(MOVE.isValidArgList(Collections.singletonList("1")));
-    assertFalse(MOVE.isValidArgList(Arrays.asList("1", "1", "1")));
+    assertFalse(MOVE.isValidArgList(Collections.singletonList("0")));
+    assertFalse(MOVE.isValidArgList(Arrays.asList("0", "0", "0")));
 
     // Test invalid arguments
-    assertFalse(MOVE.isValidArgList(Arrays.asList("0", "1")));
-    assertFalse(MOVE.isValidArgList(Arrays.asList("1", "0")));
+    assertFalse(MOVE.isValidArgList(Arrays.asList("0", "-1")));
+    assertFalse(MOVE.isValidArgList(Arrays.asList("-1", "0")));
   }
 
   @Test

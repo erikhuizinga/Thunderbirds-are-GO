@@ -360,7 +360,7 @@ public interface Protocol {
           } else {
             return false;
           }
-          return x > 0 && y > 0;
+          return x >= 0 && y >= 0;
 
         default:
           return false;
