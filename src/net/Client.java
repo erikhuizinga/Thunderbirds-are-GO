@@ -258,6 +258,8 @@ public class Client implements Observer {
       blackPlayer = new HumanPlayer(name, stone);
       whitePlayer = new RemotePlayer(stone.other(), opponentName);
     } else {
+      System.out.println("");
+      System.out.println("It's your opponent's turn, waiting for a move...");
       whitePlayer = new HumanPlayer(name, stone);
       blackPlayer = new RemotePlayer(stone.other(), opponentName);
     }

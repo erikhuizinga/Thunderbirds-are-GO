@@ -89,7 +89,7 @@ public abstract class Rules {
    * @param move the {@code Move} to play.
    * @return the dynamically valid {@code Board} with the {@code Move} played on it.
    */
-  static Board playWithDynamicalValidation(Board board, Move move) {
+  public static Board playWithDynamicalValidation(Board board, Move move) {
     Board nextBoard = move.apply(board);
     List<Remove> removes = handleDynamicalValidity(nextBoard, move);
     board.getGo().setChangedAndNotifyObservers(removes);

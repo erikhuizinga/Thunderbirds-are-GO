@@ -33,7 +33,7 @@ public class Go extends Observable implements Runnable {
   /** The Go game {@code Board}. */
   private Board board;
 
-  private Move lastMove;
+  private Move move;
 
   private MoveType lastMoveType;
 
@@ -111,10 +111,10 @@ public class Go extends Observable implements Runnable {
         clearChanged();
 
         // Get next move from current player
-        lastMove = currentPlayer.nextMove(currentBoard);
+        move = currentPlayer.nextMove(currentBoard);
 
         // Determine if the next move is a move
-        if (lastMove == null) {
+        if (move == null) {
           nextBoard = currentBoard;
 
           lastMoveType = getCurrentPlayer().getMoveType();
@@ -125,17 +125,17 @@ public class Go extends Observable implements Runnable {
         }
 
         // Ensure technical validity of the move
-      } while (!Rules.isTechnicallyValid(currentBoard, lastMove));
+      } while (!Rules.isTechnicallyValid(currentBoard, move));
 
       // Play move while considering dynamical validation
-      nextBoard = Rules.playWithDynamicalValidation(currentBoard, lastMove);
+      nextBoard = Rules.playWithDynamicalValidation(currentBoard, move);
       setChanged();
 
       // Ensure historical validity
     } while (!Rules.isHistoricallyValid(this, nextBoard));
 
-    if (hasChanged() && lastMove != null) {
-      notifyObservers(lastMove);
+    if (hasChanged() && move != null) {
+      notifyObservers(move);
       setChanged();
 
     } else {
@@ -209,7 +209,7 @@ public class Go extends Observable implements Runnable {
   }
 
   /** @return the current {@code Player}. */
-  Player getCurrentPlayer() {
+  public Player getCurrentPlayer() {
     return getPlayers()[getCurrentPlayerIndex()];
   }
 }

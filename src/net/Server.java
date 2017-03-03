@@ -5,6 +5,7 @@ import static net.Protocol.Keyword.CANCEL;
 import static net.Protocol.Keyword.CHAT;
 import static net.Protocol.Keyword.EXIT;
 import static net.Protocol.Keyword.GO;
+import static net.Protocol.Keyword.MOVE;
 import static net.Protocol.Keyword.PLAYER;
 import static net.Protocol.Keyword.READY;
 import static net.Protocol.Keyword.WAITING;
@@ -14,6 +15,7 @@ import static net.Protocol.WHITE;
 import static net.Protocol.isValidDimension;
 
 import game.Go;
+import game.Rules;
 import game.action.Move;
 import game.action.Move.MoveType;
 import game.material.Stone;
@@ -220,18 +222,6 @@ public class Server {
 
     private Command expect(Command... expectedCommands)
         throws UnexpectedKeywordException, MalformedArgumentsException {
-      // List<Command> expectedCommandList =
-      //     Arrays.stream(expectedCommands).collect(Collectors.toList());
-      //
-      //      Command chatCommand = new Command(CHAT);
-      //      chatCommand.setExecutable(this::chatHandler);
-      //      expectedCommandList.add(chatCommand);
-      //
-      //      Command exitCommand = new Command(EXIT);
-      //      exitCommand.setExecutable(argList -> stopClientHandler());
-      //      expectedCommandList.add(exitCommand);
-      //
-      //      return Protocol.expect(in, expectedCommandList.toArray(new Command[] {}));
       return Server.this.expect(
           in,
           this::chatHandler,
@@ -408,6 +398,48 @@ public class Server {
       // Play GO
       Thread goThread = new Thread(go);
       goThread.start();
+
+      // Handle moves by the players
+      Command moveCommand = new Command(MOVE);
+      moveCommand.setExecutable(
+          argList -> {
+            RemotePlayer player = (RemotePlayer) go.getCurrentPlayer();
+            int x = Integer.parseInt(argList.get(0));
+            int y = Integer.parseInt(argList.get(1));
+
+            Client client;
+            if (player.getStone() == Stone.BLACK) {
+              client = blackClient;
+            } else {
+              client = whiteClient;
+            }
+
+            Board currentBoard = go.getBoard();
+            Move move = new Move(x, y, player.getStone());
+
+            if (Rules.isTechnicallyValid(currentBoard, move)) {
+              Board nextBoard = Rules.playWithDynamicalValidation(currentBoard, move);
+              if (Rules.isHistoricallyValid(go, nextBoard)) {
+                sendValid(client, move);
+              } else {
+                sendInvalid(client);
+              }
+            } else {
+              sendInvalid(client);
+            }
+          });
+
+      while (!Rules.isFinished(go)) {
+        //TODO expect MOVE, PASS, TABLEFLIP
+      }
+    }
+
+    private void sendInvalid(Client client) {
+      // send(...) // kick invalid client, notify the other
+    }
+
+    private void sendValid(Client client, Move move) {
+      // broadcast(...) //TODO
     }
 
     private void sendReady() {

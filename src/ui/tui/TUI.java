@@ -138,6 +138,7 @@ public class TUI implements Observer {
     System.out.println("o-----------G");
     System.out.println();
 
+    //TODO add server mode
     List<String> choiceNumbers = Arrays.asList("1", "2", "100");
     String[] choiceStrings = new String[] {"Local game", "Network game", "Exit"};
     MenuAction[] menuActions = new MenuAction[] {this::localMenu, this::netMenu, this::exitMenu};
