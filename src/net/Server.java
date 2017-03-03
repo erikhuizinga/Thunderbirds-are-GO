@@ -406,6 +406,7 @@ public class Server {
 
     @Override
     public void run() {
+      final boolean[] hasReceivedMove = {false};
       go = new Go(dimension, blackPlayer, whitePlayer);
       go.addObserver(this);
 
@@ -420,24 +421,29 @@ public class Server {
       Command moveCommand = new Command(MOVE);
       moveCommand.setExecutable(
           argList -> {
-            RemotePlayer player = (RemotePlayer) go.getCurrentPlayer();
+            // Get move position
             int x = Integer.parseInt(argList.get(0));
             int y = Integer.parseInt(argList.get(1));
 
+            // Determine which of the clients played the stone
+            RemotePlayer player = (RemotePlayer) go.getCurrentPlayer();
+            Stone stone = player.getStone();
             Client client;
-            if (player.getStone() == Stone.BLACK) {
+            if (stone == Stone.BLACK) {
               client = blackClient;
             } else {
               client = whiteClient;
             }
 
+            // Validate move and respond accordingly
             Board currentBoard = go.getBoard();
-            Move move = new Move(x, y, player.getStone());
-
+            Move move = new Move(x, y, stone);
             if (Rules.isTechnicallyValid(currentBoard, move)) {
               Board nextBoard = Rules.playWithDynamicalValidation(currentBoard, move);
               if (Rules.isHistoricallyValid(go, nextBoard)) {
                 sendValid(client, move);
+                hasReceivedMove[0] = true;
+
               } else {
                 sendInvalid(client);
               }
@@ -446,8 +452,82 @@ public class Server {
             }
           });
 
+      // Handle pass
+      Command passCommand = null;
+
+      // Handle tableflip
+      Command tableflipCommand = null;
+
+      // Serve the game
+      Client currentClient = blackClient;
+      Player currentPlayer = blackPlayer;
+      Stone stone = currentPlayer.getStone();
       while (!Rules.isFinished(go)) {
-        //TODO expect MOVE, PASS, TABLEFLIP
+        hasReceivedMove[0] = false;
+        do {
+          // Expect communication
+          Client finalCurrentClient = currentClient;
+          try {
+            Server.expect(
+                currentClient.getPeer().getReader(),
+                argList -> chatHandler(finalCurrentClient, argList),
+                argList -> handleExit(finalCurrentClient),
+                moveCommand,
+                passCommand,
+                tableflipCommand)
+                .printAndExecute();
+          } catch (UnexpectedKeywordException | MalformedArgumentsException ignored) {
+          }
+
+          // Sleep
+          try {
+            Thread.sleep(100);
+          } catch (InterruptedException ignored) {
+          }
+        } while (!hasReceivedMove[0]);
+
+        // Change current client, player and stone
+        currentClient = (currentClient.equals(blackClient)) ? whiteClient : blackClient;
+        currentPlayer = (currentPlayer.equals(blackPlayer)) ? whitePlayer : blackPlayer;
+        stone = stone.other();
+      }
+    }
+
+    private void handleExit(Client exitClient) {
+      serverBroadcast(exitClient.getName() + " left, so the game is over");
+      stopGameHandler();
+    }
+
+    private void serverBroadcast(String msg) {
+      try {
+        broadcast(CHAT, name + " (server): " + msg);
+      } catch (MalformedArgumentsException ignored) {
+      }
+    }
+
+    private void stopGameHandler() {
+      //TODO
+    }
+
+    private void chatHandler(Client chatClient, List<String> argList) {
+      // Log chat message to console
+      argList.add(0, chatClient.getName() + ":");
+      Protocol.chatPrinter(argList);
+
+      // Send chat message to other clients in game
+      String command;
+      try {
+        command = Protocol.validateAndFormatCommandString(CHAT, argList.toArray(new String[] {}));
+      } catch (MalformedArgumentsException e) {
+        warn(chatClient, "CHAT arguments malformed");
+        return;
+      }
+      for (Client client : clients) {
+        Peer peer = client.getPeer();
+        if (peer.equals(chatClient.getPeer())) {
+          continue;
+        }
+        peer.send(command);
       }
     }
 
