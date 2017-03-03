@@ -23,13 +23,20 @@ public class Go extends Observable implements Runnable {
    * plays as black.
    */
   private final Player[] players;
+
   /**
    * The board history as a {@code Collection} of the {@code hashCode} values of all previous {@code
    * Board} layouts.
    */
   private final Collection<Integer> boardHistory = new HashSet<Integer>();
+
   /** The Go game {@code Board}. */
   private Board board;
+
+  private Move lastMove;
+
+  private MoveType lastMoveType;
+
   /**
    * Equal to 0 or 1, indicating the first (black) or second (white) player's turn respectively. The
    * value is initialised on the white player, because playing a turn involves changing to the next
@@ -89,7 +96,6 @@ public class Go extends Observable implements Runnable {
   }
 
   void playTurn() {
-    Move move;
     Board nextBoard;
     Player currentPlayer = nextPlayer();
     Board currentBoard = getBoard();
@@ -105,32 +111,35 @@ public class Go extends Observable implements Runnable {
         clearChanged();
 
         // Get next move from current player
-        move = currentPlayer.nextMove(currentBoard);
+        lastMove = currentPlayer.nextMove(currentBoard);
 
         // Determine if the next move is a move
-        if (move == null) {
+        if (lastMove == null) {
           nextBoard = currentBoard;
 
-          if (getCurrentPlayer().getMoveType() == MoveType.PASS) {
-            setChanged();
-            notifyObservers(getCurrentPlayer() + " passes.");
+          lastMoveType = getCurrentPlayer().getMoveType();
+          if (lastMoveType == MoveType.PASS) {
+            setChangedAndNotifyObservers(getCurrentPlayer() + " passes.");
           }
           break turnLoopLabel;
         }
 
         // Ensure technical validity of the move
-      } while (!Rules.isTechnicallyValid(currentBoard, move));
+      } while (!Rules.isTechnicallyValid(currentBoard, lastMove));
 
       // Play move while considering dynamical validation
-      nextBoard = Rules.playWithDynamicalValidation(currentBoard, move);
+      nextBoard = Rules.playWithDynamicalValidation(currentBoard, lastMove);
       setChanged();
 
       // Ensure historical validity
     } while (!Rules.isHistoricallyValid(this, nextBoard));
 
-    if (hasChanged() && move != null) {
-      notifyObservers(move);
+    if (hasChanged() && lastMove != null) {
+      notifyObservers(lastMove);
       setChanged();
+
+    } else {
+      setChangedAndNotifyObservers(lastMoveType);
     }
 
     // Add the current board to the history and set the new board as the current

@@ -12,7 +12,10 @@ import static net.Protocol.SPACE;
 
 import game.Go;
 import game.Rules;
+import game.action.Move;
+import game.action.Move.MoveType;
 import game.material.Stone;
+import game.material.board.Board;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
@@ -239,10 +242,11 @@ public class Client implements Observer {
     // Instantiate game
     Go go = new Go(dimension, blackPlayer, whitePlayer);
 
-    // Add TUI as observer of the game
+    // Add observers of the game
     if (tui != null) {
       go.addObserver(tui);
     }
+    go.addObserver(this);
 
     // Start the game
     Thread goThread = new Thread(go);
@@ -296,6 +300,15 @@ public class Client implements Observer {
   public void update(Observable o, Object arg) {
     if (o instanceof Go) {
       Go go = (Go) o;
+      if (arg instanceof Board) {
+        Board board = (Board) arg;
+
+      } else if (arg instanceof Move) {
+        Move move = (Move) arg;
+
+      } else if (arg instanceof MoveType) {
+        MoveType moveType = (MoveType) arg;
+      }
     }
   }
 }

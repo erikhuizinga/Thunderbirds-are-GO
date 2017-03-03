@@ -14,6 +14,9 @@ import static net.Protocol.WHITE;
 import static net.Protocol.isValidDimension;
 
 import game.Go;
+import game.action.Move;
+import game.action.Move.MoveType;
+import game.action.MoveTest;
 import game.material.Stone;
 import game.material.board.Board;
 import java.io.IOException;
@@ -405,6 +408,12 @@ public class Server {
           System.out.println();
           System.out.println(board);
           System.out.println();
+
+        } else if (arg instanceof Move) {
+          Move move = (Move) arg;
+
+        } else if (arg instanceof MoveType) {
+          MoveType moveType = (MoveType) arg;
         }
       }
     }
